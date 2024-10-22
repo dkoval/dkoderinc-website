@@ -48,19 +48,20 @@ const Terminal: React.FC = () => {
   };
 
   const handleCommand = (cmd: string) => {
-    if (cmd.toLowerCase() === 'clear') {
+    const trimmedCmd = cmd.trim().toLowerCase();
+    
+    if (trimmedCmd === 'clear') {
       setTerminalOutput(displayHelp());
     } else {
-      const output =
-        commands[cmd.toLowerCase() as keyof typeof commands] ||
-        `Command not found: ${cmd}`;
-      const newOutput: TerminalLine[] = [
-        { content: `$ ${cmd}`, type: 'input' },
+        const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
+
+        const newOutput: TerminalLine[] = [
+        { content: `$ ${trimmedCmd}`, type: 'input' },
         ...(Array.isArray(output)
           ? output.map((line) => ({
               content: line,
-              type: 'output',
-              isHtml: cmd.toLowerCase() === 'contact',
+              type: 'output' as const,
+              isHtml: trimmedCmd === 'contact',
             }))
           : [
               {
@@ -68,7 +69,7 @@ const Terminal: React.FC = () => {
                 type: output.startsWith('Command not found')
                   ? 'error'
                   : 'output',
-              },
+              } as const,
             ]),
       ];
       setTerminalOutput((prevOutput) => [...prevOutput, ...newOutput]);
