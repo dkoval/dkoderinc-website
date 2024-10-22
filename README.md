@@ -1,3 +1,3 @@
 # dkoderinc-website
 
-[Edit in StackBlitz next generation editor ⚡️](https://stackblitz.com/~/github.com/dkoval/dkoderinc-website)
+The source code for the [DKoder Inc.](https://dkoderinc.com) website.
