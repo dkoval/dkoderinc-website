@@ -7,7 +7,7 @@ const AboutMe: React.FC = () => {
       <div className="md:w-1/3">
         <div className="w-full aspect-square bg-gray-700 rounded-lg mb-4 overflow-hidden">
           <img
-            src="https://via.placeholder.com/300x300.png?text=Dmytro+Koval"
+            src="/dmytro_koval_headshot.jpg"
             alt="Dmytro Koval"
             className="w-full h-full object-cover"
           />
