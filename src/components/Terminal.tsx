@@ -94,7 +94,10 @@ const Terminal: React.FC = () => {
 
   useEffect(() => {
     if (terminalRef.current) {
-      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+      const { scrollHeight, clientHeight } = terminalRef.current;
+      if (scrollHeight > clientHeight) {
+        terminalRef.current.scrollTop = scrollHeight - clientHeight;
+      }
     }
   }, [terminalOutput]);
 
