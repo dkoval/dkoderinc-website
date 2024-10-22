@@ -139,6 +139,7 @@ const Terminal: React.FC = () => {
           onKeyDown={handleKeyDown}
           className="bg-black text-white font-mono flex-grow p-2 rounded"
           placeholder="Type a command..."
+          autoCapitalize="none"
         />
         <button
           onClick={() => handleCommand(inputCommand)}
