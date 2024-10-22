@@ -104,7 +104,7 @@ const Terminal: React.FC = () => {
 
   return (
     <section className="md:w-full bg-gray-900 bg-opacity-50 p-4 rounded-lg">
-      <h2 className="text-xl font-mono font-semibold mb-4 flex items-center">
+      <h2 className="text-xl font-mono font-argon font-semibold mb-4 flex items-center">
         <Home className="mr-2 text-green-400" />
         <span className="text-green-400">admin@dkoderinc</span>
         <span className="text-white">:</span>
@@ -116,7 +116,7 @@ const Terminal: React.FC = () => {
         className="bg-black p-4 rounded h-64 overflow-y-auto mb-4"
       >
         {terminalOutput.map((line, index) => (
-          <p key={index} className={`font-mono ${getLineColor(line.type)}`}>
+          <p key={index} className={`font-mono font-argon ${getLineColor(line.type)}`}>
             {line.isHtml ? (
               <span
                 dangerouslySetInnerHTML={{
@@ -130,14 +130,14 @@ const Terminal: React.FC = () => {
         ))}
       </div>
       <div className="flex items-center">
-        <span className="font-mono mr-2 text-green-400">$</span>
+        <span className="font-mono font-argon mr-2 text-green-400">$</span>
         <input
           ref={inputRef}
           type="text"
           value={inputCommand}
           onChange={(e) => setInputCommand(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="bg-black text-white font-mono flex-grow p-2 rounded"
+          className="bg-black text-white font-mono font-argon flex-grow p-2 rounded"
           placeholder="Type a command..."
           autoCapitalize="none"
         />

@@ -13,7 +13,7 @@ const AboutMe: React.FC = () => {
           />
         </div>
       </div>
-      <div className="md:w-2/3 font-mono">
+      <div className="md:w-2/3 font-mono font-argon">
         <div className="bg-black p-4 rounded-lg text-green-400">
           <p className="mb-2">$ cat about_dmytro_koval.txt</p>
           <div className="text-blue-300">
