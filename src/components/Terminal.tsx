@@ -103,7 +103,7 @@ const Terminal: React.FC = () => {
   }, [terminalOutput]);
 
   return (
-    <section className="md:w-full bg-gray-900 bg-opacity-50 p-4 rounded-lg">
+    <section className="w-full bg-gray-900 bg-opacity-50 p-4 rounded-lg">
       <h2 className="text-xl font-mono font-argon font-semibold mb-4 flex items-center">
         <Home className="mr-2 text-green-400" />
         <span className="text-green-400">admin@dkoderinc</span>
@@ -129,23 +129,25 @@ const Terminal: React.FC = () => {
           </p>
         ))}
       </div>
-      <div className="flex items-center">
-        <span className="font-mono font-argon mr-2 text-green-400">$</span>
-        <input
-          ref={inputRef}
-          type="text"
-          value={inputCommand}
-          onChange={(e) => setInputCommand(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="bg-black text-white font-mono font-argon flex-grow p-2 rounded"
-          placeholder="Type a command..."
-          autoCapitalize="none"
-        />
+      <div className="flex items-center space-x-2 w-full">
+        <div className="flex-1 flex items-center min-w-0">
+          <span className="font-mono font-argon text-green-400 shrink-0">$</span>
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputCommand}
+            onChange={(e) => setInputCommand(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="bg-black text-white font-mono font-argon w-full p-2 rounded ml-2"
+            placeholder="Type a command..."
+            autoCapitalize="none"
+          />
+        </div>
         <button
           onClick={() => handleCommand(inputCommand)}
-          className="ml-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded shrink-0"
         >
-          <Code2 />
+          <Code2 className="w-5 h-5" />
         </button>
       </div>
     </section>
