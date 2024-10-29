@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Code2 } from 'lucide-react';
-import LoadingTerminal from './LoadingTerminal';
+import LoadingTerminal from './Headshot';
 
 const AboutMe: React.FC = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
