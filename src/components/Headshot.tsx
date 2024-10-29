@@ -9,11 +9,11 @@ const LoadingTerminal: React.FC = () => {
         <span>loading_image.sh headshot.jpg</span>
       </div>
       <div className="text-green-400 typewriter-effect">
-        <p>$ loading profile image...</p>
+        <p>loading profile image...</p>
         <p className="mt-1">[====================] 100%</p>
-        <p className="mt-1 text-yellow-400">chmod 644 headshot.jpg</p>
-        <p className="mt-1 text-blue-400">cat headshot.jpg &gt; /dev/display</p>
-        <div className="mt-2 animate-pulse">_</div>
+        <p className="mt-1 text-green-400">chmod 644 headshot.jpg</p>
+        <p className="mt-1 text-green-400">cat headshot.jpg &gt; /dev/display</p>
+        <div className="mt-2 animate-blink">_</div>
       </div>
     </div>
   );
