@@ -7,7 +7,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center">
         <div className="flex items-center mb-4 sm:mb-0">
           <div className="bg-black rounded-lg p-2 mr-2">
-            <span className="font-mono font-argon text-green-400 text-xl">$</span>
+            <span className="font-mono font-argon text-green-400 text-xl">&gt;_</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-mono font-argon font-bold">
             <span className="text-green-400">dmytro_koval@</span>
