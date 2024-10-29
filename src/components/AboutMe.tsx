@@ -66,7 +66,7 @@ const AboutMe: React.FC = () => {
             <p className="mb-4 text-sm sm:text-base">
               My expertise lies in building robust, scalable, and efficient
               server-side applications, but I am genuinely interested in any
-              engineering problem that is intellectually challenging.
+              intellectually engaging engineering problem.
             </p>
           </div>
           <p className="mb-2 mt-4">$ ls skills/</p>
@@ -93,7 +93,7 @@ const AboutMe: React.FC = () => {
             </li>
             <li className="flex items-center mb-1">
               <Code2 className="inline-block mr-2 text-yellow-400 w-5 h-5" />
-              Apache Kafka and Kafka Streams
+              Technical leadership
             </li>
           </ul>
         </div>
