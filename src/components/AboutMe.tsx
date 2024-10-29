@@ -52,10 +52,10 @@ const AboutMe: React.FC = () => {
       </div>
       <div className="md:w-2/3 font-mono font-argon">
         <div className="bg-black p-4 rounded-lg text-green-400">
-          <p className="mb-2">$ cat about_dmytro_koval.txt</p>
+          <p className="mb-2 text-sm sm:text-base">$ cat about_dmytro_koval.txt</p>
           <div className="text-blue-300">
-            <p className="mb-2">Hi, my name is ...</p>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-yellow-400">
+            <p className="mb-2 text-sm sm:text-base">Hi, my name is ...</p>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-yellow-400">
               Dmytro Koval
             </h2>
             <p className="mb-4 text-sm sm:text-base">
@@ -69,30 +69,30 @@ const AboutMe: React.FC = () => {
               intellectually engaging engineering problem.
             </p>
           </div>
-          <p className="mb-2 mt-4">$ ls skills/</p>
-          <ul className="list-none text-blue-300 text-sm sm:text-base">
-            <li className="flex items-center mb-1">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-5 h-5" />
+          <p className="mb-2 mt-4 text-sm sm:text-base">$ ls skills/</p>
+          <ul className="list-none text-blue-300">
+            <li className="flex items-center mb-1 text-sm sm:text-base">
+              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
               Java and Kotlin programming languages
             </li>
-            <li className="flex items-center mb-1">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-5 h-5" />
+            <li className="flex items-center mb-1 text-sm sm:text-base">
+              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
               Microservices and distributed systems
             </li>
-            <li className="flex items-center mb-1">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-5 h-5" />
+            <li className="flex items-center mb-1 text-sm sm:text-base">
+              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
               API design and integration
             </li>
-            <li className="flex items-center mb-1">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-5 h-5" />
+            <li className="flex items-center mb-1 text-sm sm:text-base">
+              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
               Concurrent, latency-sensitive applications
             </li>
-            <li className="flex items-center mb-1">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-5 h-5" />
+            <li className="flex items-center mb-1 text-sm sm:text-base">
+              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
               Event-driven architecture
             </li>
-            <li className="flex items-center mb-1">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-5 h-5" />
+            <li className="flex items-center mb-1 text-sm sm:text-base">
+              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
               Technical leadership
             </li>
           </ul>

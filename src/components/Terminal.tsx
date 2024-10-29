@@ -104,8 +104,8 @@ const Terminal: React.FC = () => {
 
   return (
     <section className="w-full bg-gray-900 bg-opacity-50 p-4 rounded-lg">
-      <h2 className="text-xl font-mono font-argon font-semibold mb-4 flex items-center">
-        <Home className="mr-2 text-green-400" />
+      <h2 className="text-base sm:text-lg font-mono font-argon font-semibold mb-4 flex items-center">
+        <Home className="mr-2 text-green-400 w-4 h-4 sm:w-5 sm:h-5" />
         <span className="text-green-400">admin@dkoderinc</span>
         <span className="text-white">:</span>
         <span className="text-blue-400">~</span>
@@ -113,7 +113,7 @@ const Terminal: React.FC = () => {
       </h2>
       <div
         ref={terminalRef}
-        className="bg-black p-4 rounded h-64 overflow-y-auto mb-4"
+        className="bg-black p-4 rounded h-64 overflow-y-auto mb-4 text-sm sm:text-base"
       >
         {terminalOutput.map((line, index) => (
           <p key={index} className={`font-mono font-argon ${getLineColor(line.type)}`}>
@@ -131,14 +131,14 @@ const Terminal: React.FC = () => {
       </div>
       <div className="flex items-center space-x-2 w-full">
         <div className="flex-1 flex items-center min-w-0">
-          <span className="font-mono font-argon text-green-400 shrink-0">$</span>
+          <span className="font-mono font-argon text-green-400 text-sm sm:text-base shrink-0">$</span>
           <input
             ref={inputRef}
             type="text"
             value={inputCommand}
             onChange={(e) => setInputCommand(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="bg-black text-white font-mono font-argon w-full p-2 rounded ml-2"
+            className="bg-black text-white font-mono font-argon w-full p-2 rounded ml-2 text-sm sm:text-base"
             placeholder="Type a command..."
             autoCapitalize="none"
           />
@@ -147,7 +147,7 @@ const Terminal: React.FC = () => {
           onClick={() => handleCommand(inputCommand)}
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded shrink-0"
         >
-          <Code2 className="w-5 h-5" />
+          <Code2 className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       </div>
     </section>
