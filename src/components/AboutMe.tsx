@@ -52,7 +52,7 @@ const AboutMe: React.FC = () => {
       </div>
       <div className="md:w-2/3 font-mono font-argon">
         <div className="bg-black p-4 rounded-lg text-green-400">
-          <p className="mb-2 text-sm sm:text-base">$ cat about_dmytro_koval.txt</p>
+          <p className="mb-2 text-sm sm:text-base">$ cat about_me.txt</p>
           <div className="text-blue-300">
             <p className="mb-2 text-sm sm:text-base">Hi, my name is ...</p>
             <h2 className="text-xl sm:text-2xl font-bold mb-4 text-yellow-400">

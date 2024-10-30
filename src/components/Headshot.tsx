@@ -6,7 +6,7 @@ const LoadingTerminal: React.FC = () => {
     <div className="absolute inset-0 flex flex-col p-4 font-mono text-sm">
       <div className="flex items-center gap-2 text-green-400 mb-2">
         <Terminal className="w-4 h-4" />
-        <span>loading_image.sh headshot.jpg</span>
+        <span>load_image.sh headshot.jpg</span>
       </div>
       <div className="text-green-400 typewriter-effect">
         <p>loading profile image...</p>
