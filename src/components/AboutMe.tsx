@@ -90,9 +90,9 @@ const AboutMe: React.FC<AboutMeProps> = ({ whoAmI, headshotImage, summary, skill
           <ul className="list-none text-blue-300">
             {skills.map((skill, index) => (
               <li key={index} className="flex items-center mb-1 text-sm sm:text-base">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
-              {skill}
-            </li>
+                <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
+                {skill}
+              </li>
             ))}            
           </ul>
         </div>
