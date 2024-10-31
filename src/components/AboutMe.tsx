@@ -2,7 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Code2 } from 'lucide-react';
 import LoadingTerminal from './Headshot';
 
-const AboutMe: React.FC = () => {
+type AboutMeProps = {
+  whoAmI: string;
+  headshotImage: string;
+  summary: string[];
+  skills: string[];
+}
+
+const AboutMe: React.FC<AboutMeProps> = ({ whoAmI, headshotImage, summary, skills }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showImage, setShowImage] = useState(false);
 
@@ -24,20 +31,20 @@ const AboutMe: React.FC = () => {
           <div 
             className={`absolute inset-0 bg-cover bg-center blur-lg scale-110 transition-opacity duration-500 ${showImage ? 'opacity-0' : 'opacity-0'}`}
             style={{
-              backgroundImage: `url(images/dmytro_koval_headshot.jpg?quality=1&width=50)`,
+              backgroundImage: `url(${headshotImage}?quality=1&width=50)`,
             }}
           />
           <picture>
             <source
               media="(min-width: 768px)"
-              srcSet="images/dmytro_koval_headshot.jpg?width=400 1x, images/dmytro_koval_headshot.jpg?width=800 2x"
+              srcSet={`${headshotImage}?width=400 1x, ${headshotImage}?width=800 2x`}
             />
             <source
-              srcSet="images/dmytro_koval_headshot.jpg?width=300 1x, images/dmytro_koval_headshot.jpg?width=600 2x"
+              srcSet={`${headshotImage}?width=300 1x, ${headshotImage}?width=600 2x`}
             />
             <img
-              src="images/dmytro_koval_headshot.jpg?width=400"
-              alt="Dmytro Koval"
+              src={`${headshotImage}?width=400`}
+              alt={whoAmI}
               width={400}
               height={400}
               loading="lazy"
@@ -55,46 +62,21 @@ const AboutMe: React.FC = () => {
           <p className="mb-2 text-sm sm:text-base">$ cat about_me.txt</p>
           <div className="text-blue-300">
             <p className="mb-2 text-sm sm:text-base">Hi, my name is ...</p>
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-yellow-400">
-              Dmytro Koval
-            </h2>
-            <p className="mb-4 text-sm sm:text-base">
-              I am a seasoned software engineer with over 15 years of experience
-              in the industry. I specialize in backend development using a wide
-              range of open-source technologies in Java and Kotlin.
-            </p>
-            <p className="mb-4 text-sm sm:text-base">
-              My expertise lies in building robust, scalable, and efficient
-              server-side applications, but I am genuinely interested in any
-              intellectually engaging engineering problem.
-            </p>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-yellow-400">{whoAmI}</h2>
+            {summary.map((paragraph, index) => (
+              <p key={index} className="mb-4 text-sm sm:text-base">
+                {paragraph}
+              </p>
+            ))}            
           </div>
           <p className="mb-2 mt-4 text-sm sm:text-base">$ ls skills/</p>
           <ul className="list-none text-blue-300">
-            <li className="flex items-center mb-1 text-sm sm:text-base">
+            {skills.map((skill, index) => (
+              <li key={index} className="flex items-center mb-1 text-sm sm:text-base">
               <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
-              Java and Kotlin programming languages
+              {skill}
             </li>
-            <li className="flex items-center mb-1 text-sm sm:text-base">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
-              Microservices and distributed systems
-            </li>
-            <li className="flex items-center mb-1 text-sm sm:text-base">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
-              API design and integration
-            </li>
-            <li className="flex items-center mb-1 text-sm sm:text-base">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
-              Concurrent, latency-sensitive applications
-            </li>
-            <li className="flex items-center mb-1 text-sm sm:text-base">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
-              Event-driven architecture
-            </li>
-            <li className="flex items-center mb-1 text-sm sm:text-base">
-              <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
-              Technical leadership
-            </li>
+            ))}            
           </ul>
         </div>
       </div>
