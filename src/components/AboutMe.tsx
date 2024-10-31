@@ -45,7 +45,7 @@ const AboutMe: React.FC<AboutMeProps> = ({ whoAmI, headshotImage, summary, skill
       <div className="md:w-1/3">
         <div className="relative w-full aspect-[4/5] md:aspect-square bg-gray-900 rounded-lg mb-4 overflow-hidden">
           {!showImage && <FakeImageLoader />}
-          <div 
+          <div
             className="absolute inset-0 bg-cover bg-center blur-lg scale-110 transition-opacity duration-500 opacity-0"
             style={{
               backgroundImage: `url(${headshotImage}?quality=1&width=50)`,
@@ -67,9 +67,7 @@ const AboutMe: React.FC<AboutMeProps> = ({ whoAmI, headshotImage, summary, skill
               loading="lazy"
               decoding="async"
               onLoad={() => setImageLoaded(true)}
-              className={`w-full h-full object-cover transition-opacity duration-500 ${
-                showImage ? 'opacity-100' : 'opacity-0'
-              }`}
+              className={`w-full h-full object-cover transition-opacity duration-500 ${showImage ? 'opacity-100' : 'opacity-0'}`}
             />
           </picture>
         </div>
@@ -79,12 +77,14 @@ const AboutMe: React.FC<AboutMeProps> = ({ whoAmI, headshotImage, summary, skill
           <p className="mb-2 text-sm sm:text-base">$ cat about_me.txt</p>
           <div className="text-blue-300">
             <p className="mb-2 text-sm sm:text-base">Hi, my name is ...</p>
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-yellow-400">{whoAmI}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-yellow-400">
+              {whoAmI}
+            </h2>
             {summary.map((paragraph, index) => (
               <p key={index} className="mb-4 text-sm sm:text-base">
                 {paragraph}
               </p>
-            ))}            
+            ))}
           </div>
           <p className="mb-2 mt-4 text-sm sm:text-base">$ ls skills/</p>
           <ul className="list-none text-blue-300">
@@ -93,7 +93,7 @@ const AboutMe: React.FC<AboutMeProps> = ({ whoAmI, headshotImage, summary, skill
                 <Code2 className="inline-block mr-2 text-yellow-400 w-4 h-4 sm:w-5 sm:h-5" />
                 {skill}
               </li>
-            ))}            
+            ))}
           </ul>
         </div>
       </div>
