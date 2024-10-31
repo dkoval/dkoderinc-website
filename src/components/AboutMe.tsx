@@ -8,7 +8,7 @@ type AboutMeProps = {
   skills: string[];
 }
 
-const LoadingTerminal: React.FC = () => {
+const FakeImageLoader: React.FC = () => {
   return (
     <div className="absolute inset-0 flex flex-col p-4 font-mono text-sm">
       <div className="flex items-center gap-2 text-green-400 mb-2">
@@ -44,7 +44,7 @@ const AboutMe: React.FC<AboutMeProps> = ({ whoAmI, headshotImage, summary, skill
     <section className="w-full mb-8 flex flex-col md:flex-row gap-6">
       <div className="md:w-1/3">
         <div className="relative w-full aspect-[4/5] md:aspect-square bg-gray-900 rounded-lg mb-4 overflow-hidden">
-          {!showImage && <LoadingTerminal />}
+          {!showImage && <FakeImageLoader />}
           <div 
             className="absolute inset-0 bg-cover bg-center blur-lg scale-110 transition-opacity duration-500 opacity-0"
             style={{
