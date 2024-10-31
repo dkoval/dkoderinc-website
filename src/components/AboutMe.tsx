@@ -29,7 +29,7 @@ const AboutMe: React.FC<AboutMeProps> = ({ whoAmI, headshotImage, summary, skill
         <div className="relative w-full aspect-[4/5] md:aspect-square bg-gray-900 rounded-lg mb-4 overflow-hidden">
           {!showImage && <LoadingTerminal />}
           <div 
-            className={`absolute inset-0 bg-cover bg-center blur-lg scale-110 transition-opacity duration-500 ${showImage ? 'opacity-0' : 'opacity-0'}`}
+            className="absolute inset-0 bg-cover bg-center blur-lg scale-110 transition-opacity duration-500 opacity-0"
             style={{
               backgroundImage: `url(${headshotImage}?quality=1&width=50)`,
             }}
