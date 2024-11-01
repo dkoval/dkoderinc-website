@@ -1,4 +1,4 @@
-name: Generate a build and push it to another branch
+name: Build
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
       - uses: s0/git-publish-subdir-action@v2
         env:
           REPO: self
-          BRANCH: build
+          BRANCH: dist
           FOLDER: dist
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MESSAGE: "Build: ({sha}) {msg}"
