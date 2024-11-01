@@ -74,7 +74,7 @@ const AboutMe: React.FC<AboutMeProps> = ({ whoAmI, headshotImage, summary, skill
       </div>
       <div className="md:w-2/3 font-mono font-argon">
         <div className="bg-black p-4 rounded-lg text-green-400">
-          <p className="mb-2 text-sm sm:text-base">$ cat about_me.txt</p>
+          <p className="mb-2 text-sm sm:text-base">$ more about_me.txt</p>
           <div className="text-gray-200">
             <p className="mb-2 text-sm sm:text-base">Hi, my name is ...</p>
             <h2 className="text-xl sm:text-2xl font-bold mb-4 text-yellow-400">
@@ -86,7 +86,7 @@ const AboutMe: React.FC<AboutMeProps> = ({ whoAmI, headshotImage, summary, skill
               </p>
             ))}
           </div>
-          <p className="mb-2 mt-4 text-sm sm:text-base">$ ls skills/</p>
+          <p className="mb-2 mt-4 text-sm sm:text-base">$ ls skills | head -10</p>
           <ul className="list-none text-gray-200">
             {skills.map((skill, index) => (
               <li key={index} className="flex items-center mb-1 text-sm sm:text-base">
