@@ -8,7 +8,7 @@ import Terminal from './components/Terminal';
 
 const aboutMeProps = {
   whoAmI: "Dmytro Koval",
-  headshotImage: "images/dmytro_koval_headshot.jpg",
+  headshotImage: "images/headshot.webp",
   summary: [
     "I am a seasoned software engineer with over 15 years of experience in the industry. \
     I specialize in backend development using a wide range of open-source technologies in Java and Kotlin.",

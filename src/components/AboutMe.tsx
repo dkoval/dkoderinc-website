@@ -6,20 +6,20 @@ type AboutMeProps = {
   headshotImage: string;
   summary: string[];
   skills: string[];
-}
+};
 
 const FakeImageLoader: React.FC = () => {
   return (
     <div className="absolute inset-0 flex flex-col p-4 font-mono text-sm">
       <div className="flex items-center gap-2 text-green-400 mb-2">
         <Terminal className="w-4 h-4" />
-        <span>load_image.sh headshot.jpg</span>
+        <span>load_image.sh headshot.webp</span>
       </div>
       <div className="text-green-400 typewriter-effect">
-        <p>loading profile image...</p>
+        <p className="mt-1">loading image...</p>
         <p className="mt-1">[====================] 100%</p>
-        <p className="mt-1 text-green-400">chmod 644 headshot.jpg</p>
-        <p className="mt-1 text-green-400">cat headshot.jpg &gt; /dev/display</p>
+        <p className="mt-1 text-green-400">chmod 644 headshot.web</p>
+        <p className="mt-1 text-green-400">cat headshot.webp &gt; /dev/display</p>
         <div className="mt-2 animate-blink">_</div>
       </div>
     </div>
@@ -32,7 +32,7 @@ const AboutMe: React.FC<AboutMeProps> = ({ whoAmI, headshotImage, summary, skill
 
   useEffect(() => {
     if (imageLoaded) {
-      // Reduced delay to 1.5 seconds for a snappier experience
+      // set delay to 1.5 seconds for a snappier experience
       const timer = setTimeout(() => {
         setShowImage(true);
       }, 1500);
