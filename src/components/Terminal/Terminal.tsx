@@ -234,7 +234,7 @@ const Terminal: React.FC = () => {
         </div>
         <div className="flex items-center space-x-2 text-xs text-gray-400">
           <span>🔋 100%</span>
-          <span>📡 Connected</span>
+          <span>📡 OK</span>
         </div>
       </div>
       <div
