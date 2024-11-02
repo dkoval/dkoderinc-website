@@ -32,8 +32,7 @@ const Terminal: React.FC = () => {
       { content: '$ help', type: 'input' as const, timestamp: getCurrentTime() },
       ...commands.help.map((line) => ({
         content: line,
-        type: 'output' as const,
-        timestamp: getCurrentTime(),
+        type: 'output' as const,        
       })),
     ];
   };
@@ -81,16 +80,14 @@ const Terminal: React.FC = () => {
           ? output.map((line) => ({
               content: line,
               type: 'output' as const,
-              isHtml: trimmedCmd === 'contact',
-              timestamp: getCurrentTime()
+              isHtml: trimmedCmd === 'contact',              
             }))
           : [
               {
                 content: output,
                 type: output.startsWith('Command not found')
                   ? 'error'
-                  : 'output',
-                timestamp: getCurrentTime()
+                  : 'output',                
               } as const,
             ]),
       ];
@@ -246,9 +243,6 @@ const Terminal: React.FC = () => {
       >
         {terminalOutput.map((line, index) => (
           <div key={index} className="group flex items-start hover:bg-gray-900/30 px-2 py-0.5 -mx-2 rounded">
-            <span className="text-gray-500 text-xs mr-2 opacity-0 group-hover:opacity-100 select-none">
-              {line.timestamp}
-            </span>
             <p className={`font-mono font-argon ${getLineColor(line.type)} flex-1`}>
               {line.isHtml ? (
                 <span
@@ -260,6 +254,9 @@ const Terminal: React.FC = () => {
                 line.content
               )}
             </p>
+            <span className="text-gray-500 text-xs mr-2 opacity-0 group-hover:opacity-100 select-none">
+              {line.timestamp}
+            </span>
           </div>
         ))}
       </div>
