@@ -16,7 +16,7 @@ jobs:
       - run: |
           npm install
           npm run build
-      - uses: s0/git-publish-subdir-action@v2
+      - uses: s0/git-publish-subdir-action@v2.6.0
         env:
           REPO: self
           BRANCH: dist
