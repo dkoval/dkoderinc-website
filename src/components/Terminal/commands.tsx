@@ -3,7 +3,7 @@ import { Command, Cpu, History, Mail, Sparkles } from 'lucide-react';
 import { CommandSuggestion } from './types';
 
 export const suggestions: CommandSuggestion[] = [
-  { command: 'about', description: 'Learn about Dmytro Koval', icon: <Command className="w-4 h-4 text-purple-400" /> },
+  { command: 'about', description: 'Learn about me', icon: <Command className="w-4 h-4 text-purple-400" /> },
   { command: 'experience', description: 'See professional experience', icon: <History className="w-4 h-4 text-yellow-400" /> },
   { command: 'skills', description: 'View technical expertise', icon: <Cpu className="w-4 h-4 text-green-400" /> },
   { command: 'contact', description: 'Get contact information', icon: <Mail className="w-4 h-4 text-blue-400" /> },
@@ -13,7 +13,7 @@ export const suggestions: CommandSuggestion[] = [
 export const commands = {
   help: [
     '🚀 Example usage:',
-    '  about      - Learn about Dmytro Koval',
+    '  about      - Learn about me',
     '  experience - See professional experience',
     '  skills     - View technical expertise',
     '  contact    - Get contact information',
