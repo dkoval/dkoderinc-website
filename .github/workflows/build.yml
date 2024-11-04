@@ -21,7 +21,7 @@ jobs:
       - uses: s0/git-publish-subdir-action@v2.6.0
         env:
           REPO: self
-          BRANCH: dist
-          FOLDER: dist
+          BRANCH: build
+          FOLDER: build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MESSAGE: "Build: ({sha}) {msg}"
