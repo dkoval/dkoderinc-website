@@ -1,51 +1,47 @@
-import React, { useEffect } from 'react';
-import Header from './components/Header';
-import Main from './components/Main';
-import Footer from './components/Footer';
-import AboutMe from './components/AboutMe';
+import React, { useState, useCallback } from 'react';
+import BootSplash from './components/BootSplash';
+import Sidebar from './components/Sidebar';
+import TerminalWindow from './components/TerminalWindow';
 import Terminal from './components/Terminal';
 
-const aboutMeProps = {
-  whoAmI: "Dmytro Koval",
-  headshotImage: "images/headshot.webp",
-  summary: [
-    "I am a seasoned software engineer with over 15 years of experience in the industry. \
-    I specialize in backend development using a wide range of open-source technologies in Java and Kotlin.",
-    "My expertise lies in building robust, scalable, and efficient server-side applications, \
-    but I am genuinely interested in any intellectually engaging engineering problem."
-  ],
-  skills: [
-    "Java and Kotlin programming languages",
-    "Microservices and distributed systems",
-    "API design and integration",
-    "Concurrent, latency-sensitive applications",
-    "Event-driven architecture",
-    "Technical leadership"
-  ]
-};
-
 const App: React.FC = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  const [showBootSplash, setShowBootSplash] = useState(true);
+  const handleBootComplete = useCallback(() => setShowBootSplash(false), []);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col font-neon">
-      <Header />
+    <div className="min-h-screen flex flex-col" style={{ background: '#000' }}>
+      {showBootSplash && <BootSplash onComplete={handleBootComplete} />}
       <div
-        className="flex-1"
-        style={{
-          backgroundImage: "url(images/background.webp)",
-          backgroundSize: "cover",
-          backgroundPosition: "center"
-        }}
+        className="flex flex-col flex-1"
+        style={{ opacity: showBootSplash ? 0 : 1, transition: 'opacity 0.3s' }}
       >
-        <Main>
-          <AboutMe {...aboutMeProps} />
-          <Terminal />
-        </Main>
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden" style={{ minHeight: '100vh' }}>
+          <Sidebar />
+          <main className="flex flex-1 overflow-hidden p-3 md:p-4">
+            <TerminalWindow>
+              <Terminal />
+            </TerminalWindow>
+          </main>
+        </div>
+        {/* Mobile virtual keyboard shortcuts */}
+        <div className="flex md:hidden gap-2 p-2 border-t" style={{ borderColor: '#005500' }}>
+          {['Tab', '↑', '↓', 'Enter'].map(key => (
+            <button
+              key={key}
+              className="flex-1 py-2 font-mono text-sm rounded"
+              style={{ background: '#111', color: '#00FF41', border: '1px solid #005500' }}
+              onClick={() => {
+                const input = document.querySelector('input[type="text"]') as HTMLInputElement;
+                if (input) {
+                  input.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+                }
+              }}
+            >
+              {key}
+            </button>
+          ))}
+        </div>
       </div>
-      <Footer />
     </div>
   );
 };

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Terminal as TerminalIcon, Code2, ChevronRight } from 'lucide-react';
+import { Code2, ChevronRight } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { suggestions, commands } from './commands';
 import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
 import AutoSuggestion from './AutoSuggestion';
+
+const PAGE_LOAD_TIME = Date.now();
 
 const Terminal: React.FC = () => {
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
@@ -32,7 +34,7 @@ const Terminal: React.FC = () => {
       { content: '$ help', type: 'input' as const, timestamp: getCurrentTime() },
       ...commands.help.map((line) => ({
         content: line,
-        type: 'output' as const,        
+        type: 'output' as const,
       })),
     ];
   };
@@ -46,7 +48,7 @@ const Terminal: React.FC = () => {
     const matchingCommand = suggestions
       .map(s => s.command)
       .find(cmd => cmd.toLowerCase().startsWith(input.toLowerCase()));
-    
+
     setAutoSuggestion(matchingCommand || null);
   };
 
@@ -59,40 +61,64 @@ const Terminal: React.FC = () => {
 
   const handleCommand = (cmd: string) => {
     const trimmedCmd = cmd.trim().toLowerCase();
-    
+
     if (trimmedCmd === '') return;
 
     if (trimmedCmd === 'clear') {
       setTerminalOutput(displayHelp());
-    } else {
-      const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
-      
-      setCommandHistory((prev) => [...prev, trimmedCmd]);
-      setHistoryIndex(-1);
-
-      const newOutput: TerminalLine[] = [
-        { 
-          content: `$ ${trimmedCmd}`,
-          type: 'input',
-          timestamp: getCurrentTime()
-        },
-        ...(Array.isArray(output)
-          ? output.map((line) => ({
-              content: line,
-              type: 'output' as const,
-              isHtml: trimmedCmd === 'contact',              
-            }))
-          : [
-              {
-                content: output,
-                type: output.startsWith('Command not found')
-                  ? 'error'
-                  : 'output',                
-              } as const,
-            ]),
-      ];
-      setTerminalOutput((prevOutput) => [...prevOutput, ...newOutput]);
+      setInputCommand('');
+      setAutoSuggestion(null);
+      return;
     }
+
+    if (trimmedCmd === 'uptime') {
+      const seconds = Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000);
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      const output: string[] = [
+        ` up ${mins > 0 ? mins + 'm ' : ''}${secs}s (this session)`,
+        ` up 15 years 4 months (career)`,
+        ` load average: 0.42, 0.15, 0.07`,
+      ];
+      setCommandHistory(prev => [...prev, trimmedCmd]);
+      setHistoryIndex(-1);
+      setTerminalOutput(prev => [
+        ...prev,
+        { content: `$ ${trimmedCmd}`, type: 'input', timestamp: getCurrentTime() },
+        ...output.map(line => ({ content: line, type: 'output' as const })),
+      ]);
+      setInputCommand('');
+      setAutoSuggestion(null);
+      return;
+    }
+
+    const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
+
+    setCommandHistory((prev) => [...prev, trimmedCmd]);
+    setHistoryIndex(-1);
+
+    const newOutput: TerminalLine[] = [
+      {
+        content: `$ ${trimmedCmd}`,
+        type: 'input',
+        timestamp: getCurrentTime()
+      },
+      ...(Array.isArray(output)
+        ? output.map((line) => ({
+            content: line,
+            type: 'output' as const,
+            isHtml: trimmedCmd === 'contact' || trimmedCmd === 'projects',
+          }))
+        : [
+            {
+              content: output,
+              type: output.startsWith('Command not found')
+                ? 'error'
+                : 'output',
+            } as const,
+          ]),
+    ];
+    setTerminalOutput((prevOutput) => [...prevOutput, ...newOutput]);
     setInputCommand('');
     setAutoSuggestion(null);
   };
@@ -118,13 +144,13 @@ const Terminal: React.FC = () => {
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedSuggestionIndex((prev) => 
+          setSelectedSuggestionIndex((prev) =>
             prev > 0 ? prev - 1 : suggestions.length - 1
           );
           return;
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedSuggestionIndex((prev) => 
+          setSelectedSuggestionIndex((prev) =>
             prev < suggestions.length - 1 ? prev + 1 : 0
           );
           return;
@@ -200,7 +226,7 @@ const Terminal: React.FC = () => {
 
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        suggestionsRef.current && 
+        suggestionsRef.current &&
         !suggestionsRef.current.contains(event.target as Node) &&
         !inputRef.current?.contains(event.target as Node)
       ) {
@@ -222,28 +248,27 @@ const Terminal: React.FC = () => {
   }, [terminalOutput]);
 
   return (
-    <section className="w-full bg-gray-900 bg-opacity-50 p-4 rounded-lg">
+    <section className="w-full bg-black flex flex-col flex-1 p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
-          <TerminalIcon className="text-green-400 w-5 h-5" />
-          <h2 className="text-base sm:text-lg font-mono font-argon font-semibold">
-            <span className="text-green-400">guest</span>
+          <h2 className="text-base sm:text-lg font-mono font-semibold">
+            <span style={{ color: '#00FF41' }}>guest</span>
             <span className="text-gray-400">@</span>
-            <span className="text-blue-400">dkoderinc</span>
+            <span style={{ color: '#00FF41' }}>dkoderinc</span>
           </h2>
         </div>
-        <div className="flex items-center space-x-2 text-xs text-gray-400">
-          <span>🔋 100%</span>
-          <span>📡 OK</span>
+        <div className="flex items-center space-x-2 text-xs" style={{ color: '#005500' }}>
+          <span>PWR 100%</span>
+          <span>NET OK</span>
         </div>
       </div>
       <div
         ref={terminalRef}
-        className="bg-gray-950 p-4 rounded-lg h-96 overflow-y-auto mb-4 text-sm sm:text-base shadow-inner"
+        className="bg-black p-4 rounded-lg flex-1 overflow-y-auto mb-4 text-sm sm:text-base shadow-inner"
       >
         {terminalOutput.map((line, index) => (
-          <div key={index} className="group flex items-start hover:bg-gray-900/30 px-2 py-0.5 -mx-2 rounded">
-            <p className={`font-mono font-argon ${getLineColor(line.type)} flex-1`}>
+          <div key={index} className="group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded">
+            <p className={`font-mono ${getLineColor(line.type)} flex-1`}>
               {line.isHtml ? (
                 <span
                   dangerouslySetInnerHTML={{
@@ -254,15 +279,15 @@ const Terminal: React.FC = () => {
                 line.content
               )}
             </p>
-            <span className="text-gray-500 text-xs mr-2 opacity-0 group-hover:opacity-100 select-none">
+            <span className="text-xs mr-2 opacity-0 group-hover:opacity-100 select-none" style={{ color: '#005500' }}>
               {line.timestamp}
             </span>
           </div>
         ))}
       </div>
       <div className="relative">
-        <div className="flex items-center space-x-2 w-full bg-gray-950 rounded-lg p-2">
-          <ChevronRight className="text-green-400 w-5 h-5" />
+        <div className="flex items-center space-x-2 w-full bg-black rounded-lg p-2" style={{ border: '1px solid #005500' }}>
+          <ChevronRight className="w-5 h-5" style={{ color: '#00FF41' }} />
           <div className="relative flex-1">
             <input
               ref={inputRef}
@@ -270,7 +295,8 @@ const Terminal: React.FC = () => {
               value={inputCommand}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              className="bg-transparent text-white font-mono font-argon w-full focus:outline-none relative z-10"
+              className="bg-transparent font-mono w-full focus:outline-none relative z-10"
+              style={{ color: '#00FF41' }}
               placeholder="Type a command or press Tab for suggestions..."
               autoCapitalize="none"
               spellCheck={false}
@@ -283,7 +309,8 @@ const Terminal: React.FC = () => {
           </div>
           <button
             onClick={() => handleCommand(inputCommand)}
-            className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded"
+            className="p-1.5 rounded hover:opacity-80 transition-opacity"
+            style={{ background: '#005500', color: '#000' }}
           >
             <Code2 className="w-4 h-4" />
           </button>
@@ -309,16 +336,10 @@ const Terminal: React.FC = () => {
 
 const getLineColor = (type: string): string => {
   switch (type) {
-    case 'input':
-      return 'text-green-400';
-    case 'output':
-      return 'text-gray-200';
-    case 'success':
-      return 'text-green-400';
-    case 'error':
-      return 'text-red-400';
-    default:
-      return 'text-white';
+    case 'input': return 'text-[#00FF41]';
+    case 'output': return 'text-gray-200';
+    case 'error': return 'text-red-400';
+    default: return 'text-white';
   }
 };
 

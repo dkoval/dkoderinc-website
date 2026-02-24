@@ -10,8 +10,8 @@ const AutoSuggestion: React.FC<AutoSuggestionProps> = ({ inputCommand, suggestio
 
   return (
     <div className="absolute inset-0 flex items-center pointer-events-none">
-      <span className="text-white font-mono font-argon opacity-0">{inputCommand}</span>
-      <span className="text-gray-500 font-mono font-argon">{suggestion.slice(inputCommand.length)}</span>
+      <span className="font-mono opacity-0" style={{ color: '#00FF41' }}>{inputCommand}</span>
+      <span className="font-mono" style={{ color: '#005500' }}>{suggestion.slice(inputCommand.length)}</span>
     </div>
   );
 };
