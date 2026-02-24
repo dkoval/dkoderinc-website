@@ -6,14 +6,14 @@ const TerminalWindow: React.FC<Props> = ({ children }) => (
   <div
     className="flex flex-col flex-1 rounded overflow-hidden"
     style={{
-      border: '1px solid #005500',
+      border: '1px solid #333',
       boxShadow: '0 0 20px #00FF4133, inset 0 0 20px #00FF4111',
     }}
   >
     {/* Title bar */}
     <div
       className="flex items-center px-3 py-2 shrink-0"
-      style={{ background: '#111', borderBottom: '1px solid #005500' }}
+      style={{ background: '#111', borderBottom: '1px solid #333' }}
     >
       {/* Decorative dots */}
       <div className="flex gap-1.5 mr-3">

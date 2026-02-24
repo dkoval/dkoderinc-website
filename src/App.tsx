@@ -24,12 +24,12 @@ const App: React.FC = () => {
           </main>
         </div>
         {/* Mobile virtual keyboard shortcuts */}
-        <div className="flex md:hidden gap-2 p-2 border-t" style={{ borderColor: '#005500' }}>
+        <div className="flex md:hidden gap-2 p-2 border-t" style={{ borderColor: '#333' }}>
           {['Tab', '↑', '↓', 'Enter'].map(key => (
             <button
               key={key}
               className="flex-1 py-2 font-mono text-sm rounded"
-              style={{ background: '#111', color: '#00FF41', border: '1px solid #005500' }}
+              style={{ background: '#111', color: '#00FF41', border: '1px solid #333' }}
               onClick={() => {
                 const input = document.querySelector('input[type="text"]') as HTMLInputElement;
                 if (input) {

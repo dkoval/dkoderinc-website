@@ -38,10 +38,10 @@ const Sidebar: React.FC = () => {
         {/* Name + title */}
         <div className="font-mono">
           <p className="font-bold text-lg" style={{ color: '#00FF41' }}>Dmytro Koval</p>
-          <p className="text-sm" style={{ color: '#888' }}>Senior Software Engineer</p>
+          <p className="text-xs" style={{ color: '#888' }}>Senior Software Engineer</p>
         </div>
         {/* /proc/dmytro/status */}
-        <div className="font-mono text-xs border rounded p-3" style={{ borderColor: '#333' }}>
+        <div className="font-mono text-sm border rounded p-3" style={{ borderColor: '#333' }}>
           <p className="mb-2" style={{ color: '#888' }}>/proc/dmytro/status</p>
           <p><span style={{ color: '#888' }}>Name:   </span><span style={{ color: '#00FF41' }}>Dmytro Koval</span></p>
           <p><span style={{ color: '#888' }}>Role:   </span><span style={{ color: '#00FF41' }}>Backend Engineer</span></p>
@@ -52,7 +52,7 @@ const Sidebar: React.FC = () => {
           <p><span style={{ color: '#888' }}>        </span><span style={{ color: '#888' }}>15y+ (career)</span></p>
         </div>
         {/* Social links as known_hosts */}
-        <div className="font-mono text-xs">
+        <div className="font-mono text-sm">
           <p className="mb-2" style={{ color: '#888' }}>~/.ssh/known_hosts</p>
           {[
             { href: 'https://github.com/dkoval', icon: <Github className="w-3 h-3" />, label: 'github.com' },

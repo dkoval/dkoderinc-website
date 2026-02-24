@@ -249,22 +249,9 @@ const Terminal: React.FC = () => {
 
   return (
     <section className="w-full bg-black flex flex-col flex-1 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <h2 className="text-base sm:text-lg font-mono font-semibold">
-            <span style={{ color: '#00FF41' }}>guest</span>
-            <span className="text-gray-400">@</span>
-            <span style={{ color: '#00FF41' }}>dkoderinc</span>
-          </h2>
-        </div>
-        <div className="flex items-center space-x-2 text-xs" style={{ color: '#005500' }}>
-          <span>PWR 100%</span>
-          <span>NET OK</span>
-        </div>
-      </div>
       <div
         ref={terminalRef}
-        className="bg-black p-4 rounded-lg flex-1 overflow-y-auto mb-4 text-sm sm:text-base shadow-inner"
+        className="bg-black flex-1 overflow-y-auto mb-4 text-sm"
       >
         {terminalOutput.map((line, index) => (
           <div key={index} className="group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded">
@@ -279,14 +266,14 @@ const Terminal: React.FC = () => {
                 line.content
               )}
             </p>
-            <span className="text-xs mr-2 opacity-0 group-hover:opacity-100 select-none" style={{ color: '#005500' }}>
+            <span className="text-xs mr-2 opacity-0 group-hover:opacity-100 select-none" style={{ color: '#555' }}>
               {line.timestamp}
             </span>
           </div>
         ))}
       </div>
       <div className="relative">
-        <div className="flex items-center space-x-2 w-full bg-black rounded-lg p-2" style={{ border: '1px solid #005500' }}>
+        <div className="flex items-center space-x-2 w-full bg-black p-2" style={{ border: '1px solid #333' }}>
           <ChevronRight className="w-5 h-5" style={{ color: '#00FF41' }} />
           <div className="relative flex-1">
             <input
@@ -295,7 +282,7 @@ const Terminal: React.FC = () => {
               value={inputCommand}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              className="bg-transparent font-mono w-full focus:outline-none relative z-10"
+              className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10"
               style={{ color: '#00FF41' }}
               placeholder="Type a command or press Tab for suggestions..."
               autoCapitalize="none"
@@ -310,7 +297,7 @@ const Terminal: React.FC = () => {
           <button
             onClick={() => handleCommand(inputCommand)}
             className="p-1.5 rounded hover:opacity-80 transition-opacity"
-            style={{ background: '#005500', color: '#000' }}
+            style={{ background: '#222', color: '#00FF41' }}
           >
             <Code2 className="w-4 h-4" />
           </button>

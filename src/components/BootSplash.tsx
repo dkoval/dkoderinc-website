@@ -43,7 +43,7 @@ const BootSplash: React.FC<Props> = ({ onComplete }) => {
       style={{ background: '#000', transition: done ? 'opacity 0.3s' : undefined, opacity: done ? 0 : 1 }}
     >
       {LINES.slice(0, visibleLines).map((line, i) => (
-        <p key={i} className="font-mono text-sm md:text-base mb-1" style={{ color: '#00FF41' }}>
+        <p key={i} className="font-mono text-sm mb-1" style={{ color: '#00FF41' }}>
           {line}
         </p>
       ))}
