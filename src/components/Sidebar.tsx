@@ -59,7 +59,7 @@ const Sidebar: React.FC = () => {
             { href: 'mailto:dkoderinc@gmail.com', icon: <Mail className="w-3 h-3" />, label: 'dkoderinc@gmail.com' },
           ].map(({ href, icon, label }) => (
             <a key={href} href={href}
-              target={href.startsWith('mailto') ? undefined : '_blank'}
+              target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 mb-1 hover:opacity-80 transition-opacity"
               style={{ color: '#00FF41' }}>

@@ -276,7 +276,7 @@ const Terminal: React.FC = () => {
               ) : line.isHtml ? (
                 <span
                   dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(line.content),
+                    __html: DOMPurify.sanitize(line.content, { ADD_ATTR: ['target'] }),
                   }}
                 />
               ) : (
