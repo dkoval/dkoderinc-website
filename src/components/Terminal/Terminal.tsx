@@ -7,6 +7,8 @@ import Suggestions from './Suggestions';
 import AutoSuggestion from './AutoSuggestion';
 import { PAGE_LOAD_TIME } from '../../constants';
 
+const MAX_HISTORY = 50;
+
 const Terminal: React.FC = () => {
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
   const [inputCommand, setInputCommand] = useState('');
@@ -88,7 +90,7 @@ const Terminal: React.FC = () => {
         ` up 15 years 4 months (career)`,
         ` load average: 0.42, 0.15, 0.07`,
       ];
-      setCommandHistory(prev => [...prev, trimmedCmd]);
+      setCommandHistory(prev => [...prev, trimmedCmd].slice(-MAX_HISTORY));
       setHistoryIndex(-1);
       setTerminalOutput(prev => [
         ...prev,
@@ -102,7 +104,7 @@ const Terminal: React.FC = () => {
 
     const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
 
-    setCommandHistory((prev) => [...prev, trimmedCmd]);
+    setCommandHistory((prev) => [...prev, trimmedCmd].slice(-MAX_HISTORY));
     setHistoryIndex(-1);
 
     const newOutput: TerminalLine[] = [
@@ -196,24 +198,18 @@ const Terminal: React.FC = () => {
         case 'ArrowUp':
           e.preventDefault();
           if (commandHistory.length > 0) {
-            const newIndex = historyIndex + 1;
-            if (newIndex < commandHistory.length) {
-              setHistoryIndex(newIndex);
-              setInputCommand(commandHistory[commandHistory.length - 1 - newIndex]);
-              setAutoSuggestion(null);
-            }
+            const newIndex = historyIndex + 1 >= commandHistory.length ? 0 : historyIndex + 1;
+            setHistoryIndex(newIndex);
+            setInputCommand(commandHistory[commandHistory.length - 1 - newIndex]);
+            setAutoSuggestion(null);
           }
           break;
         case 'ArrowDown':
           e.preventDefault();
-          if (historyIndex > 0) {
-            const newIndex = historyIndex - 1;
+          if (commandHistory.length > 0) {
+            const newIndex = historyIndex <= 0 ? commandHistory.length - 1 : historyIndex - 1;
             setHistoryIndex(newIndex);
             setInputCommand(commandHistory[commandHistory.length - 1 - newIndex]);
-            setAutoSuggestion(null);
-          } else if (historyIndex === 0) {
-            setHistoryIndex(-1);
-            setInputCommand('');
             setAutoSuggestion(null);
           }
           break;
