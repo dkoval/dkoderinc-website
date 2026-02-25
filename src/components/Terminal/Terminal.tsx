@@ -5,7 +5,7 @@ import { suggestions, commands } from './commands';
 import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
 import AutoSuggestion from './AutoSuggestion';
-import { PAGE_LOAD_TIME } from '../../constants';
+import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
 
 const MAX_HISTORY = 50;
 
@@ -83,10 +83,8 @@ const Terminal: React.FC = () => {
 
     if (trimmedCmd === 'uptime') {
       const seconds = Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000);
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
       const output: string[] = [
-        ` up ${mins > 0 ? mins + 'm ' : ''}${secs}s (this session)`,
+        ` up ${formatUptime(seconds)} (this session)`,
         ` up 15 years 4 months (career)`,
         ` load average: 0.42, 0.15, 0.07`,
       ];

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
-import { PAGE_LOAD_TIME } from '../constants';
+import { PAGE_LOAD_TIME, formatUptime } from '../constants';
 
 const Sidebar: React.FC = () => {
   const [uptime, setUptime] = useState(0);
@@ -12,11 +12,6 @@ const Sidebar: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const formatUptime = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
-  };
 
   return (
     <>
