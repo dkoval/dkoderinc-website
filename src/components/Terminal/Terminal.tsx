@@ -85,7 +85,7 @@ const Terminal: React.FC = () => {
       const seconds = Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000);
       const output: string[] = [
         ` up ${formatUptime(seconds)} (this session)`,
-        ` up 15 years 4 months (career)`,
+        ` up 15+ years (career)`,
         ` load average: 0.42, 0.15, 0.07`,
       ];
       setCommandHistory(prev => [...prev, trimmedCmd].slice(-MAX_HISTORY));

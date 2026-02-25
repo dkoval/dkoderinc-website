@@ -42,7 +42,7 @@ const Sidebar: React.FC = () => {
           <p><span style={{ color: '#888' }}>Exp:    </span><span style={{ color: '#00FF41' }}>15+ years</span></p>
           <p><span style={{ color: '#888' }}>Stack:  </span><span style={{ color: '#00FF41' }}>Java, Kotlin</span></p>
           <p><span style={{ color: '#888' }}>Status: </span><span style={{ color: '#00FF41' }}>available</span></p>
-          <p><span style={{ color: '#888' }}>Uptime: </span><span style={{ color: '#00FF41' }}>{formatUptime(uptime)} (session)</span></p>
+          <p><span style={{ color: '#888' }}>Uptime: </span><span style={{ color: '#00FF41' }}>{formatUptime(uptime)}</span></p>
         </div>
         {/* Social links as known_hosts */}
         <div className="font-mono text-sm border rounded p-3" style={{ borderColor: '#333' }}>
