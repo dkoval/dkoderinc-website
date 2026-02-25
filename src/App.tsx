@@ -1,12 +1,20 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import BootSplash from './components/BootSplash';
 import Sidebar from './components/Sidebar';
 import TerminalWindow from './components/TerminalWindow';
-import Terminal from './components/Terminal';
+import Terminal, { TerminalHandle } from './components/Terminal';
+
+const mobileKeys = [
+  { label: 'Tab', action: 'tab' as const },
+  { label: '↑', action: 'up' as const },
+  { label: '↓', action: 'down' as const },
+  { label: 'Enter', action: 'enter' as const },
+];
 
 const App: React.FC = () => {
   const [showBootSplash, setShowBootSplash] = useState(true);
   const handleBootComplete = useCallback(() => setShowBootSplash(false), []);
+  const terminalRef = useRef<TerminalHandle>(null);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden" style={{ background: '#000' }}>
@@ -19,25 +27,24 @@ const App: React.FC = () => {
           <Sidebar />
           <main className="flex flex-1 overflow-hidden p-3 md:p-4">
             <TerminalWindow>
-              <Terminal />
+              <Terminal ref={terminalRef} />
             </TerminalWindow>
           </main>
         </div>
         {/* Mobile virtual keyboard shortcuts */}
-        <div className="flex md:hidden shrink-0 gap-2 p-2 border-t" style={{ borderColor: '#333' }}>
-          {['Tab', '↑', '↓', 'Enter'].map(key => (
+        <div
+          className="flex md:hidden shrink-0 gap-2 p-2 border-t"
+          style={{ borderColor: '#333', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+        >
+          {mobileKeys.map(({ label, action }) => (
             <button
-              key={key}
+              key={label}
               className="flex-1 py-2 font-mono text-sm rounded"
               style={{ background: '#111', color: '#00FF41', border: '1px solid #333' }}
-              onClick={() => {
-                const input = document.querySelector('input[type="text"]') as HTMLInputElement;
-                if (input) {
-                  input.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
-                }
-              }}
+              data-mobile-action={action}
+              onClick={() => terminalRef.current?.handleMobileAction(action)}
             >
-              {key}
+              {label}
             </button>
           ))}
         </div>

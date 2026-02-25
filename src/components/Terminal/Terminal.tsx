@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Code2, ChevronRight } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { suggestions, commands } from './commands';
@@ -9,7 +9,11 @@ import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
 
 const MAX_HISTORY = 50;
 
-const Terminal: React.FC = () => {
+export type TerminalHandle = {
+  handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => void;
+};
+
+const Terminal = forwardRef<TerminalHandle>((_, ref) => {
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
   const [inputCommand, setInputCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
@@ -147,77 +151,95 @@ const Terminal: React.FC = () => {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  // Extracted action handlers for both keyboard and mobile button use
+  const actionTab = () => {
     if (showSuggestions) {
-      switch (e.key) {
-        case 'ArrowUp':
-          e.preventDefault();
-          setSelectedSuggestionIndex((prev) =>
-            prev > 0 ? prev - 1 : suggestions.length - 1
-          );
-          return;
-        case 'ArrowDown':
-          e.preventDefault();
-          setSelectedSuggestionIndex((prev) =>
-            prev < suggestions.length - 1 ? prev + 1 : 0
-          );
-          return;
-        case 'Enter':
-          e.preventDefault();
-          selectSuggestion();
-          return;
-        case 'Escape':
-          e.preventDefault();
-          setShowSuggestions(false);
-          return;
-        case 'Tab':
-          e.preventDefault();
-          selectSuggestion();
-          return;
-      }
+      selectSuggestion();
+    } else if (autoSuggestion) {
+      completeAutoSuggestion();
     } else {
-      switch (e.key) {
-        case 'Enter':
-          handleCommand(inputCommand);
-          break;
-        case 'Tab':
+      setShowSuggestions(true);
+      setSelectedSuggestionIndex(0);
+    }
+  };
+
+  const actionUp = () => {
+    if (showSuggestions) {
+      setSelectedSuggestionIndex((prev) =>
+        prev > 0 ? prev - 1 : suggestions.length - 1
+      );
+    } else if (commandHistory.length > 0) {
+      const newIndex = historyIndex + 1 >= commandHistory.length ? 0 : historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setInputCommand(commandHistory[commandHistory.length - 1 - newIndex]);
+      setAutoSuggestion(null);
+    }
+  };
+
+  const actionDown = () => {
+    if (showSuggestions) {
+      setSelectedSuggestionIndex((prev) =>
+        prev < suggestions.length - 1 ? prev + 1 : 0
+      );
+    } else if (commandHistory.length > 0) {
+      const newIndex = historyIndex <= 0 ? commandHistory.length - 1 : historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setInputCommand(commandHistory[commandHistory.length - 1 - newIndex]);
+      setAutoSuggestion(null);
+    }
+  };
+
+  const actionEnter = () => {
+    if (showSuggestions) {
+      selectSuggestion();
+    } else {
+      handleCommand(inputCommand);
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => {
+      switch (action) {
+        case 'tab': actionTab(); break;
+        case 'up': actionUp(); break;
+        case 'down': actionDown(); break;
+        case 'enter': actionEnter(); break;
+      }
+      inputRef.current?.focus();
+    },
+  }));
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    switch (e.key) {
+      case 'Tab':
+        e.preventDefault();
+        actionTab();
+        return;
+      case 'ArrowUp':
+        e.preventDefault();
+        actionUp();
+        return;
+      case 'ArrowDown':
+        e.preventDefault();
+        actionDown();
+        return;
+      case 'Enter':
+        actionEnter();
+        return;
+      case 'ArrowRight':
+        if (autoSuggestion) {
           e.preventDefault();
-          if (autoSuggestion) {
-            completeAutoSuggestion();
-          } else {
-            setShowSuggestions(true);
-            setSelectedSuggestionIndex(0);
-          }
-          break;
-        case 'ArrowRight':
-          if (autoSuggestion) {
-            e.preventDefault();
-            completeAutoSuggestion();
-          }
-          break;
-        case 'Escape':
+          completeAutoSuggestion();
+        }
+        return;
+      case 'Escape':
+        if (showSuggestions) {
+          setShowSuggestions(false);
+        } else {
           setInputCommand('');
           setAutoSuggestion(null);
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          if (commandHistory.length > 0) {
-            const newIndex = historyIndex + 1 >= commandHistory.length ? 0 : historyIndex + 1;
-            setHistoryIndex(newIndex);
-            setInputCommand(commandHistory[commandHistory.length - 1 - newIndex]);
-            setAutoSuggestion(null);
-          }
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          if (commandHistory.length > 0) {
-            const newIndex = historyIndex <= 0 ? commandHistory.length - 1 : historyIndex - 1;
-            setHistoryIndex(newIndex);
-            setInputCommand(commandHistory[commandHistory.length - 1 - newIndex]);
-            setAutoSuggestion(null);
-          }
-          break;
-      }
+        }
+        return;
     }
 
     if (e.ctrlKey && e.key === 'l') {
@@ -233,10 +255,12 @@ const Terminal: React.FC = () => {
     }
 
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
       if (
         suggestionsRef.current &&
-        !suggestionsRef.current.contains(event.target as Node) &&
-        !inputRef.current?.contains(event.target as Node)
+        !suggestionsRef.current.contains(target) &&
+        !inputRef.current?.contains(target) &&
+        !target.closest('[data-mobile-action]')
       ) {
         setShowSuggestions(false);
       }
@@ -334,7 +358,7 @@ const Terminal: React.FC = () => {
       </div>
     </section>
   );
-};
+});
 
 const getLineColor = (type: string): string => {
   switch (type) {
@@ -344,5 +368,7 @@ const getLineColor = (type: string): string => {
     default: return 'text-white';
   }
 };
+
+Terminal.displayName = 'Terminal';
 
 export default Terminal;
