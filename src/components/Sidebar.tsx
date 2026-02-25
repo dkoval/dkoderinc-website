@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
-
-const pageLoadTime = Date.now();
+import { PAGE_LOAD_TIME } from '../constants';
 
 const Sidebar: React.FC = () => {
   const [uptime, setUptime] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setUptime(Math.floor((Date.now() - pageLoadTime) / 1000));
+      setUptime(Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000));
     }, 1000);
     return () => clearInterval(timer);
   }, []);

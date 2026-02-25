@@ -5,8 +5,7 @@ import { suggestions, commands } from './commands';
 import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
 import AutoSuggestion from './AutoSuggestion';
-
-const PAGE_LOAD_TIME = Date.now();
+import { PAGE_LOAD_TIME } from '../../constants';
 
 const Terminal: React.FC = () => {
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
