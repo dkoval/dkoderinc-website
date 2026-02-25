@@ -259,11 +259,11 @@ const Terminal: React.FC = () => {
     <section className="w-full bg-black flex flex-col flex-1 overflow-hidden p-4">
       <div
         ref={terminalRef}
-        className="bg-black flex-1 overflow-y-auto mb-4 text-sm"
+        className="bg-black flex-1 overflow-y-auto overflow-x-hidden mb-4 text-sm terminal-scroll"
       >
         {terminalOutput.map((line, index) => (
           <div key={index} className="group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded">
-            <p className={`font-mono ${getLineColor(line.type)} flex-1`}>
+            <p className={`font-mono ${getLineColor(line.type)} flex-1 break-words`}>
               {line.helpEntry ? (
                 <span className="inline-flex items-center gap-3">
                   {suggestions[line.helpEntry.commandIndex].icon}
