@@ -191,6 +191,12 @@ const Terminal: React.FC = () => {
             setSelectedSuggestionIndex(0);
           }
           break;
+        case 'ArrowRight':
+          if (autoSuggestion) {
+            e.preventDefault();
+            completeAutoSuggestion();
+          }
+          break;
         case 'Escape':
           setInputCommand('');
           setAutoSuggestion(null);
