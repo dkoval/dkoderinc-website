@@ -16,14 +16,8 @@ export const suggestions: CommandSuggestion[] = [
 export const commands: Record<string, string[]> = {
   help: [
     'Available commands:',
-    '  whoami     - Who am I?',
-    '  man dmytro - Manual page',
-    '  skills     - View technical expertise',
-    '  projects   - GitHub projects',
-    '  contact    - Get contact information',
-    '  uptime     - Session and career uptime',
-    '  uname -a   - System information',
-    '  clear      - Clear terminal screen',
+  ],
+  _helpFooter: [
     '',
     'Tips:',
     '  • Use ↑↓ arrows to navigate command history',

@@ -5,6 +5,7 @@ export interface TerminalLine {
   type: 'input' | 'output' | 'error' | 'success';
   isHtml?: boolean;
   timestamp?: string;
+  helpEntry?: { commandIndex: number };
 }
 
 export interface CommandSuggestion {

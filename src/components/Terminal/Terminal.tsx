@@ -36,6 +36,15 @@ const Terminal: React.FC = () => {
         content: line,
         type: 'output' as const,
       })),
+      ...suggestions.map((_, i) => ({
+        content: '',
+        type: 'output' as const,
+        helpEntry: { commandIndex: i },
+      })),
+      ...commands._helpFooter.map((line) => ({
+        content: line,
+        type: 'output' as const,
+      })),
     ];
   };
 
@@ -256,7 +265,14 @@ const Terminal: React.FC = () => {
         {terminalOutput.map((line, index) => (
           <div key={index} className="group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded">
             <p className={`font-mono ${getLineColor(line.type)} flex-1`}>
-              {line.isHtml ? (
+              {line.helpEntry ? (
+                <span className="inline-flex items-center gap-3">
+                  {suggestions[line.helpEntry.commandIndex].icon}
+                  <span style={{ color: '#00FF41' }}>{suggestions[line.helpEntry.commandIndex].command}</span>
+                  <span style={{ color: '#555' }}>-</span>
+                  <span className="text-gray-400">{suggestions[line.helpEntry.commandIndex].description}</span>
+                </span>
+              ) : line.isHtml ? (
                 <span
                   dangerouslySetInnerHTML={{
                     __html: DOMPurify.sanitize(line.content),
