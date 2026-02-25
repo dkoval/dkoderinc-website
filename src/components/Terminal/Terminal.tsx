@@ -256,7 +256,7 @@ const Terminal: React.FC = () => {
   }, [terminalOutput]);
 
   return (
-    <section className="w-full bg-black flex flex-col flex-1 p-4">
+    <section className="w-full bg-black flex flex-col flex-1 overflow-hidden p-4">
       <div
         ref={terminalRef}
         className="bg-black flex-1 overflow-y-auto mb-4 text-sm"

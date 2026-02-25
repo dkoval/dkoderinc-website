@@ -9,13 +9,13 @@ const App: React.FC = () => {
   const handleBootComplete = useCallback(() => setShowBootSplash(false), []);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#000' }}>
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: '#000' }}>
       {showBootSplash && <BootSplash onComplete={handleBootComplete} />}
       <div
-        className="flex flex-col flex-1"
+        className="flex flex-col flex-1 overflow-hidden"
         style={{ opacity: showBootSplash ? 0 : 1, transition: 'opacity 0.3s' }}
       >
-        <div className="flex flex-col md:flex-row flex-1 overflow-hidden" style={{ minHeight: '100vh' }}>
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           <Sidebar />
           <main className="flex flex-1 overflow-hidden p-3 md:p-4">
             <TerminalWindow>
@@ -24,7 +24,7 @@ const App: React.FC = () => {
           </main>
         </div>
         {/* Mobile virtual keyboard shortcuts */}
-        <div className="flex md:hidden gap-2 p-2 border-t" style={{ borderColor: '#333' }}>
+        <div className="flex md:hidden shrink-0 gap-2 p-2 border-t" style={{ borderColor: '#333' }}>
           {['Tab', '↑', '↓', 'Enter'].map(key => (
             <button
               key={key}
