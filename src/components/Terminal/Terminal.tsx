@@ -324,6 +324,7 @@ const Terminal = forwardRef<TerminalHandle>((_, ref) => {
               className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10"
               style={{ color: '#00FF41' }}
               placeholder="Type a command or press Tab for suggestions..."
+              inputMode="none"
               autoCapitalize="none"
               spellCheck={false}
               autoComplete="off"
