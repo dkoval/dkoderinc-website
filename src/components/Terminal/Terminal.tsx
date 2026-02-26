@@ -13,7 +13,21 @@ export type TerminalHandle = {
   handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => void;
 };
 
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && !window.matchMedia('(min-width: 768px)').matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(!e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isMobile;
+};
+
 const Terminal = forwardRef<TerminalHandle>((_, ref) => {
+  const isMobile = useIsMobile();
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
   const [inputCommand, setInputCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
@@ -323,8 +337,8 @@ const Terminal = forwardRef<TerminalHandle>((_, ref) => {
               onKeyDown={handleKeyDown}
               className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10"
               style={{ color: '#00FF41' }}
-              placeholder="Type a command or press Tab for suggestions..."
-              inputMode="none"
+              placeholder={isMobile ? "Press Tab for suggestions..." : "Type a command or press Tab for suggestions..."}
+              inputMode={isMobile ? "none" : undefined}
               autoCapitalize="none"
               spellCheck={false}
               autoComplete="off"

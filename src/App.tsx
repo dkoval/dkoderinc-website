@@ -17,7 +17,7 @@ const App: React.FC = () => {
   const terminalRef = useRef<TerminalHandle>(null);
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden" style={{ background: '#000' }}>
+    <div className="flex flex-col overflow-hidden" style={{ background: '#000', height: '100dvh' }}>
       {showBootSplash && <BootSplash onComplete={handleBootComplete} />}
       <div
         className="flex flex-col flex-1 overflow-hidden"
