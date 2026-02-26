@@ -2,6 +2,32 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+/* CRT scanline overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.03) 3px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* CRT vignette */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.5) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}
+
 @font-face {
   font-family: 'Monaspace Neon';
   src: url('/fonts/MonaspaceNeon-Regular.woff2') format('woff2');
@@ -22,10 +48,6 @@ body {
 
 .font-mono {
   font-family: 'Monaspace Argon', monospace;
-}
-
-.terminal-text {
-  color: #00ff00;
 }
 
 @keyframes blink {
@@ -59,4 +81,27 @@ body {
 
 .typewriter-effect p:nth-child(4) {
   animation-delay: 1s;
+}
+
+/* Terminal scrollbar */
+.terminal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
+}
+
+.terminal-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.terminal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.terminal-scroll::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+.terminal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #00FF41;
 }
