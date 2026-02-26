@@ -64,7 +64,7 @@ const Sidebar: React.FC = () => {
           ))}
         </div>
         {/* Copyright */}
-        <div className="mt-auto font-mono text-xs pt-4">
+        <div className="font-mono text-xs pt-4">
           <p style={{ color: '#888' }}>$ cat /etc/copyright</p>
           <p style={{ color: '#00FF41' }}>&copy; {new Date().getFullYear()} DKoder Inc.</p>
           <p style={{ color: '#888' }}>All rights reserved.</p>
