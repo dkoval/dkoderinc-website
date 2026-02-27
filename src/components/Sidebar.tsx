@@ -17,11 +17,11 @@ const Sidebar: React.FC = () => {
     <>
       {/* Desktop sidebar */}
       <aside
-        className="hidden md:flex flex-col p-4 gap-4 shrink-0 overflow-y-auto"
+        className="hidden md:flex flex-col p-4 gap-4 shrink-0 overflow-hidden"
         style={{ width: '280px', borderRight: '1px solid #333' }}
       >
         {/* Headshot */}
-        <div className="relative overflow-hidden rounded shrink-0" style={{ aspectRatio: '1/1' }}>
+        <div className="relative overflow-hidden rounded" style={{ aspectRatio: '1/1' }}>
           <img
             src="images/headshot.webp"
             alt="Dmytro Koval"
