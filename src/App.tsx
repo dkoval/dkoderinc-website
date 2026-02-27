@@ -48,12 +48,13 @@ const App: React.FC = () => {
             </button>
           ))}
         </div>
-        {/* Mobile copyright */}
+        {/* Copyright */}
         <div
-          className="flex md:hidden justify-center shrink-0 py-2 font-mono text-xs"
-          style={{ color: '#666', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+          className="flex justify-center shrink-0 py-2 font-mono text-xs border-t"
+          style={{ color: '#888', borderColor: '#333', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
         >
-          &copy; {new Date().getFullYear()} DKoder Inc.
+          <span style={{ color: '#888' }}>$ cat /etc/copyright&nbsp;&nbsp;</span>
+          <span style={{ color: '#00FF41' }}>&copy; {new Date().getFullYear()} DKoder Inc.</span>
         </div>
       </div>
     </div>
