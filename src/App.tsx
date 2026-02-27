@@ -34,7 +34,7 @@ const App: React.FC = () => {
         {/* Mobile virtual keyboard shortcuts */}
         <div
           className="flex md:hidden shrink-0 gap-2 p-2 border-t"
-          style={{ borderColor: '#333', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+          style={{ borderColor: '#333' }}
         >
           {mobileKeys.map(({ label, action }) => (
             <button
@@ -47,6 +47,14 @@ const App: React.FC = () => {
               {label}
             </button>
           ))}
+        </div>
+        {/* Copyright */}
+        <div
+          className="flex justify-center shrink-0 py-2 font-mono text-xs border-t"
+          style={{ color: '#888', borderColor: '#333', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+        >
+          <span style={{ color: '#888' }}>$ cat /etc/copyright&nbsp;&nbsp;</span>
+          <span style={{ color: '#00FF41' }}>&copy; {new Date().getFullYear()} DKoder Inc.</span>
         </div>
       </div>
     </div>
