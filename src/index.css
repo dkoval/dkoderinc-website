@@ -105,3 +105,30 @@ body {
 .terminal-scroll::-webkit-scrollbar-thumb:hover {
   background: #00FF41;
 }
+
+/* CRT shutdown animation - vertical collapse to horizontal line, then shrink to dot */
+@keyframes crt-collapse {
+  0% {
+    transform: scaleY(1) scaleX(1);
+    filter: brightness(1);
+  }
+  60% {
+    transform: scaleY(0.005) scaleX(1);
+    filter: brightness(3);
+  }
+  100% {
+    transform: scaleY(0.005) scaleX(0);
+    filter: brightness(3);
+    opacity: 0;
+  }
+}
+
+.crt-shutdown {
+  animation: crt-collapse 1.4s cubic-bezier(0.2, 0, 0.8, 1) forwards;
+  transform-origin: center center;
+}
+
+/* Restart prompt blink */
+.restart-blink {
+  animation: blink 1s step-end infinite;
+}
