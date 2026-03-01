@@ -29,6 +29,12 @@ const RESTART_LINES = [
 const RESTART_FINAL_DESKTOP = 'Press any key to continue... ';
 const RESTART_FINAL_MOBILE = 'Tap to continue... ';
 
+const RESTART_ALL_TEXTS = [
+  RESTART_LINES[0].text,
+  RESTART_LINES[1].text,
+  RESTART_FINAL_DESKTOP,
+];
+
 type ShutdownPhase = null | 'messages' | 'crt-off' | 'black' | 'restart-prompt';
 
 const App: React.FC = () => {
@@ -92,13 +98,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (shutdownPhase !== 'restart-prompt' || typingDone) return;
 
-    const allLines = [
-      RESTART_LINES[0].text,
-      RESTART_LINES[1].text,
-      RESTART_FINAL_DESKTOP,
-    ];
-
-    const currentText = allLines[typingLine];
+    const currentText = RESTART_ALL_TEXTS[typingLine];
     if (!currentText) return;
 
     if (typingChar < currentText.length) {
@@ -106,7 +106,7 @@ const App: React.FC = () => {
       return () => clearTimeout(timer);
     }
 
-    if (typingLine < allLines.length - 1) {
+    if (typingLine < RESTART_ALL_TEXTS.length - 1) {
       const timer = setTimeout(() => {
         setTypingLine(l => l + 1);
         setTypingChar(0);
@@ -115,7 +115,7 @@ const App: React.FC = () => {
     }
 
     setTypingDone(true);
-  }, [shutdownPhase, typingLine, typingChar, typingDone]);
+  }, [shutdownPhase, typingLine, typingChar]);
 
   // Attach restart listener only after typing completes
   useEffect(() => {
