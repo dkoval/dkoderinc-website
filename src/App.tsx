@@ -39,6 +39,9 @@ const App: React.FC = () => {
   const [shutdownPhase, setShutdownPhase] = useState<ShutdownPhase>(null);
   const [shutdownLines, setShutdownLines] = useState(0);
   const [sessionKey, setSessionKey] = useState(0);
+  const [typingLine, setTypingLine] = useState(0);
+  const [typingChar, setTypingChar] = useState(0);
+  const [typingDone, setTypingDone] = useState(false);
 
   const handleShutdown = useCallback(() => {
     setShutdownPhase('messages');
@@ -47,6 +50,9 @@ const App: React.FC = () => {
 
   const handleRestart = useCallback(() => {
     resetPageLoadTime();
+    setTypingLine(0);
+    setTypingChar(0);
+    setTypingDone(false);
     setShutdownPhase(null);
     setShutdownLines(0);
     setSessionKey(k => k + 1);
@@ -89,6 +95,35 @@ const App: React.FC = () => {
 
     return () => timers.forEach(clearTimeout);
   }, [shutdownPhase, handleRestart]);
+
+  // Typing animation for restart prompt
+  useEffect(() => {
+    if (shutdownPhase !== 'restart-prompt' || typingDone) return;
+
+    const allLines = [
+      RESTART_LINES[0].text,
+      RESTART_LINES[1].text,
+      RESTART_FINAL_DESKTOP,
+    ];
+
+    const currentText = allLines[typingLine];
+    if (!currentText) return;
+
+    if (typingChar < currentText.length) {
+      const timer = setTimeout(() => setTypingChar(c => c + 1), 50);
+      return () => clearTimeout(timer);
+    }
+
+    if (typingLine < allLines.length - 1) {
+      const timer = setTimeout(() => {
+        setTypingLine(l => l + 1);
+        setTypingChar(0);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+
+    setTypingDone(true);
+  }, [shutdownPhase, typingLine, typingChar, typingDone]);
 
   return (
     <div className="flex flex-col overflow-hidden" style={{ background: '#000', height: '100dvh' }}>
