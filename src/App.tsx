@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import BootSplash from './components/BootSplash';
 import Sidebar from './components/Sidebar';
 import TerminalWindow from './components/TerminalWindow';
@@ -11,23 +11,122 @@ const mobileKeys = [
   { label: 'Enter', action: 'enter' as const },
 ];
 
+const SHUTDOWN_MESSAGES = [
+  'Broadcast message from root@dkoderinc (pts/0):',
+  'The system is going down for halt NOW!',
+  'Stopping all services...            [OK]',
+  'Unmounting filesystems...           [OK]',
+  'Flushing disk cache...              [OK]',
+  'System halted.',
+];
+
+type ShutdownPhase = null | 'messages' | 'crt-off' | 'black' | 'restart-prompt';
+
 const App: React.FC = () => {
   const [showBootSplash, setShowBootSplash] = useState(true);
   const handleBootComplete = useCallback(() => setShowBootSplash(false), []);
   const terminalRef = useRef<TerminalHandle>(null);
 
+  const [shutdownPhase, setShutdownPhase] = useState<ShutdownPhase>(null);
+  const [shutdownLines, setShutdownLines] = useState(0);
+  const [sessionKey, setSessionKey] = useState(0);
+
+  const handleShutdown = useCallback(() => {
+    setShutdownPhase('messages');
+    setShutdownLines(0);
+  }, []);
+
+  const handleRestart = useCallback(() => {
+    setShutdownPhase(null);
+    setShutdownLines(0);
+    setSessionKey(k => k + 1);
+    setShowBootSplash(true);
+  }, []);
+
+  // Shutdown messages phase - show lines one at a time
+  useEffect(() => {
+    if (shutdownPhase !== 'messages') return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    SHUTDOWN_MESSAGES.forEach((_, i) => {
+      timers.push(setTimeout(() => setShutdownLines(i + 1), i * 350));
+    });
+    timers.push(setTimeout(() => {
+      setShutdownPhase('crt-off');
+    }, SHUTDOWN_MESSAGES.length * 350 + 500));
+    return () => timers.forEach(clearTimeout);
+  }, [shutdownPhase]);
+
+  // CRT collapse phase - wait for animation to finish
+  useEffect(() => {
+    if (shutdownPhase !== 'crt-off') return;
+    const timer = setTimeout(() => setShutdownPhase('black'), 1500);
+    return () => clearTimeout(timer);
+  }, [shutdownPhase]);
+
+  // Black screen phase - pause then show restart prompt
+  useEffect(() => {
+    if (shutdownPhase !== 'black') return;
+    const timer = setTimeout(() => setShutdownPhase('restart-prompt'), 2000);
+    return () => clearTimeout(timer);
+  }, [shutdownPhase]);
+
+  // Restart prompt phase - listen for any key/touch
+  useEffect(() => {
+    if (shutdownPhase !== 'restart-prompt') return;
+    const onKey = () => handleRestart();
+    const onTouch = () => handleRestart();
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('touchstart', onTouch);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('touchstart', onTouch);
+    };
+  }, [shutdownPhase, handleRestart]);
+
   return (
     <div className="flex flex-col overflow-hidden" style={{ background: '#000', height: '100dvh' }}>
       {showBootSplash && <BootSplash onComplete={handleBootComplete} />}
+
+      {/* Shutdown messages overlay */}
+      {shutdownPhase === 'messages' && (
+        <div
+          className="fixed inset-0 z-[9000] flex flex-col justify-center items-start p-8 md:p-16"
+          style={{ background: '#000' }}
+        >
+          {SHUTDOWN_MESSAGES.slice(0, shutdownLines).map((line, i) => (
+            <p key={i} className="font-mono text-sm mb-1" style={{ color: '#00FF41' }}>
+              {line}
+            </p>
+          ))}
+        </div>
+      )}
+
+      {/* Black screen + restart prompt */}
+      {(shutdownPhase === 'black' || shutdownPhase === 'restart-prompt') && (
+        <div
+          className="fixed inset-0 z-[9000] flex items-center justify-center"
+          style={{ background: '#000' }}
+        >
+          {shutdownPhase === 'restart-prompt' && (
+            <p className="font-mono text-sm restart-blink" style={{ color: '#00FF41' }}>
+              Press any key to restart...
+            </p>
+          )}
+        </div>
+      )}
+
       <div
-        className="flex flex-col flex-1 overflow-hidden"
-        style={{ opacity: showBootSplash ? 0 : 1, transition: 'opacity 0.3s' }}
+        className={`flex flex-col flex-1 overflow-hidden ${shutdownPhase === 'crt-off' ? 'crt-shutdown' : ''}`}
+        style={{
+          opacity: showBootSplash ? 0 : 1,
+          transition: shutdownPhase ? undefined : 'opacity 0.3s',
+        }}
       >
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           <Sidebar />
           <main className="flex flex-1 overflow-hidden p-3 md:p-4">
             <TerminalWindow>
-              <Terminal ref={terminalRef} />
+              <Terminal key={sessionKey} ref={terminalRef} onShutdown={handleShutdown} />
             </TerminalWindow>
           </main>
         </div>
