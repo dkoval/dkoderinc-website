@@ -21,6 +21,20 @@ const SHUTDOWN_MESSAGES = [
   'System halted.',
 ];
 
+const RESTART_LINES = [
+  { text: 'Reboot scheduled.', color: '#888' },
+  { text: 'Waiting for user input...', color: '#888' },
+];
+
+const RESTART_FINAL_DESKTOP = 'Press any key to continue... ';
+const RESTART_FINAL_MOBILE = 'Tap to continue... ';
+
+const RESTART_ALL_TEXTS = [
+  RESTART_LINES[0].text,
+  RESTART_LINES[1].text,
+  RESTART_FINAL_DESKTOP,
+];
+
 type ShutdownPhase = null | 'messages' | 'crt-off' | 'black' | 'restart-prompt';
 
 const App: React.FC = () => {
@@ -31,6 +45,9 @@ const App: React.FC = () => {
   const [shutdownPhase, setShutdownPhase] = useState<ShutdownPhase>(null);
   const [shutdownLines, setShutdownLines] = useState(0);
   const [sessionKey, setSessionKey] = useState(0);
+  const [typingLine, setTypingLine] = useState(0);
+  const [typingChar, setTypingChar] = useState(0);
+  const [typingDone, setTypingDone] = useState(false);
 
   const handleShutdown = useCallback(() => {
     setShutdownPhase('messages');
@@ -39,6 +56,9 @@ const App: React.FC = () => {
 
   const handleRestart = useCallback(() => {
     resetPageLoadTime();
+    setTypingLine(0);
+    setTypingChar(0);
+    setTypingDone(false);
     setShutdownPhase(null);
     setShutdownLines(0);
     setSessionKey(k => k + 1);
@@ -67,20 +87,49 @@ const App: React.FC = () => {
         timers.push(setTimeout(() => setShutdownPhase('restart-prompt'), 1000));
         break;
 
-      case 'restart-prompt': {
-        const onKey = (e: KeyboardEvent) => { e.preventDefault(); handleRestart(); };
-        const onTouch = (e: TouchEvent) => { e.preventDefault(); handleRestart(); };
-        window.addEventListener('keydown', onKey);
-        window.addEventListener('touchstart', onTouch);
-        return () => {
-          window.removeEventListener('keydown', onKey);
-          window.removeEventListener('touchstart', onTouch);
-        };
-      }
+      case 'restart-prompt':
+        break;
     }
 
     return () => timers.forEach(clearTimeout);
-  }, [shutdownPhase, handleRestart]);
+  }, [shutdownPhase]);
+
+  // Typing animation for restart prompt
+  useEffect(() => {
+    if (shutdownPhase !== 'restart-prompt' || typingDone) return;
+
+    const currentText = RESTART_ALL_TEXTS[typingLine];
+    if (!currentText) return;
+
+    if (typingChar < currentText.length) {
+      const timer = setTimeout(() => setTypingChar(c => c + 1), 50);
+      return () => clearTimeout(timer);
+    }
+
+    if (typingLine < RESTART_ALL_TEXTS.length - 1) {
+      const timer = setTimeout(() => {
+        setTypingLine(l => l + 1);
+        setTypingChar(0);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+
+    setTypingDone(true);
+  }, [shutdownPhase, typingLine, typingChar]);
+
+  // Attach restart listener only after typing completes
+  useEffect(() => {
+    if (shutdownPhase !== 'restart-prompt' || !typingDone) return;
+
+    const onKey = (e: KeyboardEvent) => { e.preventDefault(); handleRestart(); };
+    const onTouch = (e: TouchEvent) => { e.preventDefault(); handleRestart(); };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('touchstart', onTouch);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('touchstart', onTouch);
+    };
+  }, [shutdownPhase, typingDone, handleRestart]);
 
   return (
     <div className="flex flex-col overflow-hidden" style={{ background: '#000', height: '100dvh' }}>
@@ -108,12 +157,34 @@ const App: React.FC = () => {
         >
           {shutdownPhase === 'restart-prompt' && (
             <div className="text-center font-mono text-sm phosphor-glow">
-              <p className="mb-1" style={{ color: '#888' }}>Reboot scheduled.</p>
-              <p className="mb-4" style={{ color: '#888' }}>Waiting for user input...</p>
-              <p style={{ color: '#00FF41' }}>
-                <span className="hidden md:inline">Press any key to continue... <span className="animate-blink">&#x2588;</span></span>
-                <span className="md:hidden">Tap to continue... <span className="animate-blink">&#x2588;</span></span>
-              </p>
+              {/* Completed lines */}
+              {RESTART_LINES.slice(0, typingLine).map((line, i) => (
+                <p key={i} className={i === 0 ? 'mb-1' : 'mb-4'} style={{ color: line.color }}>
+                  {line.text}
+                </p>
+              ))}
+
+              {/* Currently typing line (lines 0-1: gray) */}
+              {typingLine < RESTART_LINES.length && (
+                <p className={typingLine === 0 ? 'mb-1' : 'mb-4'} style={{ color: RESTART_LINES[typingLine].color }}>
+                  {RESTART_LINES[typingLine].text.slice(0, typingChar)}
+                  <span>&#x2588;</span>
+                </p>
+              )}
+
+              {/* Final line: green, responsive. On mobile the shorter text finishes
+                  before the desktop-driven timer, causing a brief solid-cursor pause. */}
+              {typingLine >= RESTART_LINES.length && (
+                <p style={{ color: '#00FF41' }}>
+                  <span className="hidden md:inline">
+                    {RESTART_FINAL_DESKTOP.slice(0, typingChar)}
+                  </span>
+                  <span className="md:hidden">
+                    {RESTART_FINAL_MOBILE.slice(0, Math.min(typingChar, RESTART_FINAL_MOBILE.length))}
+                  </span>
+                  <span className={typingDone ? 'animate-blink' : ''}>&#x2588;</span>
+                </p>
+              )}
             </div>
           )}
         </div>
