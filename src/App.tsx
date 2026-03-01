@@ -21,6 +21,14 @@ const SHUTDOWN_MESSAGES = [
   'System halted.',
 ];
 
+const RESTART_LINES = [
+  { text: 'Reboot scheduled.', color: '#888' },
+  { text: 'Waiting for user input...', color: '#888' },
+];
+
+const RESTART_FINAL_DESKTOP = 'Press any key to continue... ';
+const RESTART_FINAL_MOBILE = 'Tap to continue... ';
+
 type ShutdownPhase = null | 'messages' | 'crt-off' | 'black' | 'restart-prompt';
 
 const App: React.FC = () => {
