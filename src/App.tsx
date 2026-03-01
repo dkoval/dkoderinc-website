@@ -120,7 +120,8 @@ const App: React.FC = () => {
               <p className="mb-1" style={{ color: '#888' }}>Reboot scheduled.</p>
               <p className="mb-4" style={{ color: '#888' }}>Waiting for user input...</p>
               <p style={{ color: '#00FF41' }}>
-                Press any key to continue... <span className="animate-blink">&#x2588;</span>
+                <span className="hidden md:inline">Press any key to continue... <span className="animate-blink">&#x2588;</span></span>
+                <span className="md:hidden">Tap to continue... <span className="animate-blink">&#x2588;</span></span>
               </p>
             </div>
           )}
