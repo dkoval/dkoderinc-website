@@ -157,12 +157,33 @@ const App: React.FC = () => {
         >
           {shutdownPhase === 'restart-prompt' && (
             <div className="text-center font-mono text-sm phosphor-glow">
-              <p className="mb-1" style={{ color: '#888' }}>Reboot scheduled.</p>
-              <p className="mb-4" style={{ color: '#888' }}>Waiting for user input...</p>
-              <p style={{ color: '#00FF41' }}>
-                <span className="hidden md:inline">Press any key to continue... <span className="animate-blink">&#x2588;</span></span>
-                <span className="md:hidden">Tap to continue... <span className="animate-blink">&#x2588;</span></span>
-              </p>
+              {/* Completed lines */}
+              {RESTART_LINES.slice(0, typingLine).map((line, i) => (
+                <p key={i} className={i === 0 ? 'mb-1' : 'mb-4'} style={{ color: line.color }}>
+                  {line.text}
+                </p>
+              ))}
+
+              {/* Currently typing line (lines 0-1: gray) */}
+              {typingLine < RESTART_LINES.length && (
+                <p className={typingLine === 0 ? 'mb-1' : 'mb-4'} style={{ color: RESTART_LINES[typingLine].color }}>
+                  {RESTART_LINES[typingLine].text.slice(0, typingChar)}
+                  <span className={typingDone ? 'animate-blink' : ''}>&#x2588;</span>
+                </p>
+              )}
+
+              {/* Line 3: green, responsive, shows after first 2 lines done */}
+              {typingLine >= RESTART_LINES.length && (
+                <p style={{ color: '#00FF41' }}>
+                  <span className="hidden md:inline">
+                    {RESTART_FINAL_DESKTOP.slice(0, typingChar)}
+                  </span>
+                  <span className="md:hidden">
+                    {RESTART_FINAL_MOBILE.slice(0, Math.min(typingChar, RESTART_FINAL_MOBILE.length))}
+                  </span>
+                  <span className={typingDone ? 'animate-blink' : ''}>&#x2588;</span>
+                </p>
+              )}
             </div>
           )}
         </div>
