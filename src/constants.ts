@@ -1,4 +1,8 @@
-export const PAGE_LOAD_TIME = Date.now();
+export let PAGE_LOAD_TIME = Date.now();
+
+export const resetPageLoadTime = () => {
+  PAGE_LOAD_TIME = Date.now();
+};
 
 export const formatUptime = (s: number): string => {
   const d = Math.floor(s / 86400);

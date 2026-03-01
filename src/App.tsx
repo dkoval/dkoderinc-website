@@ -3,6 +3,7 @@ import BootSplash from './components/BootSplash';
 import Sidebar from './components/Sidebar';
 import TerminalWindow from './components/TerminalWindow';
 import Terminal, { TerminalHandle } from './components/Terminal';
+import { resetPageLoadTime } from './constants';
 
 const mobileKeys = [
   { label: 'Tab', action: 'tab' as const },
@@ -37,6 +38,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleRestart = useCallback(() => {
+    resetPageLoadTime();
     setShutdownPhase(null);
     setShutdownLines(0);
     setSessionKey(k => k + 1);
@@ -73,8 +75,14 @@ const App: React.FC = () => {
   // Restart prompt phase - listen for any key/touch
   useEffect(() => {
     if (shutdownPhase !== 'restart-prompt') return;
-    const onKey = () => handleRestart();
-    const onTouch = () => handleRestart();
+    const onKey = (e: KeyboardEvent) => {
+      e.preventDefault();
+      handleRestart();
+    };
+    const onTouch = (e: TouchEvent) => {
+      e.preventDefault();
+      handleRestart();
+    };
     window.addEventListener('keydown', onKey);
     window.addEventListener('touchstart', onTouch);
     return () => {
@@ -123,7 +131,7 @@ const App: React.FC = () => {
         }}
       >
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-          <Sidebar />
+          <Sidebar key={sessionKey} />
           <main className="flex flex-1 overflow-hidden p-3 md:p-4">
             <TerminalWindow>
               <Terminal key={sessionKey} ref={terminalRef} onShutdown={handleShutdown} />
