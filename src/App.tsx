@@ -68,7 +68,7 @@ const App: React.FC = () => {
   // Black screen phase - pause then show restart prompt
   useEffect(() => {
     if (shutdownPhase !== 'black') return;
-    const timer = setTimeout(() => setShutdownPhase('restart-prompt'), 2000);
+    const timer = setTimeout(() => setShutdownPhase('restart-prompt'), 1000);
     return () => clearTimeout(timer);
   }, [shutdownPhase]);
 
@@ -116,9 +116,13 @@ const App: React.FC = () => {
           style={{ background: '#000' }}
         >
           {shutdownPhase === 'restart-prompt' && (
-            <p className="font-mono text-sm restart-blink" style={{ color: '#00FF41' }}>
-              Press any key to restart...
-            </p>
+            <div className="text-center font-mono text-sm phosphor-glow">
+              <p className="mb-1" style={{ color: '#888' }}>Reboot scheduled.</p>
+              <p className="mb-4" style={{ color: '#888' }}>Waiting for user input...</p>
+              <p style={{ color: '#00FF41' }}>
+                Press any key to continue... <span className="animate-blink">&#x2588;</span>
+              </p>
+            </div>
           )}
         </div>
       )}
