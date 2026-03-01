@@ -26,7 +26,11 @@ const useIsMobile = () => {
   return isMobile;
 };
 
-const Terminal = forwardRef<TerminalHandle>((_, ref) => {
+type TerminalProps = {
+  onShutdown?: () => void;
+};
+
+const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref) => {
   const isMobile = useIsMobile();
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
   const [inputCommand, setInputCommand] = useState('');
@@ -96,6 +100,17 @@ const Terminal = forwardRef<TerminalHandle>((_, ref) => {
       setTerminalOutput(displayHelp());
       setInputCommand('');
       setAutoSuggestion(null);
+      return;
+    }
+
+    if (trimmedCmd === 'exit') {
+      setTerminalOutput(prev => [
+        ...prev,
+        { content: `$ ${trimmedCmd}`, type: 'input', timestamp: getCurrentTime() },
+      ]);
+      setInputCommand('');
+      setAutoSuggestion(null);
+      onShutdown?.();
       return;
     }
 
