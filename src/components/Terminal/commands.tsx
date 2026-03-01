@@ -90,7 +90,4 @@ export const commands: Record<string, string[]> = {
     '  See pinned repositories and contributions at:',
     '  <a href="https://github.com/dkoval" target="_blank" rel="noopener noreferrer" class="text-[#00FF41] hover:underline">https://github.com/dkoval</a>',
   ],
-  exit: [
-    'Shutting down...',
-  ],
 };

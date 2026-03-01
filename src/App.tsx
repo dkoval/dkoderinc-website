@@ -45,50 +45,41 @@ const App: React.FC = () => {
     setShowBootSplash(true);
   }, []);
 
-  // Shutdown messages phase - show lines one at a time
+  // Shutdown sequence state machine
   useEffect(() => {
-    if (shutdownPhase !== 'messages') return;
+    if (!shutdownPhase) return;
+
     const timers: ReturnType<typeof setTimeout>[] = [];
-    SHUTDOWN_MESSAGES.forEach((_, i) => {
-      timers.push(setTimeout(() => setShutdownLines(i + 1), i * 350));
-    });
-    timers.push(setTimeout(() => {
-      setShutdownPhase('crt-off');
-    }, SHUTDOWN_MESSAGES.length * 350 + 500));
+
+    switch (shutdownPhase) {
+      case 'messages':
+        SHUTDOWN_MESSAGES.forEach((_, i) => {
+          timers.push(setTimeout(() => setShutdownLines(i + 1), i * 350));
+        });
+        timers.push(setTimeout(() => setShutdownPhase('crt-off'), SHUTDOWN_MESSAGES.length * 350 + 500));
+        break;
+
+      case 'crt-off':
+        timers.push(setTimeout(() => setShutdownPhase('black'), 1500));
+        break;
+
+      case 'black':
+        timers.push(setTimeout(() => setShutdownPhase('restart-prompt'), 1000));
+        break;
+
+      case 'restart-prompt': {
+        const onKey = (e: KeyboardEvent) => { e.preventDefault(); handleRestart(); };
+        const onTouch = (e: TouchEvent) => { e.preventDefault(); handleRestart(); };
+        window.addEventListener('keydown', onKey);
+        window.addEventListener('touchstart', onTouch);
+        return () => {
+          window.removeEventListener('keydown', onKey);
+          window.removeEventListener('touchstart', onTouch);
+        };
+      }
+    }
+
     return () => timers.forEach(clearTimeout);
-  }, [shutdownPhase]);
-
-  // CRT collapse phase - wait for animation to finish
-  useEffect(() => {
-    if (shutdownPhase !== 'crt-off') return;
-    const timer = setTimeout(() => setShutdownPhase('black'), 1500);
-    return () => clearTimeout(timer);
-  }, [shutdownPhase]);
-
-  // Black screen phase - pause then show restart prompt
-  useEffect(() => {
-    if (shutdownPhase !== 'black') return;
-    const timer = setTimeout(() => setShutdownPhase('restart-prompt'), 1000);
-    return () => clearTimeout(timer);
-  }, [shutdownPhase]);
-
-  // Restart prompt phase - listen for any key/touch
-  useEffect(() => {
-    if (shutdownPhase !== 'restart-prompt') return;
-    const onKey = (e: KeyboardEvent) => {
-      e.preventDefault();
-      handleRestart();
-    };
-    const onTouch = (e: TouchEvent) => {
-      e.preventDefault();
-      handleRestart();
-    };
-    window.addEventListener('keydown', onKey);
-    window.addEventListener('touchstart', onTouch);
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      window.removeEventListener('touchstart', onTouch);
-    };
   }, [shutdownPhase, handleRestart]);
 
   return (
