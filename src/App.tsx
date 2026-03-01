@@ -81,16 +81,8 @@ const App: React.FC = () => {
         timers.push(setTimeout(() => setShutdownPhase('restart-prompt'), 1000));
         break;
 
-      case 'restart-prompt': {
-        const onKey = (e: KeyboardEvent) => { e.preventDefault(); handleRestart(); };
-        const onTouch = (e: TouchEvent) => { e.preventDefault(); handleRestart(); };
-        window.addEventListener('keydown', onKey);
-        window.addEventListener('touchstart', onTouch);
-        return () => {
-          window.removeEventListener('keydown', onKey);
-          window.removeEventListener('touchstart', onTouch);
-        };
-      }
+      case 'restart-prompt':
+        break;
     }
 
     return () => timers.forEach(clearTimeout);
@@ -124,6 +116,20 @@ const App: React.FC = () => {
 
     setTypingDone(true);
   }, [shutdownPhase, typingLine, typingChar, typingDone]);
+
+  // Attach restart listener only after typing completes
+  useEffect(() => {
+    if (shutdownPhase !== 'restart-prompt' || !typingDone) return;
+
+    const onKey = (e: KeyboardEvent) => { e.preventDefault(); handleRestart(); };
+    const onTouch = (e: TouchEvent) => { e.preventDefault(); handleRestart(); };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('touchstart', onTouch);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('touchstart', onTouch);
+    };
+  }, [shutdownPhase, typingDone, handleRestart]);
 
   return (
     <div className="flex flex-col overflow-hidden" style={{ background: '#000', height: '100dvh' }}>
