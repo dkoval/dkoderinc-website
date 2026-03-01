@@ -86,7 +86,7 @@ const App: React.FC = () => {
     }
 
     return () => timers.forEach(clearTimeout);
-  }, [shutdownPhase, handleRestart]);
+  }, [shutdownPhase]);
 
   // Typing animation for restart prompt
   useEffect(() => {
@@ -168,11 +168,12 @@ const App: React.FC = () => {
               {typingLine < RESTART_LINES.length && (
                 <p className={typingLine === 0 ? 'mb-1' : 'mb-4'} style={{ color: RESTART_LINES[typingLine].color }}>
                   {RESTART_LINES[typingLine].text.slice(0, typingChar)}
-                  <span className={typingDone ? 'animate-blink' : ''}>&#x2588;</span>
+                  <span>&#x2588;</span>
                 </p>
               )}
 
-              {/* Line 3: green, responsive, shows after first 2 lines done */}
+              {/* Final line: green, responsive. On mobile the shorter text finishes
+                  before the desktop-driven timer, causing a brief solid-cursor pause. */}
               {typingLine >= RESTART_LINES.length && (
                 <p style={{ color: '#00FF41' }}>
                   <span className="hidden md:inline">
