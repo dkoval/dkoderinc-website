@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Mail, Sparkles, User, Info, FolderOpen, Clock } from 'lucide-react';
+import { Cpu, Mail, Sparkles, User, Info, FolderOpen, Clock, LogOut } from 'lucide-react';
 import { CommandSuggestion } from './types';
 
 export const suggestions: CommandSuggestion[] = [
@@ -11,6 +11,7 @@ export const suggestions: CommandSuggestion[] = [
   { command: 'uptime', description: 'Session uptime', icon: <Clock className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'uname -a', description: 'System info', icon: <Info className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'clear', description: 'Clear terminal screen', icon: <Sparkles className="w-4 h-4 text-[#00FF41]" /> },
+  { command: 'exit', description: 'Terminate the current session', icon: <LogOut className="w-4 h-4 text-[#00FF41]" /> },
 ];
 
 export const commands: Record<string, string[]> = {
@@ -88,5 +89,8 @@ export const commands: Record<string, string[]> = {
     '',
     '  See pinned repositories and contributions at:',
     '  <a href="https://github.com/dkoval" target="_blank" rel="noopener noreferrer" class="text-[#00FF41] hover:underline">https://github.com/dkoval</a>',
+  ],
+  exit: [
+    'Shutting down...',
   ],
 };
