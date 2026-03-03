@@ -97,7 +97,7 @@ export const commands: Record<string, string[]> = {
     '       None known. Reports welcome at: dkoderinc@gmail.com',
     '',
     'SEE ALSO',
-    '       skills(1), projects(1), contact(1)',
+    '       skills(1), history(1), contact(1)',
     '',
     'DKODER INC.                       2026                       DMYTRO(1)',
   ],
