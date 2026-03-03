@@ -62,6 +62,17 @@ export const commands: Record<string, string[]> = {
     'Shell:    /bin/bash',
     'Status:   Open to opportunities',
   ],
+  history: [
+    '    1  Started professional software development',
+    '    2  First enterprise Java project \u2014 fell in love with the JVM',
+    '    3  Adopted microservices architecture early',
+    '    4  Deep dive into Apache Kafka & event-driven systems',
+    '    5  Tried Kotlin for backend development \u2014 absolutely loved it',
+    '    6  Architecting distributed systems at scale',
+    '    7  Pushing backend engineering initiatives forward',
+    '    8  Building with OSS and AI',
+    '    9  Still shipping. Still learning.',
+  ],
   'man dmytro': [
     'DMYTRO(1)                    User Commands                    DMYTRO(1)',
     '',
