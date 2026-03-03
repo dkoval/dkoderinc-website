@@ -166,9 +166,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
 
   const selectSuggestion = () => {
     const selectedCommand = suggestions[selectedSuggestionIndex].command;
-    setInputCommand(selectedCommand);
     setShowSuggestions(false);
-    setAutoSuggestion(null);
+    handleCommand(selectedCommand);
     inputRef.current?.focus();
   };
 
