@@ -148,7 +148,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         ? output.map((line) => ({
             content: line,
             type: 'output' as const,
-            isHtml: trimmedCmd === 'contact' || trimmedCmd === 'projects',
+            isHtml: trimmedCmd === 'contact',
           }))
         : [
             {
