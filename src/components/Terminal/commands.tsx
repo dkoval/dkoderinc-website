@@ -52,15 +52,8 @@ export const commands: Record<string, string[]> = {
   whoami: [
     'dkoval:x:1000:1000:Dmytro Koval:/home/dkoval:/bin/bash',
     '',
-    'Login:    dkoval',
     'Name:     Dmytro Koval',
-    'Role:     Senior Software Engineer',
     'Focus:    Backend & Distributed Systems',
-    'Stack:    Java · Kotlin · Kafka',
-    'Exp:      15+ years',
-    'Location: Toronto, CA',
-    'Shell:    /bin/bash',
-    'Status:   Open to opportunities',
   ],
   history: [
     '    1  Started professional software development',
