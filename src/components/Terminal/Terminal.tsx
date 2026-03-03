@@ -376,9 +376,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             suggestions={suggestions}
             selectedIndex={selectedSuggestionIndex}
             onSelect={(command) => {
-              setInputCommand(command);
               setShowSuggestions(false);
-              setAutoSuggestion(null);
+              handleCommand(command);
               inputRef.current?.focus();
             }}
             onMouseEnter={setSelectedSuggestionIndex}
