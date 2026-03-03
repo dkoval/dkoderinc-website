@@ -1,15 +1,14 @@
 import React from 'react';
-import { Cpu, Mail, Sparkles, User, Info, FolderOpen, Clock, LogOut } from 'lucide-react';
+import { Cpu, Mail, Sparkles, User, Info, Clock, LogOut, History } from 'lucide-react';
 import { CommandSuggestion } from './types';
 
 export const suggestions: CommandSuggestion[] = [
-  { command: 'whoami', description: 'Who am I?', icon: <User className="w-4 h-4 text-[#00FF41]" /> },
+  { command: 'whoami', description: 'Display identity', icon: <User className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'man dmytro', description: 'Manual page', icon: <Info className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'skills', description: 'View technical expertise', icon: <Cpu className="w-4 h-4 text-[#00FF41]" /> },
-  { command: 'projects', description: 'GitHub projects', icon: <FolderOpen className="w-4 h-4 text-[#00FF41]" /> },
+  { command: 'history', description: 'View career timeline', icon: <History className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'contact', description: 'Get contact information', icon: <Mail className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'uptime', description: 'Session uptime', icon: <Clock className="w-4 h-4 text-[#00FF41]" /> },
-  { command: 'uname -a', description: 'System info', icon: <Info className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'clear', description: 'Clear terminal screen', icon: <Sparkles className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'exit', description: 'Terminate the current session', icon: <LogOut className="w-4 h-4 text-[#00FF41]" /> },
 ];
@@ -51,10 +50,21 @@ export const commands: Record<string, string[]> = {
     '<a href="mailto:dkoderinc@gmail.com" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-[#00FF41] hover:underline"><svg class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>dkoderinc@gmail.com</a>',
   ],
   whoami: [
-    'dkoval:x:1000:1000:Dmytro Koval,,,:/home/dkoval:/bin/bash',
+    'dkoval:x:1000:1000:Dmytro Koval:/home/dkoval:/bin/bash',
+    '',
+    'Name:     Dmytro Koval',
+    'Focus:    Backend & Distributed Systems',
   ],
-  'uname -a': [
-    'Linux dkoderinc 6.1.0-backend #1 SMP PREEMPT Tue Jan 1 00:00:00 UTC 2026 x86_64 GNU/Linux',
+  history: [
+    '    1  Started professional software development',
+    '    2  First enterprise Java project \u2014 fell in love with the JVM',
+    '    3  Adopted microservices architecture early',
+    '    4  Deep dive into Apache Kafka & event-driven systems',
+    '    5  Tried Kotlin for backend development \u2014 absolutely loved it',
+    '    6  Architecting distributed systems at scale',
+    '    7  Pushing backend engineering initiatives forward',
+    '    8  Building with OSS and AI',
+    '    9  Still shipping. Still learning.',
   ],
   'man dmytro': [
     'DMYTRO(1)                    User Commands                    DMYTRO(1)',
@@ -80,14 +90,8 @@ export const commands: Record<string, string[]> = {
     '       None known. Reports welcome at: dkoderinc@gmail.com',
     '',
     'SEE ALSO',
-    '       skills(1), projects(1), contact(1)',
+    '       skills(1), history(1), contact(1)',
     '',
     'DKODER INC.                       2026                       DMYTRO(1)',
-  ],
-  projects: [
-    'GitHub Projects:',
-    '',
-    '  See pinned repositories and contributions at:',
-    '  <a href="https://github.com/dkoval" target="_blank" rel="noopener noreferrer" class="text-[#00FF41] hover:underline">https://github.com/dkoval</a>',
   ],
 };
