@@ -1,15 +1,14 @@
 import React from 'react';
-import { Cpu, Mail, Sparkles, User, Info, FolderOpen, Clock, LogOut } from 'lucide-react';
+import { Cpu, Mail, Sparkles, User, Info, Clock, LogOut, History } from 'lucide-react';
 import { CommandSuggestion } from './types';
 
 export const suggestions: CommandSuggestion[] = [
-  { command: 'whoami', description: 'Who am I?', icon: <User className="w-4 h-4 text-[#00FF41]" /> },
+  { command: 'whoami', description: 'Display identity', icon: <User className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'man dmytro', description: 'Manual page', icon: <Info className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'skills', description: 'View technical expertise', icon: <Cpu className="w-4 h-4 text-[#00FF41]" /> },
-  { command: 'projects', description: 'GitHub projects', icon: <FolderOpen className="w-4 h-4 text-[#00FF41]" /> },
+  { command: 'history', description: 'View career timeline', icon: <History className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'contact', description: 'Get contact information', icon: <Mail className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'uptime', description: 'Session uptime', icon: <Clock className="w-4 h-4 text-[#00FF41]" /> },
-  { command: 'uname -a', description: 'System info', icon: <Info className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'clear', description: 'Clear terminal screen', icon: <Sparkles className="w-4 h-4 text-[#00FF41]" /> },
   { command: 'exit', description: 'Terminate the current session', icon: <LogOut className="w-4 h-4 text-[#00FF41]" /> },
 ];
@@ -53,9 +52,6 @@ export const commands: Record<string, string[]> = {
   whoami: [
     'dkoval:x:1000:1000:Dmytro Koval,,,:/home/dkoval:/bin/bash',
   ],
-  'uname -a': [
-    'Linux dkoderinc 6.1.0-backend #1 SMP PREEMPT Tue Jan 1 00:00:00 UTC 2026 x86_64 GNU/Linux',
-  ],
   'man dmytro': [
     'DMYTRO(1)                    User Commands                    DMYTRO(1)',
     '',
@@ -83,11 +79,5 @@ export const commands: Record<string, string[]> = {
     '       skills(1), projects(1), contact(1)',
     '',
     'DKODER INC.                       2026                       DMYTRO(1)',
-  ],
-  projects: [
-    'GitHub Projects:',
-    '',
-    '  See pinned repositories and contributions at:',
-    '  <a href="https://github.com/dkoval" target="_blank" rel="noopener noreferrer" class="text-[#00FF41] hover:underline">https://github.com/dkoval</a>',
   ],
 };
