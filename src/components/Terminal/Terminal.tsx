@@ -42,6 +42,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const spinnerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', {
@@ -114,54 +115,55 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
       return;
     }
 
-    if (trimmedCmd === 'uptime') {
-      const seconds = Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000);
-      const output: string[] = [
-        ` up ${formatUptime(seconds)} (this session)`,
-        ` up 15+ years (career)`,
-        ` load average: 0.42, 0.15, 0.07`,
-      ];
-      setCommandHistory(prev => [...prev, trimmedCmd].slice(-MAX_HISTORY));
-      setHistoryIndex(-1);
-      setTerminalOutput(prev => [
-        ...prev,
-        { content: `$ ${trimmedCmd}`, type: 'input', timestamp: getCurrentTime() },
-        ...output.map(line => ({ content: line, type: 'output' as const })),
-      ]);
-      setInputCommand('');
-      setAutoSuggestion(null);
-      return;
-    }
+    // Add input line + spinner
+    const inputLine: TerminalLine = {
+      content: `$ ${trimmedCmd}`,
+      type: 'input',
+      timestamp: getCurrentTime(),
+    };
+    const spinnerLine: TerminalLine = {
+      content: 'processing query...',
+      type: 'spinner',
+    };
 
-    const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
-
-    setCommandHistory((prev) => [...prev, trimmedCmd].slice(-MAX_HISTORY));
+    setTerminalOutput(prev => [...prev, inputLine, spinnerLine]);
+    setCommandHistory(prev => [...prev, trimmedCmd].slice(-MAX_HISTORY));
     setHistoryIndex(-1);
-
-    const newOutput: TerminalLine[] = [
-      {
-        content: `$ ${trimmedCmd}`,
-        type: 'input',
-        timestamp: getCurrentTime()
-      },
-      ...(Array.isArray(output)
-        ? output.map((line) => ({
-            content: line,
-            type: 'output' as const,
-            isHtml: trimmedCmd === 'contact',
-          }))
-        : [
-            {
-              content: output,
-              type: output.startsWith('Command not found')
-                ? 'error'
-                : 'output',
-            } as const,
-          ]),
-    ];
-    setTerminalOutput((prevOutput) => [...prevOutput, ...newOutput]);
     setInputCommand('');
     setAutoSuggestion(null);
+
+    // After delay, replace spinner with real output
+    spinnerTimeoutRef.current = setTimeout(() => {
+      let outputLines: TerminalLine[];
+
+      if (trimmedCmd === 'uptime') {
+        const seconds = Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000);
+        outputLines = [
+          { content: ` up ${formatUptime(seconds)} (this session)`, type: 'output' },
+          { content: ` up 15+ years (career)`, type: 'output' },
+          { content: ` load average: 0.42, 0.15, 0.07`, type: 'output' },
+        ];
+      } else {
+        const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
+        outputLines = Array.isArray(output)
+          ? output.map(line => ({
+              content: line,
+              type: 'output' as const,
+              isHtml: trimmedCmd === 'contact',
+            }))
+          : [{
+              content: output,
+              type: output.startsWith('Command not found') ? 'error' as const : 'output' as const,
+            }];
+      }
+
+      // Replace spinner line with real output
+      setTerminalOutput(prev => {
+        const lastSpinnerIndex = prev.findLastIndex(l => l.type === 'spinner');
+        if (lastSpinnerIndex === -1) return [...prev, ...outputLines];
+        return [...prev.slice(0, lastSpinnerIndex), ...outputLines];
+      });
+    }, 600);
   };
 
   const selectSuggestion = () => {
@@ -307,6 +309,14 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     }
   }, [terminalOutput]);
 
+  useEffect(() => {
+    return () => {
+      if (spinnerTimeoutRef.current) {
+        clearTimeout(spinnerTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <section className="w-full bg-black flex flex-col flex-1 overflow-hidden p-4">
       <div
@@ -316,7 +326,12 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         {terminalOutput.map((line, index) => (
           <div key={index} className="group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded">
             <p className={`font-mono ${getLineColor(line.type)} flex-1 break-words`}>
-              {line.helpEntry ? (
+              {line.type === 'spinner' ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="ai-spinner" />
+                  <span style={{ color: '#888' }}>{line.content}</span>
+                </span>
+              ) : line.helpEntry ? (
                 <span className="inline-flex items-center gap-3">
                   {suggestions[line.helpEntry.commandIndex].icon}
                   <span style={{ color: '#00FF41' }}>{suggestions[line.helpEntry.commandIndex].command}</span>
@@ -393,6 +408,7 @@ const getLineColor = (type: string): string => {
     case 'input': return 'text-[#00FF41]';
     case 'output': return 'text-gray-200';
     case 'error': return 'text-red-400';
+    case 'spinner': return 'text-[#00FF41]';
     default: return 'text-white';
   }
 };
