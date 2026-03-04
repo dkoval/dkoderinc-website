@@ -6,6 +6,7 @@ export interface TerminalLine {
   isHtml?: boolean;
   timestamp?: string;
   helpEntry?: { commandIndex: number };
+  spinnerId?: number;
 }
 
 export interface CommandSuggestion {

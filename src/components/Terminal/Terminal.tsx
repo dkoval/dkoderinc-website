@@ -43,6 +43,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   const terminalRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const spinnerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const spinnerIdRef = useRef(0);
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', {
@@ -115,7 +116,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
       return;
     }
 
-    // Add input line + spinner
+    // Add input line + spinner with unique ID
+    const currentSpinnerId = ++spinnerIdRef.current;
     const inputLine: TerminalLine = {
       content: `$ ${trimmedCmd}`,
       type: 'input',
@@ -124,6 +126,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     const spinnerLine: TerminalLine = {
       content: 'processing query...',
       type: 'spinner',
+      spinnerId: currentSpinnerId,
     };
 
     setTerminalOutput(prev => [...prev, inputLine, spinnerLine]);
@@ -132,7 +135,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     setInputCommand('');
     setAutoSuggestion(null);
 
-    // After delay, replace spinner with real output
+    // After delay, replace this specific spinner with real output
     spinnerTimeoutRef.current = setTimeout(() => {
       let outputLines: TerminalLine[];
 
@@ -157,11 +160,11 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             }];
       }
 
-      // Replace spinner line with real output
+      // Replace this specific spinner line with real output
       setTerminalOutput(prev => {
-        const lastSpinnerIndex = prev.findLastIndex(l => l.type === 'spinner');
-        if (lastSpinnerIndex === -1) return [...prev, ...outputLines];
-        return [...prev.slice(0, lastSpinnerIndex), ...outputLines];
+        const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
+        if (spinnerIndex === -1) return [...prev, ...outputLines];
+        return [...prev.slice(0, spinnerIndex), ...outputLines, ...prev.slice(spinnerIndex + 1)];
       });
     }, 600);
   };
