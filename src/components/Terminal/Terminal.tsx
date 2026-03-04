@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import { Code2, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { suggestions, commands } from './commands';
 import { TerminalLine } from './types';
@@ -370,7 +370,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               onKeyDown={handleKeyDown}
               className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10"
               style={{ color: '#00FF41' }}
-              placeholder={isMobile ? "Press Tab for suggestions..." : "Type a command or press Tab for suggestions..."}
+              placeholder={isMobile ? "Tap Cmds for suggestions..." : "Type a command or press Tab for suggestions..."}
               inputMode={isMobile ? "none" : undefined}
               autoCapitalize="none"
               spellCheck={false}
@@ -381,13 +381,6 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               suggestion={autoSuggestion}
             />
           </div>
-          <button
-            onClick={() => handleCommand(inputCommand)}
-            className="p-1.5 rounded hover:opacity-80 transition-opacity"
-            style={{ background: '#222', color: '#00FF41' }}
-          >
-            <Code2 className="w-4 h-4" />
-          </button>
         </div>
         {showSuggestions && (
           <Suggestions
