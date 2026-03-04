@@ -6,6 +6,9 @@ import Terminal, { TerminalHandle } from './components/Terminal';
 import { resetPageLoadTime } from './constants';
 import { List } from 'lucide-react';
 
+const MOBILE_BTN_STYLE = { background: '#111', color: '#00FF41', border: '1px solid #333' } as const;
+const MOBILE_BTN_STYLE_EMPHASIZED = { background: '#00FF41', color: '#000', border: '1px solid #00FF41' } as const;
+
 const mobileKeys = [
   { label: 'Cmds', action: 'tab' as const, icon: true },
   { label: '↑', action: 'up' as const },
@@ -215,10 +218,7 @@ const App: React.FC = () => {
             <button
               key={label}
               className="flex-1 py-2 font-mono text-sm rounded inline-flex items-center justify-center gap-1"
-              style={emphasized
-                ? { background: '#00FF41', color: '#000', border: '1px solid #00FF41' }
-                : { background: '#111', color: '#00FF41', border: '1px solid #333' }
-              }
+              style={emphasized ? MOBILE_BTN_STYLE_EMPHASIZED : MOBILE_BTN_STYLE}
               data-mobile-action={action}
               onClick={() => terminalRef.current?.handleMobileAction(action)}
             >
