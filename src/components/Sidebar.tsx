@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 import { PAGE_LOAD_TIME, formatUptime } from '../constants';
+import AsciiNeuralNet from './AsciiNeuralNet';
 
 const Sidebar: React.FC = () => {
   const [uptime, setUptime] = useState(0);
@@ -63,6 +64,7 @@ const Sidebar: React.FC = () => {
             </a>
           ))}
         </div>
+        <AsciiNeuralNet />
       </aside>
 
       {/* Mobile top bar */}
