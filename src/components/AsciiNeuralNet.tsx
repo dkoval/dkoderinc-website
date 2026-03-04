@@ -20,16 +20,20 @@ const NODES: [number, number, number][] = [
   [8, 22, 7],
 ];
 
+// Derive layer membership from node positions
+const INPUT_IDS = NODES.filter(([, col]) => col === 2).map(([id]) => id);
+const HIDDEN_IDS = NODES.filter(([, col]) => col === 12).map(([id]) => id);
+const OUTPUT_IDS = NODES.filter(([, col]) => col === 22).map(([id]) => id);
+
 // Full connectivity between adjacent layers
-// Input (0-3) -> Hidden (4-6), Hidden (4-6) -> Output (7-8)
 const CONNECTIONS: [number, number][] = [];
-for (let i = 0; i <= 3; i++) {
-  for (let h = 4; h <= 6; h++) {
+for (const i of INPUT_IDS) {
+  for (const h of HIDDEN_IDS) {
     CONNECTIONS.push([i, h]);
   }
 }
-for (let h = 4; h <= 6; h++) {
-  for (let o = 7; o <= 8; o++) {
+for (const h of HIDDEN_IDS) {
+  for (const o of OUTPUT_IDS) {
     CONNECTIONS.push([h, o]);
   }
 }
@@ -76,38 +80,40 @@ for (const [fromId, toId] of CONNECTIONS) {
   connectionMidpoints.set(`${fromId}-${toId}`, [mc, mr]);
 }
 
+const pickRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
 const AsciiNeuralNet: React.FC = () => {
   const [activeNodes, setActiveNodes] = useState<Set<number>>(new Set());
   const [signalCells, setSignalCells] = useState<Set<string>>(new Set());
-  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const intervalsRef = useRef<ReturnType<typeof setInterval>[]>([]);
-  const mountedRef = useRef(true);
+  const activeTimeouts = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const signalChainRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pulseIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const trackTimeout = useCallback((id: ReturnType<typeof setTimeout>) => {
+    activeTimeouts.current.add(id);
+    return id;
+  }, []);
 
   const fireSignal = useCallback(() => {
-    // Pick a random path: input -> hidden -> output
-    const inputId = Math.floor(Math.random() * 4);       // 0-3
-    const hiddenId = 4 + Math.floor(Math.random() * 3);  // 4-6
-    const outputId = 7 + Math.floor(Math.random() * 2);  // 7-8
+    const inputId = pickRandom(INPUT_IDS);
+    const hiddenId = pickRandom(HIDDEN_IDS);
+    const outputId = pickRandom(OUTPUT_IDS);
 
     const path = [inputId, hiddenId, outputId];
-    const mid1Key = `${inputId}-${hiddenId}`;
-    const mid2Key = `${hiddenId}-${outputId}`;
-    const mid1 = connectionMidpoints.get(mid1Key);
-    const mid2 = connectionMidpoints.get(mid2Key);
+    const mid1 = connectionMidpoints.get(`${inputId}-${hiddenId}`);
+    const mid2 = connectionMidpoints.get(`${hiddenId}-${outputId}`);
 
     // Sequence: node0 -> midpoint1 -> node1 -> midpoint2 -> node2
     type Step = { type: 'node'; id: number } | { type: 'mid'; col: number; row: number };
-    const steps: Step[] = [
-      { type: 'node', id: path[0] },
-    ];
+    const steps: Step[] = [{ type: 'node', id: path[0] }];
     if (mid1) steps.push({ type: 'mid', col: mid1[0], row: mid1[1] });
     steps.push({ type: 'node', id: path[1] });
     if (mid2) steps.push({ type: 'mid', col: mid2[0], row: mid2[1] });
     steps.push({ type: 'node', id: path[2] });
 
     steps.forEach((step, i) => {
-      const onTimeout = setTimeout(() => {
-        if (!mountedRef.current) return;
+      const onId = trackTimeout(setTimeout(() => {
+        activeTimeouts.current.delete(onId);
         if (step.type === 'node') {
           setActiveNodes(prev => new Set(prev).add(step.id));
         } else {
@@ -115,8 +121,8 @@ const AsciiNeuralNet: React.FC = () => {
         }
 
         // Turn off after 400ms
-        const offTimeout = setTimeout(() => {
-          if (!mountedRef.current) return;
+        const offId = trackTimeout(setTimeout(() => {
+          activeTimeouts.current.delete(offId);
           if (step.type === 'node') {
             setActiveNodes(prev => {
               const next = new Set(prev);
@@ -130,23 +136,18 @@ const AsciiNeuralNet: React.FC = () => {
               return next;
             });
           }
-        }, 400);
-        timeoutsRef.current.push(offTimeout);
-      }, i * 400);
-      timeoutsRef.current.push(onTimeout);
+        }, 400));
+      }, i * 400));
     });
-  }, []);
+  }, [trackTimeout]);
 
   useEffect(() => {
-    mountedRef.current = true;
-
     // Pulse: every 2s, brighten 1-2 random nodes briefly
-    const pulseInterval = setInterval(() => {
-      if (!mountedRef.current) return;
+    pulseIntervalRef.current = setInterval(() => {
       const count = 1 + Math.floor(Math.random() * 2);
       const ids: number[] = [];
       for (let i = 0; i < count; i++) {
-        ids.push(Math.floor(Math.random() * 9));
+        ids.push(Math.floor(Math.random() * NODES.length));
       }
       setActiveNodes(prev => {
         const next = new Set(prev);
@@ -154,42 +155,33 @@ const AsciiNeuralNet: React.FC = () => {
         return next;
       });
 
-      const offTimeout = setTimeout(() => {
-        if (!mountedRef.current) return;
+      const offId = trackTimeout(setTimeout(() => {
+        activeTimeouts.current.delete(offId);
         setActiveNodes(prev => {
           const next = new Set(prev);
           ids.forEach(id => next.delete(id));
           return next;
         });
-      }, 800);
-      timeoutsRef.current.push(offTimeout);
+      }, 800));
     }, 2000);
-    intervalsRef.current.push(pulseInterval);
 
     // Signal propagation: every 5-8s
     const scheduleSignal = () => {
       const delay = 5000 + Math.random() * 3000;
-      const timeout = setTimeout(() => {
-        if (!mountedRef.current) return;
+      signalChainRef.current = setTimeout(() => {
         fireSignal();
-        const nextInterval = scheduleSignal();
-        if (nextInterval !== undefined) {
-          timeoutsRef.current.push(nextInterval);
-        }
+        scheduleSignal();
       }, delay);
-      timeoutsRef.current.push(timeout);
-      return timeout;
     };
     scheduleSignal();
 
     return () => {
-      mountedRef.current = false;
-      timeoutsRef.current.forEach(clearTimeout);
-      intervalsRef.current.forEach(clearInterval);
-      timeoutsRef.current = [];
-      intervalsRef.current = [];
+      if (pulseIntervalRef.current) clearInterval(pulseIntervalRef.current);
+      if (signalChainRef.current) clearTimeout(signalChainRef.current);
+      activeTimeouts.current.forEach(clearTimeout);
+      activeTimeouts.current.clear();
     };
-  }, [fireSignal]);
+  }, [fireSignal, trackTimeout]);
 
   return (
     <div className="neural-net-container flex-1 overflow-hidden font-mono" style={{ minHeight: 0 }}>
@@ -200,7 +192,7 @@ const AsciiNeuralNet: React.FC = () => {
         {staticGrid.map((row, r) => (
           <div key={r}>
             {row.map((cell, c) => {
-              if (cell.char === ' ') return <span key={c}> </span>;
+              if (cell.char === ' ') return ' ';
 
               const isNodeActive = cell.nodeId !== undefined && activeNodes.has(cell.nodeId);
               const isMidActive = cell.nodeId === undefined && signalCells.has(`${r},${c}`);
@@ -209,7 +201,7 @@ const AsciiNeuralNet: React.FC = () => {
               return (
                 <span
                   key={c}
-                  className="transition-all duration-500"
+                  className="transition-opacity duration-500"
                   style={{ opacity: bright ? 0.9 : 0.15 }}
                 >
                   {cell.char}

@@ -42,7 +42,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
-  const spinnerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const spinnerTimeouts = useRef(new Set<ReturnType<typeof setTimeout>>());
   const spinnerIdRef = useRef(0);
 
   const getCurrentTime = () => {
@@ -136,7 +136,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     setAutoSuggestion(null);
 
     // After delay, replace this specific spinner with real output
-    spinnerTimeoutRef.current = setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      spinnerTimeouts.current.delete(timeoutId);
       let outputLines: TerminalLine[];
 
       if (trimmedCmd === 'uptime') {
@@ -167,6 +168,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         return [...prev.slice(0, spinnerIndex), ...outputLines, ...prev.slice(spinnerIndex + 1)];
       });
     }, 600);
+    spinnerTimeouts.current.add(timeoutId);
   };
 
   const selectSuggestion = () => {
@@ -314,9 +316,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
 
   useEffect(() => {
     return () => {
-      if (spinnerTimeoutRef.current) {
-        clearTimeout(spinnerTimeoutRef.current);
-      }
+      spinnerTimeouts.current.forEach(clearTimeout);
+      spinnerTimeouts.current.clear();
     };
   }, []);
 
