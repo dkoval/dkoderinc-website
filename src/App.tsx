@@ -4,12 +4,13 @@ import Sidebar from './components/Sidebar';
 import TerminalWindow from './components/TerminalWindow';
 import Terminal, { TerminalHandle } from './components/Terminal';
 import { resetPageLoadTime } from './constants';
+import { List } from 'lucide-react';
 
 const mobileKeys = [
-  { label: 'Tab', action: 'tab' as const },
+  { label: 'Cmds', action: 'tab' as const, icon: true },
   { label: '↑', action: 'up' as const },
   { label: '↓', action: 'down' as const },
-  { label: 'Enter', action: 'enter' as const },
+  { label: '⏎ Enter', action: 'enter' as const, emphasized: true },
 ];
 
 const SHUTDOWN_MESSAGES = [
@@ -210,14 +211,18 @@ const App: React.FC = () => {
           className="flex md:hidden shrink-0 gap-2 p-2 border-t"
           style={{ borderColor: '#333' }}
         >
-          {mobileKeys.map(({ label, action }) => (
+          {mobileKeys.map(({ label, action, icon, emphasized }) => (
             <button
               key={label}
-              className="flex-1 py-2 font-mono text-sm rounded"
-              style={{ background: '#111', color: '#00FF41', border: '1px solid #333' }}
+              className="flex-1 py-2 font-mono text-sm rounded inline-flex items-center justify-center gap-1"
+              style={emphasized
+                ? { background: '#00FF41', color: '#000', border: '1px solid #00FF41' }
+                : { background: '#111', color: '#00FF41', border: '1px solid #333' }
+              }
               data-mobile-action={action}
               onClick={() => terminalRef.current?.handleMobileAction(action)}
             >
+              {icon && <List className="w-3.5 h-3.5" />}
               {label}
             </button>
           ))}
