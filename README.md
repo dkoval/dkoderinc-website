@@ -1,8 +1,14 @@
-# dkoderinc-website
+# dkoderinc.com
 
-The source code of the [dkoderinc.com](https://dkoderinc.com) website.
+A terminal-themed personal website for [dkoderinc.com](https://dkoderinc.com), featuring a CRT monitor aesthetic with scanlines, phosphor glow, and an interactive command-line interface.
 
-## Build
+## Tech Stack
+
+- **React** + **TypeScript**
+- **Vite** for development and builds
+- **Tailwind CSS** for styling
+
+## Getting Started
 
 Install dependencies:
 
@@ -10,14 +16,20 @@ Install dependencies:
 npm install
 ```
 
-Start application in `development` mode:
+Start the development server:
 
 ```shell
 npm run dev
 ```
 
-Production build:
+Create a production build:
 
 ```shell
 npm run build
+```
+
+Preview the production build locally:
+
+```shell
+npm run preview
 ```
