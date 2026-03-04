@@ -192,7 +192,7 @@ const AsciiNeuralNet: React.FC = () => {
   }, [fireSignal]);
 
   return (
-    <div className="flex-1 overflow-hidden font-mono" style={{ minHeight: 0 }}>
+    <div className="neural-net-container flex-1 overflow-hidden font-mono" style={{ minHeight: 0 }}>
       <pre
         className="text-xs leading-tight select-none"
         style={{ color: '#00FF41' }}
