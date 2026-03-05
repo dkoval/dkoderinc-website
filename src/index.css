@@ -2,6 +2,76 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+/* Theme: Green phosphor (P31) — default */
+:root,
+:root[data-theme="green"] {
+  --terminal-primary: #00FF41;
+  --terminal-primary-dim: #00CC33;
+  --terminal-primary-dark: #005500;
+  --terminal-bg: #0D0208;
+  --terminal-surface: #111111;
+  --terminal-border: #333333;
+  --terminal-gray: #888888;
+  --terminal-error: #FF3333;
+  --terminal-glow: rgba(0, 255, 65, 0.4);
+  --terminal-glow-soft: rgba(0, 255, 65, 0.15);
+  --terminal-scanline: rgba(0, 255, 65, 0.03);
+  --terminal-vignette: rgba(0, 10, 2, 0.5);
+}
+
+/* Theme: Amber phosphor (P3) */
+:root[data-theme="amber"] {
+  --terminal-primary: #FFB000;
+  --terminal-primary-dim: #CC8C00;
+  --terminal-primary-dark: #553A00;
+  --terminal-bg: #0A0600;
+  --terminal-surface: #111008;
+  --terminal-border: #333333;
+  --terminal-gray: #888888;
+  --terminal-error: #FF6633;
+  --terminal-glow: rgba(255, 176, 0, 0.4);
+  --terminal-glow-soft: rgba(255, 176, 0, 0.15);
+  --terminal-scanline: rgba(255, 176, 0, 0.03);
+  --terminal-vignette: rgba(10, 6, 0, 0.5);
+}
+
+/* Theme: White phosphor */
+:root[data-theme="white"] {
+  --terminal-primary: #B0B0B0;
+  --terminal-primary-dim: #888888;
+  --terminal-primary-dark: #444444;
+  --terminal-bg: #050505;
+  --terminal-surface: #0E0E0E;
+  --terminal-border: #333333;
+  --terminal-gray: #606060;
+  --terminal-error: #FF4444;
+  --terminal-glow: rgba(176, 176, 176, 0.3);
+  --terminal-glow-soft: rgba(176, 176, 176, 0.1);
+  --terminal-scanline: rgba(176, 176, 176, 0.03);
+  --terminal-vignette: rgba(5, 5, 5, 0.5);
+}
+
+/* Theme: Gruvbox (modern Easter egg) */
+:root[data-theme="gruvbox"] {
+  --terminal-primary: #EBDBB2;
+  --terminal-primary-dim: #A89984;
+  --terminal-primary-dark: #504945;
+  --terminal-bg: #1D2021;
+  --terminal-surface: #282828;
+  --terminal-border: #333333;
+  --terminal-gray: #928374;
+  --terminal-error: #FB4934;
+  --terminal-glow: rgba(235, 219, 178, 0.15);
+  --terminal-glow-soft: rgba(235, 219, 178, 0.05);
+  --terminal-scanline: rgba(0, 0, 0, 0.02);
+  --terminal-vignette: rgba(0, 0, 0, 0.3);
+  --terminal-accent-green: #B8BB26;
+  --terminal-accent-yellow: #FABD2F;
+  --terminal-accent-blue: #83A598;
+  --terminal-accent-orange: #FE8019;
+  --terminal-accent-purple: #D3869B;
+}
+
 /* CRT scanline overlay */
 body::before {
   content: '';
