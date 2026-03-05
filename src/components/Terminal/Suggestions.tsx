@@ -14,21 +14,21 @@ const Suggestions = React.forwardRef<HTMLDivElement, SuggestionsProps>(
       <div
         ref={ref}
         className="absolute bottom-full mb-2 w-full shadow-lg overflow-hidden"
-        style={{ background: '#000', border: '1px solid #333' }}
+        style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}
       >
         {suggestions.map((suggestion, index) => (
           <button
             key={suggestion.command}
-            className="w-full px-4 py-2 flex items-center space-x-3 text-left text-sm transition-colors"
+            className="w-full px-4 py-2 flex items-center space-x-3 text-left text-sm transition-colors min-h-[44px] md:min-h-0"
             style={{
-              background: index === selectedIndex ? '#111' : 'transparent',
+              background: index === selectedIndex ? 'var(--terminal-surface)' : 'transparent',
             }}
             onClick={() => onSelect(suggestion.command)}
             onMouseEnter={() => onMouseEnter(index)}
           >
             {suggestion.icon}
-            <span className="font-mono text-[#00FF41]">{suggestion.command}</span>
-            <span style={{ color: '#555' }}>-</span>
+            <span className="font-mono" style={{ color: 'var(--terminal-primary)' }}>{suggestion.command}</span>
+            <span style={{ color: 'var(--terminal-primary-dark)' }}>-</span>
             <span className="text-gray-400">{suggestion.description}</span>
           </button>
         ))}
