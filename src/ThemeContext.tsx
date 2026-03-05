@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 
 export type ThemeName = 'green' | 'amber' | 'white' | 'gruvbox';
 
@@ -30,20 +30,31 @@ const getInitialTheme = (): ThemeName => {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<ThemeName>(getInitialTheme);
   const [transitioning, setTransitioning] = useState(false);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearTimers = () => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+  };
 
   const setTheme = useCallback((newTheme: ThemeName) => {
+    clearTimers();
     setTransitioning(true);
-    setTimeout(() => {
+    const t1 = setTimeout(() => {
       setThemeState(newTheme);
       localStorage.setItem(STORAGE_KEY, newTheme);
       document.documentElement.setAttribute('data-theme', newTheme);
-      setTimeout(() => setTransitioning(false), 50);
+      const t2 = setTimeout(() => setTransitioning(false), 50);
+      timersRef.current.push(t2);
     }, 150);
+    timersRef.current.push(t1);
   }, []);
+
+  useEffect(() => clearTimers, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-  }, []);
+  }, [theme]);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, transitioning }}>
