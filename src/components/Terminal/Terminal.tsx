@@ -322,24 +322,32 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   }, []);
 
   return (
-    <section className="w-full bg-black flex flex-col flex-1 overflow-hidden p-4">
+    <section className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-flicker" style={{ background: 'var(--terminal-bg)' }}>
       <div
         ref={terminalRef}
-        className="bg-black flex-1 overflow-y-auto overflow-x-hidden mb-4 text-sm terminal-scroll"
+        className="flex-1 overflow-y-auto overflow-x-hidden mb-4 text-sm terminal-scroll"
+        style={{ background: 'var(--terminal-bg)' }}
       >
         {terminalOutput.map((line, index) => (
           <div key={index} className="group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded">
-            <p className={`font-mono ${getLineColor(line.type)} flex-1 break-words`}>
+            <p
+              className={`font-mono ${getLineColor(line.type)} flex-1 break-words`}
+              style={
+                line.type === 'input' ? { color: 'var(--terminal-primary)' } :
+                line.type === 'error' ? { color: 'var(--terminal-error)' } :
+                undefined
+              }
+            >
               {line.type === 'spinner' ? (
                 <span className="inline-flex items-center gap-2">
                   <span className="ai-spinner" />
-                  <span style={{ color: '#888' }}>{line.content}</span>
+                  <span style={{ color: 'var(--terminal-gray)' }}>{line.content}</span>
                 </span>
               ) : line.helpEntry ? (
                 <span className="inline-flex items-center gap-3">
                   {suggestions[line.helpEntry.commandIndex].icon}
-                  <span style={{ color: '#00FF41' }}>{suggestions[line.helpEntry.commandIndex].command}</span>
-                  <span style={{ color: '#555' }}>-</span>
+                  <span style={{ color: 'var(--terminal-primary)' }}>{suggestions[line.helpEntry.commandIndex].command}</span>
+                  <span style={{ color: 'var(--terminal-primary-dark)' }}>-</span>
                   <span className="text-gray-400">{suggestions[line.helpEntry.commandIndex].description}</span>
                 </span>
               ) : line.isHtml ? (
@@ -349,18 +357,18 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
                   }}
                 />
               ) : (
-                line.content
+                <span style={{ whiteSpace: 'pre' }}>{line.content}</span>
               )}
             </p>
-            <span className="text-xs mr-2 opacity-0 group-hover:opacity-100 select-none" style={{ color: '#555' }}>
+            <span className="text-xs mr-2 opacity-0 group-hover:opacity-100 select-none" style={{ color: 'var(--terminal-primary-dark)' }}>
               {line.timestamp}
             </span>
           </div>
         ))}
       </div>
       <div className="relative">
-        <div className="flex items-center space-x-2 w-full bg-black p-2" style={{ border: '1px solid #333' }}>
-          <ChevronRight className="w-5 h-5" style={{ color: '#00FF41' }} />
+        <div className="flex items-center space-x-2 w-full p-2" style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
+          <ChevronRight className="w-5 h-5" style={{ color: 'var(--terminal-primary)' }} />
           <div className="relative flex-1">
             <input
               ref={inputRef}
@@ -369,7 +377,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10"
-              style={{ color: '#00FF41' }}
+              style={{ color: 'var(--terminal-primary)' }}
               placeholder={isMobile ? "Tap Cmds for suggestions..." : "Type a command or press Tab for suggestions..."}
               inputMode={isMobile ? "none" : undefined}
               autoCapitalize="none"
@@ -402,10 +410,10 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
 
 const getLineColor = (type: string): string => {
   switch (type) {
-    case 'input': return 'text-[#00FF41]';
+    case 'input': return '';
     case 'output': return 'text-gray-200';
-    case 'error': return 'text-red-400';
-    case 'spinner': return 'text-[#00FF41]';
+    case 'error': return '';
+    case 'spinner': return '';
     default: return 'text-white';
   }
 };
