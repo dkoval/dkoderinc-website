@@ -80,9 +80,9 @@ body::before {
   background: repeating-linear-gradient(
     0deg,
     transparent,
-    transparent 3px,
-    rgba(0,0,0,0.03) 3px,
-    rgba(0,0,0,0.03) 4px
+    transparent 2px,
+    var(--terminal-scanline) 2px,
+    var(--terminal-scanline) 3px
   );
   pointer-events: none;
   z-index: 9999;
@@ -93,7 +93,7 @@ body::after {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.5) 100%);
+  background: radial-gradient(ellipse at center, transparent 55%, var(--terminal-vignette) 100%);
   pointer-events: none;
   z-index: 9998;
 }
@@ -129,34 +129,10 @@ body {
   animation: blink 1s step-end infinite;
 }
 
-@keyframes typewriter {
-  from { width: 0; }
-  to { width: 100%; }
-}
-
-.typewriter-effect p {
-  overflow: hidden;
-  white-space: nowrap;
-  border-right: 2px solid transparent;
-  animation: typewriter 0.5s steps(40) forwards;
-}
-
-.typewriter-effect p:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.typewriter-effect p:nth-child(3) {
-  animation-delay: 0.75s;
-}
-
-.typewriter-effect p:nth-child(4) {
-  animation-delay: 1s;
-}
-
 /* Terminal scrollbar */
 .terminal-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #333 transparent;
+  scrollbar-color: var(--terminal-border) transparent;
 }
 
 .terminal-scroll::-webkit-scrollbar {
@@ -168,12 +144,12 @@ body {
 }
 
 .terminal-scroll::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--terminal-border);
   border-radius: 3px;
 }
 
 .terminal-scroll::-webkit-scrollbar-thumb:hover {
-  background: #00FF41;
+  background: var(--terminal-primary);
 }
 
 /* CRT shutdown animation - vertical collapse to horizontal line, then shrink to dot */
@@ -200,7 +176,7 @@ body {
 
 /* Phosphor glow on restart prompt */
 .phosphor-glow {
-  text-shadow: 0 0 8px rgba(0, 255, 65, 0.4), 0 0 20px rgba(0, 255, 65, 0.15);
+  text-shadow: 0 0 8px var(--terminal-glow), 0 0 20px var(--terminal-glow-soft);
 }
 
 /* AI thinking spinner */
@@ -220,5 +196,33 @@ body {
 .ai-spinner::before {
   content: '⠋';
   animation: spin-braille 0.8s steps(1) infinite;
-  color: #00FF41;
+  color: var(--terminal-primary);
+}
+
+/* Terminal text glow — subtle, for all terminal text */
+.terminal-glow {
+  text-shadow: 0 0 4px var(--terminal-glow);
+}
+
+/* Subtle CRT flicker */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.97; }
+  94% { opacity: 1; }
+}
+
+.crt-flicker {
+  animation: flicker 4s infinite;
+}
+
+/* Disable flicker on mobile and for reduced motion */
+@media (max-width: 767px) {
+  .crt-flicker { animation: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-flicker { animation: none; }
+  .ai-spinner::before { animation: none; content: '...'; }
+  .animate-blink { animation: none; }
 }
