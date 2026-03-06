@@ -6,8 +6,10 @@ import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
 import AutoSuggestion from './AutoSuggestion';
 import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
+import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
 
 const MAX_HISTORY = 50;
+const PURIFY_CONFIG = { ADD_ATTR: ['target', 'style'], ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'polyline'] };
 
 export type TerminalHandle = {
   handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => void;
@@ -32,6 +34,7 @@ type TerminalProps = {
 
 const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref) => {
   const isMobile = useIsMobile();
+  const { theme, setTheme } = useTheme();
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
   const [inputCommand, setInputCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
@@ -44,6 +47,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const spinnerTimeouts = useRef(new Set<ReturnType<typeof setTimeout>>());
   const spinnerIdRef = useRef(0);
+  const touchStartY = useRef<number | null>(null);
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', {
@@ -79,9 +83,20 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
       return;
     }
 
+    // Suggest theme arguments: "theme gr" → "theme gruvbox"
+    const lower = input.toLowerCase();
+    if (lower.startsWith('theme ') && lower.length > 6) {
+      const partial = lower.slice(6);
+      const match = VALID_THEMES.find(t => t.startsWith(partial));
+      if (match) {
+        setAutoSuggestion(`theme ${match}`);
+        return;
+      }
+    }
+
     const matchingCommand = suggestions
       .map(s => s.command)
-      .find(cmd => cmd.toLowerCase().startsWith(input.toLowerCase()));
+      .find(cmd => cmd.toLowerCase().startsWith(lower));
 
     setAutoSuggestion(matchingCommand || null);
   };
@@ -140,20 +155,55 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
       spinnerTimeouts.current.delete(timeoutId);
       let outputLines: TerminalLine[];
 
-      if (trimmedCmd === 'uptime') {
+      if (trimmedCmd === 'whoami') {
+        const key = isMobile ? 'whoami' : 'whoamiDesktop';
+        outputLines = commands[key].map(line => ({
+          content: line,
+          type: 'output' as const,
+        }));
+      } else if (trimmedCmd === 'uptime') {
         const seconds = Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000);
+        const timeStr = getCurrentTime();
+        const base = (Date.now() % 100) / 100;
+        const load1 = (0.3 + base * 0.4).toFixed(2);
+        const load5 = (0.2 + base * 0.25).toFixed(2);
+        const load15 = (0.05 + base * 0.15).toFixed(2);
         outputLines = [
-          { content: ` up ${formatUptime(seconds)} (this session)`, type: 'output' },
-          { content: ` up 15+ years (career)`, type: 'output' },
-          { content: ` load average: 0.42, 0.15, 0.07`, type: 'output' },
+          { content: ` ${timeStr} up ${formatUptime(seconds)},  1 user,  load average: ${load1}, ${load5}, ${load15}`, type: 'output' },
         ];
+      } else if (trimmedCmd === 'theme' || trimmedCmd.startsWith('theme ')) {
+        const arg = trimmedCmd.replace('theme', '').trim();
+        if (!arg) {
+          outputLines = [
+            { content: `Current theme: ${theme}`, type: 'output' },
+            { content: `Available: ${VALID_THEMES.join(', ')}`, type: 'output' },
+            { content: `Usage: theme <name>`, type: 'output' },
+          ];
+        } else if (VALID_THEMES.includes(arg as ThemeName)) {
+          const isGruvboxFirstTime = arg === 'gruvbox' && !localStorage.getItem('dkoder-gruvbox-seen');
+          setTheme(arg as ThemeName);
+          if (isGruvboxFirstTime) {
+            localStorage.setItem('dkoder-gruvbox-seen', '1');
+            outputLines = [
+              { content: 'Monitor upgrade detected. Welcome to the 21st century.', type: 'output' },
+            ];
+          } else {
+            outputLines = [
+              { content: `Theme switched to ${arg}.`, type: 'output' },
+            ];
+          }
+        } else {
+          outputLines = [
+            { content: `Unknown theme: ${arg}. Available: ${VALID_THEMES.join(', ')}`, type: 'error' },
+          ];
+        }
       } else {
         const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
         outputLines = Array.isArray(output)
           ? output.map(line => ({
               content: line,
               type: 'output' as const,
-              isHtml: trimmedCmd === 'contact',
+              isHtml: trimmedCmd === 'contact' || trimmedCmd === 'man dmytro',
             }))
           : [{
               content: output,
@@ -321,46 +371,72 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     };
   }, []);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const deltaY = touchStartY.current - e.changedTouches[0].clientY;
+    touchStartY.current = null;
+    if (Math.abs(deltaY) < 50) return;
+    if (deltaY > 0) {
+      actionUp();
+    } else {
+      actionDown();
+    }
+  };
+
   return (
-    <section className="w-full bg-black flex flex-col flex-1 overflow-hidden p-4">
+    <section className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-flicker" style={{ background: 'var(--terminal-bg)' }}>
       <div
         ref={terminalRef}
-        className="bg-black flex-1 overflow-y-auto overflow-x-hidden mb-4 text-sm terminal-scroll"
+        className="flex-1 overflow-y-auto overflow-x-hidden mb-4 text-sm terminal-scroll"
+        style={{ background: 'var(--terminal-bg)' }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {terminalOutput.map((line, index) => (
           <div key={index} className="group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded">
-            <p className={`font-mono ${getLineColor(line.type)} flex-1 break-words`}>
+            <p
+              className="font-mono flex-1 break-words"
+              style={
+                line.type === 'input' ? { color: 'var(--terminal-primary)' } :
+                line.type === 'error' ? { color: 'var(--terminal-error)' } :
+                { color: 'var(--terminal-output)' }
+              }
+            >
               {line.type === 'spinner' ? (
                 <span className="inline-flex items-center gap-2">
                   <span className="ai-spinner" />
-                  <span style={{ color: '#888' }}>{line.content}</span>
+                  <span style={{ color: 'var(--terminal-gray)' }}>{line.content}</span>
                 </span>
               ) : line.helpEntry ? (
                 <span className="inline-flex items-center gap-3">
                   {suggestions[line.helpEntry.commandIndex].icon}
-                  <span style={{ color: '#00FF41' }}>{suggestions[line.helpEntry.commandIndex].command}</span>
-                  <span style={{ color: '#555' }}>-</span>
-                  <span className="text-gray-400">{suggestions[line.helpEntry.commandIndex].description}</span>
+                  <span style={{ color: 'var(--terminal-primary)' }}>{suggestions[line.helpEntry.commandIndex].command}</span>
+                  <span style={{ color: 'var(--terminal-primary-dark)' }}>-</span>
+                  <span style={{ color: 'var(--terminal-gray)' }}>{suggestions[line.helpEntry.commandIndex].description}</span>
                 </span>
               ) : line.isHtml ? (
                 <span
                   dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(line.content, { ADD_ATTR: ['target'] }),
+                    __html: DOMPurify.sanitize(line.content, PURIFY_CONFIG),
                   }}
                 />
               ) : (
-                line.content
+                <span style={{ whiteSpace: 'pre' }}>{line.content}</span>
               )}
             </p>
-            <span className="text-xs mr-2 opacity-0 group-hover:opacity-100 select-none" style={{ color: '#555' }}>
+            <span className="text-xs mr-2 opacity-0 group-hover:opacity-100 select-none" style={{ color: 'var(--terminal-primary-dark)' }}>
               {line.timestamp}
             </span>
           </div>
         ))}
       </div>
       <div className="relative">
-        <div className="flex items-center space-x-2 w-full bg-black p-2" style={{ border: '1px solid #333' }}>
-          <ChevronRight className="w-5 h-5" style={{ color: '#00FF41' }} />
+        <div className="flex items-center space-x-2 w-full p-2" style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
+          <ChevronRight className="w-5 h-5" style={{ color: 'var(--terminal-primary)' }} />
           <div className="relative flex-1">
             <input
               ref={inputRef}
@@ -369,7 +445,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10"
-              style={{ color: '#00FF41' }}
+              style={{ color: 'var(--terminal-primary)' }}
               placeholder={isMobile ? "Tap Cmds for suggestions..." : "Type a command or press Tab for suggestions..."}
               inputMode={isMobile ? "none" : undefined}
               autoCapitalize="none"
@@ -399,16 +475,6 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     </section>
   );
 });
-
-const getLineColor = (type: string): string => {
-  switch (type) {
-    case 'input': return 'text-[#00FF41]';
-    case 'output': return 'text-gray-200';
-    case 'error': return 'text-red-400';
-    case 'spinner': return 'text-[#00FF41]';
-    default: return 'text-white';
-  }
-};
 
 Terminal.displayName = 'Terminal';
 

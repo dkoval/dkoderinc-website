@@ -5,9 +5,19 @@ import TerminalWindow from './components/TerminalWindow';
 import Terminal, { TerminalHandle } from './components/Terminal';
 import { resetPageLoadTime } from './constants';
 import { List } from 'lucide-react';
+import { useTheme } from './ThemeContext';
 
-const MOBILE_BTN_STYLE = { background: '#111', color: '#00FF41', border: '1px solid #333' } as const;
-const MOBILE_BTN_STYLE_EMPHASIZED = { background: '#00FF41', color: '#000', border: '1px solid #00FF41' } as const;
+const MOBILE_BTN_STYLE = {
+  background: 'var(--terminal-surface)',
+  color: 'var(--terminal-primary)',
+  border: '1px solid var(--terminal-border)',
+} as const;
+
+const MOBILE_BTN_STYLE_EMPHASIZED = {
+  background: 'var(--terminal-primary)',
+  color: 'var(--terminal-bg)',
+  border: '1px solid var(--terminal-primary)',
+} as const;
 
 const mobileKeys = [
   { label: 'Cmds', action: 'tab' as const, icon: true },
@@ -26,8 +36,8 @@ const SHUTDOWN_MESSAGES = [
 ];
 
 const RESTART_LINES = [
-  { text: 'Reboot scheduled.', color: '#888' },
-  { text: 'Waiting for user input...', color: '#888' },
+  { text: 'Reboot scheduled.' },
+  { text: 'Waiting for user input...' },
 ];
 
 const RESTART_FINAL_DESKTOP = 'Press any key to continue... ';
@@ -42,6 +52,7 @@ const RESTART_ALL_TEXTS = [
 type ShutdownPhase = null | 'messages' | 'crt-off' | 'black' | 'restart-prompt';
 
 const App: React.FC = () => {
+  const { transitioning } = useTheme();
   const [showBootSplash, setShowBootSplash] = useState(true);
   const handleBootComplete = useCallback(() => setShowBootSplash(false), []);
   const terminalRef = useRef<TerminalHandle>(null);
@@ -136,17 +147,26 @@ const App: React.FC = () => {
   }, [shutdownPhase, typingDone, handleRestart]);
 
   return (
-    <div className="flex flex-col overflow-hidden" style={{ background: '#000', height: '100dvh' }}>
+    <div className="flex flex-col overflow-hidden" style={{ background: 'var(--terminal-bg)', height: '100dvh' }}>
+      {/* Theme transition overlay */}
+      <div
+        className="fixed inset-0 z-[9500] pointer-events-none"
+        style={{
+          background: 'var(--terminal-bg)',
+          opacity: transitioning ? 0.7 : 0,
+          transition: transitioning ? 'opacity 0.15s ease-in' : 'opacity 0.25s ease-out',
+        }}
+      />
       {showBootSplash && <BootSplash onComplete={handleBootComplete} />}
 
       {/* Shutdown messages overlay */}
       {shutdownPhase === 'messages' && (
         <div
           className="fixed inset-0 z-[9000] flex flex-col justify-center items-start p-8 md:p-16"
-          style={{ background: '#000' }}
+          style={{ background: 'var(--terminal-bg)' }}
         >
           {SHUTDOWN_MESSAGES.slice(0, shutdownLines).map((line, i) => (
-            <p key={i} className="font-mono text-sm mb-1" style={{ color: '#00FF41' }}>
+            <p key={i} className="font-mono text-sm mb-1" style={{ color: 'var(--terminal-primary)' }}>
               {line}
             </p>
           ))}
@@ -157,20 +177,20 @@ const App: React.FC = () => {
       {(shutdownPhase === 'black' || shutdownPhase === 'restart-prompt') && (
         <div
           className="fixed inset-0 z-[9000] flex items-center justify-center"
-          style={{ background: '#000' }}
+          style={{ background: 'var(--terminal-bg)' }}
         >
           {shutdownPhase === 'restart-prompt' && (
             <div className="text-center font-mono text-sm phosphor-glow">
               {/* Completed lines */}
               {RESTART_LINES.slice(0, typingLine).map((line, i) => (
-                <p key={i} className={i === 0 ? 'mb-1' : 'mb-4'} style={{ color: line.color }}>
+                <p key={i} className={i === 0 ? 'mb-1' : 'mb-4'} style={{ color: 'var(--terminal-gray)' }}>
                   {line.text}
                 </p>
               ))}
 
               {/* Currently typing line (lines 0-1: gray) */}
               {typingLine < RESTART_LINES.length && (
-                <p className={typingLine === 0 ? 'mb-1' : 'mb-4'} style={{ color: RESTART_LINES[typingLine].color }}>
+                <p className={typingLine === 0 ? 'mb-1' : 'mb-4'} style={{ color: 'var(--terminal-gray)' }}>
                   {RESTART_LINES[typingLine].text.slice(0, typingChar)}
                   <span>&#x2588;</span>
                 </p>
@@ -179,7 +199,7 @@ const App: React.FC = () => {
               {/* Final line: green, responsive. On mobile the shorter text finishes
                   before the desktop-driven timer, causing a brief solid-cursor pause. */}
               {typingLine >= RESTART_LINES.length && (
-                <p style={{ color: '#00FF41' }}>
+                <p style={{ color: 'var(--terminal-primary)' }}>
                   <span className="hidden md:inline">
                     {RESTART_FINAL_DESKTOP.slice(0, typingChar)}
                   </span>
@@ -212,7 +232,7 @@ const App: React.FC = () => {
         {/* Mobile virtual keyboard shortcuts */}
         <div
           className="flex md:hidden shrink-0 gap-2 p-2 border-t"
-          style={{ borderColor: '#333' }}
+          style={{ borderColor: 'var(--terminal-border)' }}
         >
           {mobileKeys.map(({ label, action, icon, emphasized }) => (
             <button
@@ -220,7 +240,10 @@ const App: React.FC = () => {
               className="flex-1 py-2 font-mono text-sm rounded inline-flex items-center justify-center gap-1"
               style={emphasized ? MOBILE_BTN_STYLE_EMPHASIZED : MOBILE_BTN_STYLE}
               data-mobile-action={action}
-              onClick={() => terminalRef.current?.handleMobileAction(action)}
+              onClick={() => {
+                navigator.vibrate?.(10);
+                terminalRef.current?.handleMobileAction(action);
+              }}
             >
               {icon && <List className="w-3.5 h-3.5" />}
               {label}
@@ -230,10 +253,10 @@ const App: React.FC = () => {
         {/* Copyright */}
         <div
           className="flex justify-center shrink-0 py-2 font-mono text-xs border-t"
-          style={{ color: '#888', borderColor: '#333', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+          style={{ color: 'var(--terminal-gray)', borderColor: 'var(--terminal-border)', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
         >
-          <span style={{ color: '#888' }}>$ cat /etc/copyright&nbsp;&nbsp;</span>
-          <span style={{ color: '#00FF41' }}>&copy; {new Date().getFullYear()} DKoder Inc.</span>
+          <span style={{ color: 'var(--terminal-gray)' }}>$ cat /etc/copyright&nbsp;&nbsp;</span>
+          <span style={{ color: 'var(--terminal-primary)' }}>&copy; {new Date().getFullYear()} DKoder Inc.</span>
         </div>
       </div>
     </div>

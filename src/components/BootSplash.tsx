@@ -40,15 +40,15 @@ const BootSplash: React.FC<Props> = ({ onComplete }) => {
   return (
     <div
       className="fixed inset-0 z-[10000] flex flex-col justify-center items-start p-8 md:p-16"
-      style={{ background: '#000', transition: done ? 'opacity 0.3s' : undefined, opacity: done ? 0 : 1 }}
+      style={{ background: 'var(--terminal-bg)', transition: done ? 'opacity 0.3s' : undefined, opacity: done ? 0 : 1 }}
     >
       {LINES.slice(0, visibleLines).map((line, i) => (
-        <p key={i} className="font-mono text-sm mb-1" style={{ color: '#00FF41' }}>
+        <p key={i} className="font-mono text-sm mb-1" style={{ color: 'var(--terminal-primary)' }}>
           {line}
         </p>
       ))}
       {visibleLines > 0 && (
-        <span className="font-mono text-xs mt-4" style={{ color: '#005500' }}>
+        <span className="font-mono text-xs mt-4" style={{ color: 'var(--terminal-primary-dark)' }}>
           [Press any key to skip]
         </span>
       )}

@@ -2,6 +2,97 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+/* Theme: Green phosphor (P31) — default */
+:root,
+:root[data-theme="green"] {
+  --terminal-primary: #00FF41;
+  --terminal-primary-dim: #00CC33;
+  --terminal-primary-dark: #005500;
+  --terminal-bg: #0D0208;
+  --terminal-surface: #111111;
+  --terminal-border: #333333;
+  --terminal-gray: #888888;
+  --terminal-error: #FF3333;
+  --terminal-output: #e5e7eb;
+  --terminal-glow: rgba(0, 255, 65, 0.4);
+  --terminal-glow-soft: rgba(0, 255, 65, 0.15);
+  --terminal-scanline: rgba(0, 255, 65, 0.03);
+  --terminal-vignette: rgba(0, 10, 2, 0.5);
+}
+
+/* Theme: Amber phosphor (P3) */
+:root[data-theme="amber"] {
+  --terminal-primary: #FFB000;
+  --terminal-primary-dim: #CC8C00;
+  --terminal-primary-dark: #553A00;
+  --terminal-bg: #0A0600;
+  --terminal-surface: #111008;
+  --terminal-border: #333333;
+  --terminal-gray: #888888;
+  --terminal-error: #FF6633;
+  --terminal-output: #e5e7eb;
+  --terminal-glow: rgba(255, 176, 0, 0.4);
+  --terminal-glow-soft: rgba(255, 176, 0, 0.15);
+  --terminal-scanline: rgba(255, 176, 0, 0.03);
+  --terminal-vignette: rgba(10, 6, 0, 0.5);
+}
+
+/* Theme: White phosphor */
+:root[data-theme="white"] {
+  --terminal-primary: #B0B0B0;
+  --terminal-primary-dim: #888888;
+  --terminal-primary-dark: #444444;
+  --terminal-bg: #050505;
+  --terminal-surface: #0E0E0E;
+  --terminal-border: #333333;
+  --terminal-gray: #606060;
+  --terminal-error: #FF4444;
+  --terminal-output: #c0c0c0;
+  --terminal-glow: rgba(176, 176, 176, 0.3);
+  --terminal-glow-soft: rgba(176, 176, 176, 0.1);
+  --terminal-scanline: rgba(176, 176, 176, 0.03);
+  --terminal-vignette: rgba(5, 5, 5, 0.5);
+}
+
+/* Theme: Gruvbox (modern Easter egg) */
+:root[data-theme="gruvbox"] {
+  --terminal-primary: #EBDBB2;
+  --terminal-primary-dim: #A89984;
+  --terminal-primary-dark: #504945;
+  --terminal-bg: #1D2021;
+  --terminal-surface: #282828;
+  --terminal-border: #333333;
+  --terminal-gray: #928374;
+  --terminal-error: #FB4934;
+  --terminal-output: #D5C4A1;
+  --terminal-glow: rgba(235, 219, 178, 0.15);
+  --terminal-glow-soft: rgba(235, 219, 178, 0.05);
+  --terminal-scanline: rgba(0, 0, 0, 0.02);
+  --terminal-vignette: rgba(0, 0, 0, 0.3);
+  --terminal-accent-green: #B8BB26;
+  --terminal-accent-yellow: #FABD2F;
+  --terminal-accent-blue: #83A598;
+  --terminal-accent-orange: #FE8019;
+  --terminal-accent-purple: #D3869B;
+}
+
+/* Theme: Darcula (JetBrains-inspired) */
+:root[data-theme="darcula"] {
+  --terminal-primary: #A9B7C6;
+  --terminal-primary-dim: #6A8759;
+  --terminal-primary-dark: #555555;
+  --terminal-bg: #2B2B2B;
+  --terminal-surface: #313335;
+  --terminal-border: #333333;
+  --terminal-gray: #808080;
+  --terminal-error: #FF6B68;
+  --terminal-output: #BABABA;
+  --terminal-glow: rgba(169, 183, 198, 0.12);
+  --terminal-glow-soft: rgba(169, 183, 198, 0.05);
+  --terminal-scanline: rgba(0, 0, 0, 0.02);
+  --terminal-vignette: rgba(0, 0, 0, 0.25);
+}
+
 /* CRT scanline overlay */
 body::before {
   content: '';
@@ -10,9 +101,9 @@ body::before {
   background: repeating-linear-gradient(
     0deg,
     transparent,
-    transparent 3px,
-    rgba(0,0,0,0.03) 3px,
-    rgba(0,0,0,0.03) 4px
+    transparent 2px,
+    var(--terminal-scanline) 2px,
+    var(--terminal-scanline) 3px
   );
   pointer-events: none;
   z-index: 9999;
@@ -23,7 +114,7 @@ body::after {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.5) 100%);
+  background: radial-gradient(ellipse at center, transparent 55%, var(--terminal-vignette) 100%);
   pointer-events: none;
   z-index: 9998;
 }
@@ -59,34 +150,10 @@ body {
   animation: blink 1s step-end infinite;
 }
 
-@keyframes typewriter {
-  from { width: 0; }
-  to { width: 100%; }
-}
-
-.typewriter-effect p {
-  overflow: hidden;
-  white-space: nowrap;
-  border-right: 2px solid transparent;
-  animation: typewriter 0.5s steps(40) forwards;
-}
-
-.typewriter-effect p:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.typewriter-effect p:nth-child(3) {
-  animation-delay: 0.75s;
-}
-
-.typewriter-effect p:nth-child(4) {
-  animation-delay: 1s;
-}
-
 /* Terminal scrollbar */
 .terminal-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #333 transparent;
+  scrollbar-color: var(--terminal-border) transparent;
 }
 
 .terminal-scroll::-webkit-scrollbar {
@@ -98,12 +165,12 @@ body {
 }
 
 .terminal-scroll::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--terminal-border);
   border-radius: 3px;
 }
 
 .terminal-scroll::-webkit-scrollbar-thumb:hover {
-  background: #00FF41;
+  background: var(--terminal-primary);
 }
 
 /* CRT shutdown animation - vertical collapse to horizontal line, then shrink to dot */
@@ -130,7 +197,7 @@ body {
 
 /* Phosphor glow on restart prompt */
 .phosphor-glow {
-  text-shadow: 0 0 8px rgba(0, 255, 65, 0.4), 0 0 20px rgba(0, 255, 65, 0.15);
+  text-shadow: 0 0 8px var(--terminal-glow), 0 0 20px var(--terminal-glow-soft);
 }
 
 /* AI thinking spinner */
@@ -150,5 +217,33 @@ body {
 .ai-spinner::before {
   content: '⠋';
   animation: spin-braille 0.8s steps(1) infinite;
-  color: #00FF41;
+  color: var(--terminal-primary);
+}
+
+/* Terminal text glow — subtle, for all terminal text */
+.terminal-glow {
+  text-shadow: 0 0 4px var(--terminal-glow);
+}
+
+/* Subtle CRT flicker */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.97; }
+  94% { opacity: 1; }
+}
+
+.crt-flicker {
+  animation: flicker 4s infinite;
+}
+
+/* Disable flicker on mobile and for reduced motion */
+@media (max-width: 767px) {
+  .crt-flicker { animation: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-flicker { animation: none; }
+  .ai-spinner::before { animation: none; content: '...'; }
+  .animate-blink { animation: none; }
 }
