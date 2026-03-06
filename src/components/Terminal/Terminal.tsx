@@ -48,6 +48,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const spinnerTimeouts = useRef(new Set<ReturnType<typeof setTimeout>>());
   const spinnerIdRef = useRef(0);
+  const touchStartY = useRef<number | null>(null);
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', {
@@ -361,12 +362,30 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     };
   }, []);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const deltaY = touchStartY.current - e.changedTouches[0].clientY;
+    touchStartY.current = null;
+    if (Math.abs(deltaY) < 50) return;
+    if (deltaY > 0) {
+      actionUp();
+    } else {
+      actionDown();
+    }
+  };
+
   return (
     <section className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-flicker" style={{ background: 'var(--terminal-bg)' }}>
       <div
         ref={terminalRef}
         className="flex-1 overflow-y-auto overflow-x-hidden mb-4 text-sm terminal-scroll"
         style={{ background: 'var(--terminal-bg)' }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {terminalOutput.map((line, index) => (
           <div key={index} className="group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded">

@@ -240,7 +240,10 @@ const App: React.FC = () => {
               className="flex-1 py-2 font-mono text-sm rounded inline-flex items-center justify-center gap-1"
               style={emphasized ? MOBILE_BTN_STYLE_EMPHASIZED : MOBILE_BTN_STYLE}
               data-mobile-action={action}
-              onClick={() => terminalRef.current?.handleMobileAction(action)}
+              onClick={() => {
+                navigator.vibrate?.(10);
+                terminalRef.current?.handleMobileAction(action);
+              }}
             >
               {icon && <List className="w-3.5 h-3.5" />}
               {label}
