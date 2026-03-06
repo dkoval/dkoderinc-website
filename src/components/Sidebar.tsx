@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 import { PAGE_LOAD_TIME, formatUptime } from '../constants';
-import { useTheme } from '../ThemeContext';
+import { useTheme, ThemeName } from '../ThemeContext';
+
+const HEADSHOT_FILTERS: Record<ThemeName, string> = {
+  green: 'grayscale(100%) sepia(60%) hue-rotate(80deg) saturate(200%)',
+  amber: 'grayscale(100%) sepia(80%) saturate(200%)',
+  white: 'grayscale(100%)',
+  darcula: 'grayscale(100%) brightness(0.9) contrast(1.1)',
+  gruvbox: 'grayscale(100%) sepia(40%) saturate(150%)',
+};
 
 const Sidebar: React.FC = () => {
   const [uptime, setUptime] = useState(0);
@@ -14,13 +22,7 @@ const Sidebar: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const headshotFilter = theme === 'amber'
-    ? 'grayscale(100%) sepia(80%) saturate(200%)'
-    : theme === 'white'
-    ? 'grayscale(100%)'
-    : theme === 'darcula'
-    ? 'grayscale(100%) brightness(0.9) contrast(1.1)'
-    : 'grayscale(100%) sepia(60%) hue-rotate(80deg) saturate(200%)';
+  const headshotFilter = HEADSHOT_FILTERS[theme];
 
 
   return (

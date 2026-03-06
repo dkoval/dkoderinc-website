@@ -13,6 +13,7 @@
   --terminal-border: #333333;
   --terminal-gray: #888888;
   --terminal-error: #FF3333;
+  --terminal-output: #e5e7eb;
   --terminal-glow: rgba(0, 255, 65, 0.4);
   --terminal-glow-soft: rgba(0, 255, 65, 0.15);
   --terminal-scanline: rgba(0, 255, 65, 0.03);
@@ -29,6 +30,7 @@
   --terminal-border: #333333;
   --terminal-gray: #888888;
   --terminal-error: #FF6633;
+  --terminal-output: #e5e7eb;
   --terminal-glow: rgba(255, 176, 0, 0.4);
   --terminal-glow-soft: rgba(255, 176, 0, 0.15);
   --terminal-scanline: rgba(255, 176, 0, 0.03);
@@ -45,6 +47,7 @@
   --terminal-border: #333333;
   --terminal-gray: #606060;
   --terminal-error: #FF4444;
+  --terminal-output: #c0c0c0;
   --terminal-glow: rgba(176, 176, 176, 0.3);
   --terminal-glow-soft: rgba(176, 176, 176, 0.1);
   --terminal-scanline: rgba(176, 176, 176, 0.03);
@@ -61,6 +64,7 @@
   --terminal-border: #333333;
   --terminal-gray: #928374;
   --terminal-error: #FB4934;
+  --terminal-output: #D5C4A1;
   --terminal-glow: rgba(235, 219, 178, 0.15);
   --terminal-glow-soft: rgba(235, 219, 178, 0.05);
   --terminal-scanline: rgba(0, 0, 0, 0.02);
@@ -82,6 +86,7 @@
   --terminal-border: #333333;
   --terminal-gray: #808080;
   --terminal-error: #FF6B68;
+  --terminal-output: #BABABA;
   --terminal-glow: rgba(169, 183, 198, 0.12);
   --terminal-glow-soft: rgba(169, 183, 198, 0.05);
   --terminal-scanline: rgba(0, 0, 0, 0.02);

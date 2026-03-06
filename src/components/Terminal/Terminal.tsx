@@ -9,6 +9,7 @@ import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
 import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
 
 const MAX_HISTORY = 50;
+const PURIFY_CONFIG = { ADD_ATTR: ['target', 'style'], ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'polyline'] };
 
 export type TerminalHandle = {
   handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => void;
@@ -402,7 +403,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               style={
                 line.type === 'input' ? { color: 'var(--terminal-primary)' } :
                 line.type === 'error' ? { color: 'var(--terminal-error)' } :
-                { color: '#e5e7eb' }
+                { color: 'var(--terminal-output)' }
               }
             >
               {line.type === 'spinner' ? (
@@ -420,7 +421,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               ) : line.isHtml ? (
                 <span
                   dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(line.content, { ADD_ATTR: ['target', 'style'], ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'polyline'] }),
+                    __html: DOMPurify.sanitize(line.content, PURIFY_CONFIG),
                   }}
                 />
               ) : (
