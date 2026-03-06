@@ -52,12 +52,12 @@ export const commands: Record<string, string[]> = {
   ],
   whoami: [
     'Dmytro Koval',
-    '─────────────────────────────',
+    '────────────',
     'Focus: Backend & Distributed Systems',
   ],
   whoamiDesktop: [
     '  ██████╗ ██╗  ██╗      Dmytro Koval',
-    '  ██╔══██╗██║ ██╔╝      ─────────────────────────────',
+    '  ██╔══██╗██║ ██╔╝      ────────────',
     '  ██║  ██║█████╔╝       Focus: Backend & Distributed Systems',
     '  ██║  ██║██╔═██╗',
     '  ██████╔╝██║  ██╗',
