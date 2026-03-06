@@ -29,7 +29,7 @@ const Suggestions = React.forwardRef<HTMLDivElement, SuggestionsProps>(
             {suggestion.icon}
             <span className="font-mono" style={{ color: 'var(--terminal-primary)' }}>{suggestion.command}</span>
             <span style={{ color: 'var(--terminal-primary-dark)' }}>-</span>
-            <span className="text-gray-400">{suggestion.description}</span>
+            <span style={{ color: 'var(--terminal-gray)' }}>{suggestion.description}</span>
           </button>
         ))}
       </div>

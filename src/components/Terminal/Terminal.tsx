@@ -6,7 +6,7 @@ import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
 import AutoSuggestion from './AutoSuggestion';
 import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
-import { useTheme, ThemeName } from '../../ThemeContext';
+import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
 
 const MAX_HISTORY = 50;
 
@@ -30,8 +30,6 @@ const useIsMobile = () => {
 type TerminalProps = {
   onShutdown?: () => void;
 };
-
-const VALID_THEMES: ThemeName[] = ['green', 'amber', 'white', 'gruvbox'];
 
 const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref) => {
   const isMobile = useIsMobile();
@@ -153,8 +151,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         }));
       } else if (trimmedCmd === 'uptime') {
         const seconds = Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000);
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const timeStr = getCurrentTime();
         const base = (Date.now() % 100) / 100;
         const load1 = (0.3 + base * 0.4).toFixed(2);
         const load5 = (0.2 + base * 0.25).toFixed(2);
@@ -390,11 +387,11 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         {terminalOutput.map((line, index) => (
           <div key={index} className="group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded">
             <p
-              className={`font-mono ${getLineColor(line.type)} flex-1 break-words`}
+              className="font-mono flex-1 break-words"
               style={
                 line.type === 'input' ? { color: 'var(--terminal-primary)' } :
                 line.type === 'error' ? { color: 'var(--terminal-error)' } :
-                undefined
+                { color: '#e5e7eb' }
               }
             >
               {line.type === 'spinner' ? (
@@ -407,7 +404,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
                   {suggestions[line.helpEntry.commandIndex].icon}
                   <span style={{ color: 'var(--terminal-primary)' }}>{suggestions[line.helpEntry.commandIndex].command}</span>
                   <span style={{ color: 'var(--terminal-primary-dark)' }}>-</span>
-                  <span className="text-gray-400">{suggestions[line.helpEntry.commandIndex].description}</span>
+                  <span style={{ color: 'var(--terminal-gray)' }}>{suggestions[line.helpEntry.commandIndex].description}</span>
                 </span>
               ) : line.isHtml ? (
                 <span
@@ -466,16 +463,6 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     </section>
   );
 });
-
-const getLineColor = (type: string): string => {
-  switch (type) {
-    case 'input': return '';
-    case 'output': return 'text-gray-200';
-    case 'error': return '';
-    case 'spinner': return '';
-    default: return 'text-white';
-  }
-};
 
 Terminal.displayName = 'Terminal';
 

@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 
 export type ThemeName = 'green' | 'amber' | 'white' | 'gruvbox';
 
-const VALID_THEMES: ThemeName[] = ['green', 'amber', 'white', 'gruvbox'];
+// Also referenced in index.html inline script (can't import there)
+export const VALID_THEMES: ThemeName[] = ['green', 'amber', 'white', 'gruvbox'];
 const STORAGE_KEY = 'dkoder-theme';
 
 interface ThemeContextType {
@@ -43,7 +44,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const t1 = setTimeout(() => {
       setThemeState(newTheme);
       localStorage.setItem(STORAGE_KEY, newTheme);
-      document.documentElement.setAttribute('data-theme', newTheme);
       const t2 = setTimeout(() => setTransitioning(false), 50);
       timersRef.current.push(t2);
     }, 150);
