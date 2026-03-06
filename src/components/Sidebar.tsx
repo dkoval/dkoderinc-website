@@ -18,6 +18,8 @@ const Sidebar: React.FC = () => {
     ? 'grayscale(100%) sepia(80%) saturate(200%)'
     : theme === 'white'
     ? 'grayscale(100%)'
+    : theme === 'darcula'
+    ? 'grayscale(100%) brightness(0.9) contrast(1.1)'
     : 'grayscale(100%) sepia(60%) hue-rotate(80deg) saturate(200%)';
 
 
@@ -25,7 +27,7 @@ const Sidebar: React.FC = () => {
     <>
       {/* Desktop sidebar */}
       <aside
-        className="hidden md:flex flex-col p-4 gap-4 shrink-0 overflow-hidden"
+        className="hidden md:flex flex-col p-4 gap-4 shrink-0 overflow-hidden terminal-glow"
         style={{ width: '280px', borderRight: '1px solid var(--terminal-border)' }}
       >
         {/* Headshot */}

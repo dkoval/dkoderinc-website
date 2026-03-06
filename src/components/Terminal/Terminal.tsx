@@ -82,9 +82,20 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
       return;
     }
 
+    // Suggest theme arguments: "theme gr" → "theme gruvbox"
+    const lower = input.toLowerCase();
+    if (lower.startsWith('theme ') && lower.length > 6) {
+      const partial = lower.slice(6);
+      const match = VALID_THEMES.find(t => t.startsWith(partial));
+      if (match) {
+        setAutoSuggestion(`theme ${match}`);
+        return;
+      }
+    }
+
     const matchingCommand = suggestions
       .map(s => s.command)
-      .find(cmd => cmd.toLowerCase().startsWith(input.toLowerCase()));
+      .find(cmd => cmd.toLowerCase().startsWith(lower));
 
     setAutoSuggestion(matchingCommand || null);
   };
@@ -409,7 +420,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               ) : line.isHtml ? (
                 <span
                   dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(line.content, { ADD_ATTR: ['target', 'style'] }),
+                    __html: DOMPurify.sanitize(line.content, { ADD_ATTR: ['target', 'style'], ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'polyline'] }),
                   }}
                 />
               ) : (

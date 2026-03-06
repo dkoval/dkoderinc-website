@@ -72,6 +72,22 @@
   --terminal-accent-purple: #D3869B;
 }
 
+/* Theme: Darcula (JetBrains-inspired) */
+:root[data-theme="darcula"] {
+  --terminal-primary: #A9B7C6;
+  --terminal-primary-dim: #6A8759;
+  --terminal-primary-dark: #555555;
+  --terminal-bg: #2B2B2B;
+  --terminal-surface: #313335;
+  --terminal-border: #333333;
+  --terminal-gray: #808080;
+  --terminal-error: #FF6B68;
+  --terminal-glow: rgba(169, 183, 198, 0.12);
+  --terminal-glow-soft: rgba(169, 183, 198, 0.05);
+  --terminal-scanline: rgba(0, 0, 0, 0.02);
+  --terminal-vignette: rgba(0, 0, 0, 0.25);
+}
+
 /* CRT scanline overlay */
 body::before {
   content: '';
