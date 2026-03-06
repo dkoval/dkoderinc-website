@@ -3,14 +3,14 @@ import { Cpu, Mail, Sparkles, User, Info, Clock, LogOut, History } from 'lucide-
 import { CommandSuggestion } from './types';
 
 export const suggestions: CommandSuggestion[] = [
-  { command: 'whoami', description: 'Display identity', icon: <User className="w-4 h-4 text-[#00FF41]" /> },
-  { command: 'man dmytro', description: 'Manual page', icon: <Info className="w-4 h-4 text-[#00FF41]" /> },
-  { command: 'skills', description: 'View technical expertise', icon: <Cpu className="w-4 h-4 text-[#00FF41]" /> },
-  { command: 'history', description: 'View career timeline', icon: <History className="w-4 h-4 text-[#00FF41]" /> },
-  { command: 'contact', description: 'Get contact information', icon: <Mail className="w-4 h-4 text-[#00FF41]" /> },
-  { command: 'uptime', description: 'Session uptime', icon: <Clock className="w-4 h-4 text-[#00FF41]" /> },
-  { command: 'clear', description: 'Clear terminal screen', icon: <Sparkles className="w-4 h-4 text-[#00FF41]" /> },
-  { command: 'exit', description: 'Terminate the current session', icon: <LogOut className="w-4 h-4 text-[#00FF41]" /> },
+  { command: 'whoami', description: 'Display identity', icon: <User className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
+  { command: 'man dmytro', description: 'Manual page', icon: <Info className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
+  { command: 'skills', description: 'View technical expertise', icon: <Cpu className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
+  { command: 'history', description: 'View career timeline', icon: <History className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
+  { command: 'contact', description: 'Get contact information', icon: <Mail className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
+  { command: 'uptime', description: 'Session uptime', icon: <Clock className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
+  { command: 'clear', description: 'Clear terminal screen', icon: <Sparkles className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
+  { command: 'exit', description: 'Terminate the current session', icon: <LogOut className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
 ];
 
 export const commands: Record<string, string[]> = {
