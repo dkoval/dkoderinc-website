@@ -144,12 +144,22 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
       spinnerTimeouts.current.delete(timeoutId);
       let outputLines: TerminalLine[];
 
-      if (trimmedCmd === 'uptime') {
+      if (trimmedCmd === 'whoami') {
+        const key = isMobile ? 'whoami' : 'whoamiDesktop';
+        outputLines = commands[key].map(line => ({
+          content: line,
+          type: 'output' as const,
+        }));
+      } else if (trimmedCmd === 'uptime') {
         const seconds = Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000);
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const base = (Date.now() % 100) / 100;
+        const load1 = (0.3 + base * 0.4).toFixed(2);
+        const load5 = (0.2 + base * 0.25).toFixed(2);
+        const load15 = (0.05 + base * 0.15).toFixed(2);
         outputLines = [
-          { content: ` up ${formatUptime(seconds)} (this session)`, type: 'output' },
-          { content: ` up 15+ years (career)`, type: 'output' },
-          { content: ` load average: 0.42, 0.15, 0.07`, type: 'output' },
+          { content: ` ${timeStr} up ${formatUptime(seconds)},  1 user,  load average: ${load1}, ${load5}, ${load15}`, type: 'output' },
         ];
       } else if (trimmedCmd === 'theme' || trimmedCmd.startsWith('theme ')) {
         const arg = trimmedCmd.replace('theme', '').trim();
@@ -183,7 +193,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
           ? output.map(line => ({
               content: line,
               type: 'output' as const,
-              isHtml: trimmedCmd === 'contact',
+              isHtml: trimmedCmd === 'contact' || trimmedCmd === 'man dmytro',
             }))
           : [{
               content: output,
@@ -383,7 +393,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               ) : line.isHtml ? (
                 <span
                   dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(line.content, { ADD_ATTR: ['target'] }),
+                    __html: DOMPurify.sanitize(line.content, { ADD_ATTR: ['target', 'style'] }),
                   }}
                 />
               ) : (
