@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Mail, Sparkles, User, Info, Clock, LogOut, History } from 'lucide-react';
+import { Cpu, Mail, Sparkles, User, Info, Clock, LogOut, History, Palette } from 'lucide-react';
 import { CommandSuggestion } from './types';
 
 export const suggestions: CommandSuggestion[] = [
@@ -9,6 +9,7 @@ export const suggestions: CommandSuggestion[] = [
   { command: 'history', description: 'View career timeline', icon: <History className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'contact', description: 'Get contact information', icon: <Mail className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'uptime', description: 'Session uptime', icon: <Clock className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
+  { command: 'theme', description: 'Switch color theme', icon: <Palette className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'clear', description: 'Clear terminal screen', icon: <Sparkles className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'exit', description: 'Terminate the current session', icon: <LogOut className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
 ];

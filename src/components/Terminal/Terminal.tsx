@@ -6,6 +6,7 @@ import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
 import AutoSuggestion from './AutoSuggestion';
 import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
+import { useTheme, ThemeName } from '../../ThemeContext';
 
 const MAX_HISTORY = 50;
 
@@ -30,8 +31,11 @@ type TerminalProps = {
   onShutdown?: () => void;
 };
 
+const VALID_THEMES: ThemeName[] = ['green', 'amber', 'white', 'gruvbox'];
+
 const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref) => {
   const isMobile = useIsMobile();
+  const { theme, setTheme } = useTheme();
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
   const [inputCommand, setInputCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
@@ -147,6 +151,32 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
           { content: ` up 15+ years (career)`, type: 'output' },
           { content: ` load average: 0.42, 0.15, 0.07`, type: 'output' },
         ];
+      } else if (trimmedCmd === 'theme' || trimmedCmd.startsWith('theme ')) {
+        const arg = trimmedCmd.replace('theme', '').trim();
+        if (!arg) {
+          outputLines = [
+            { content: `Current theme: ${theme}`, type: 'output' },
+            { content: `Available: ${VALID_THEMES.join(', ')}`, type: 'output' },
+            { content: `Usage: theme <name>`, type: 'output' },
+          ];
+        } else if (VALID_THEMES.includes(arg as ThemeName)) {
+          const isGruvboxFirstTime = arg === 'gruvbox' && !localStorage.getItem('dkoder-gruvbox-seen');
+          setTheme(arg as ThemeName);
+          if (isGruvboxFirstTime) {
+            localStorage.setItem('dkoder-gruvbox-seen', '1');
+            outputLines = [
+              { content: 'Monitor upgrade detected. Welcome to the 21st century.', type: 'output' },
+            ];
+          } else {
+            outputLines = [
+              { content: `Theme switched to ${arg}.`, type: 'output' },
+            ];
+          }
+        } else {
+          outputLines = [
+            { content: `Unknown theme: ${arg}. Available: ${VALID_THEMES.join(', ')}`, type: 'error' },
+          ];
+        }
       } else {
         const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
         outputLines = Array.isArray(output)
