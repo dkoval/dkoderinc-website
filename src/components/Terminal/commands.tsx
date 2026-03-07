@@ -15,16 +15,6 @@ export const suggestions: CommandSuggestion[] = [
 ];
 
 export const commands: Record<string, string[]> = {
-  help: [
-    'Available commands:',
-  ],
-  _helpFooter: [
-    '',
-    'Tips:',
-    '  • Use ↑↓ arrows to navigate command history',
-    '  • Tab for autocomplete',
-    '  • Ctrl+L to clear',
-  ],
   skills: [
     'Programming Languages:',
     '  Java    ████████████ expert',

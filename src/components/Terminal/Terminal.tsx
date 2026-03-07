@@ -61,19 +61,17 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   const displayHelp = () => {
     return [
       { content: '$ help', type: 'input' as const, timestamp: getCurrentTime() },
-      ...commands.help.map((line) => ({
-        content: line,
-        type: 'output' as const,
-      })),
+      { content: 'Available commands:', type: 'output' as const },
       ...suggestions.map((_, i) => ({
         content: '',
         type: 'output' as const,
         helpEntry: { commandIndex: i },
       })),
-      ...commands._helpFooter.map((line) => ({
-        content: line,
-        type: 'output' as const,
-      })),
+      { content: '', type: 'output' as const },
+      { content: 'Tips:', type: 'output' as const },
+      { content: '  • Use ↑↓ arrows to navigate command history', type: 'output' as const },
+      { content: '  • Tab for autocomplete', type: 'output' as const },
+      { content: '  • Ctrl+L to clear', type: 'output' as const },
     ];
   };
 
