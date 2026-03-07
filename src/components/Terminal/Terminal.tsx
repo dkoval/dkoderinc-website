@@ -41,6 +41,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+  const [suggestionMode, setSuggestionMode] = useState<'commands' | 'themes'>('commands');
   const [autoSuggestion, setAutoSuggestion] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
@@ -109,6 +110,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     setInputCommand(value);
     updateAutoSuggestion(value);
     setShowSuggestions(false);
+    setSuggestionMode('commands');
   };
 
   const handleCommand = (cmd: string) => {
@@ -224,10 +226,9 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     spinnerTimeouts.current.add(timeoutId);
   };
 
-  const selectSuggestion = (index: number) => {
-    const selectedCommand = suggestions[index].command;
+  const executeWithPreview = (command: string) => {
     setShowSuggestions(false);
-    setInputCommand(selectedCommand);
+    setInputCommand(command);
     setAutoSuggestion(null);
     inputRef.current?.focus();
     if (pendingExecuteRef.current) {
@@ -236,8 +237,29 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     }
     pendingExecuteRef.current = setTimeout(() => {
       pendingExecuteRef.current = null;
-      handleCommand(selectedCommand);
+      handleCommand(command);
     }, 300);
+  };
+
+  const backToCommands = () => {
+    setSuggestionMode('commands');
+    setSelectedSuggestionIndex(suggestions.findIndex(s => s.command === 'theme'));
+  };
+
+  const selectSuggestion = (index: number) => {
+    if (suggestionMode === 'commands') {
+      const selectedCommand = suggestions[index].command;
+      if (selectedCommand === 'theme') {
+        setSuggestionMode('themes');
+        setSelectedSuggestionIndex(0);
+        return;
+      }
+      executeWithPreview(selectedCommand);
+    } else {
+      const selectedTheme = VALID_THEMES[index];
+      setSuggestionMode('commands');
+      executeWithPreview(`theme ${selectedTheme}`);
+    }
   };
 
   const completeAutoSuggestion = () => {
@@ -255,6 +277,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     } else if (autoSuggestion) {
       completeAutoSuggestion();
     } else {
+      setSuggestionMode('commands');
       setShowSuggestions(true);
       setSelectedSuggestionIndex(0);
     }
@@ -262,8 +285,9 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
 
   const actionUp = () => {
     if (showSuggestions) {
+      const len = suggestionMode === 'themes' ? VALID_THEMES.length : suggestions.length;
       setSelectedSuggestionIndex((prev) =>
-        prev > 0 ? prev - 1 : suggestions.length - 1
+        prev > 0 ? prev - 1 : len - 1
       );
     } else if (commandHistory.length > 0) {
       const newIndex = historyIndex + 1 >= commandHistory.length ? 0 : historyIndex + 1;
@@ -275,8 +299,9 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
 
   const actionDown = () => {
     if (showSuggestions) {
+      const len = suggestionMode === 'themes' ? VALID_THEMES.length : suggestions.length;
       setSelectedSuggestionIndex((prev) =>
-        prev < suggestions.length - 1 ? prev + 1 : 0
+        prev < len - 1 ? prev + 1 : 0
       );
     } else if (commandHistory.length > 0) {
       const newIndex = historyIndex <= 0 ? commandHistory.length - 1 : historyIndex - 1;
@@ -330,7 +355,9 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         }
         return;
       case 'Escape':
-        if (showSuggestions) {
+        if (showSuggestions && suggestionMode === 'themes') {
+          backToCommands();
+        } else if (showSuggestions) {
           setShowSuggestions(false);
         } else {
           setInputCommand('');
@@ -360,6 +387,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         !target.closest('[data-mobile-action]')
       ) {
         setShowSuggestions(false);
+        setSuggestionMode('commands');
       }
     };
 
@@ -476,10 +504,12 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             ref={suggestionsRef}
             suggestions={suggestions}
             selectedIndex={selectedSuggestionIndex}
-            onSelect={(index) => {
-              selectSuggestion(index);
-            }}
+            onSelect={selectSuggestion}
             onMouseEnter={setSelectedSuggestionIndex}
+            mode={suggestionMode}
+            themes={VALID_THEMES}
+            currentTheme={theme}
+            onBack={backToCommands}
           />
         )}
       </div>
