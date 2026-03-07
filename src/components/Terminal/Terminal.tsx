@@ -48,6 +48,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   const spinnerTimeouts = useRef(new Set<ReturnType<typeof setTimeout>>());
   const spinnerIdRef = useRef(0);
   const touchStartY = useRef<number | null>(null);
+  const pendingExecuteRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', {
@@ -100,6 +101,10 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (pendingExecuteRef.current) {
+      clearTimeout(pendingExecuteRef.current);
+      pendingExecuteRef.current = null;
+    }
     const value = e.target.value;
     setInputCommand(value);
     updateAutoSuggestion(value);
@@ -219,11 +224,20 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     spinnerTimeouts.current.add(timeoutId);
   };
 
-  const selectSuggestion = () => {
-    const selectedCommand = suggestions[selectedSuggestionIndex].command;
+  const selectSuggestion = (index: number) => {
+    const selectedCommand = suggestions[index].command;
     setShowSuggestions(false);
-    handleCommand(selectedCommand);
+    setInputCommand(selectedCommand);
+    setAutoSuggestion(null);
     inputRef.current?.focus();
+    if (pendingExecuteRef.current) {
+      clearTimeout(pendingExecuteRef.current);
+      pendingExecuteRef.current = null;
+    }
+    pendingExecuteRef.current = setTimeout(() => {
+      pendingExecuteRef.current = null;
+      handleCommand(selectedCommand);
+    }, 300);
   };
 
   const completeAutoSuggestion = () => {
@@ -237,7 +251,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   // Extracted action handlers for both keyboard and mobile button use
   const actionTab = () => {
     if (showSuggestions) {
-      selectSuggestion();
+      selectSuggestion(selectedSuggestionIndex);
     } else if (autoSuggestion) {
       completeAutoSuggestion();
     } else {
@@ -274,7 +288,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
 
   const actionEnter = () => {
     if (showSuggestions) {
-      selectSuggestion();
+      selectSuggestion(selectedSuggestionIndex);
     } else {
       handleCommand(inputCommand);
     }
@@ -366,6 +380,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     return () => {
       spinnerTimeouts.current.forEach(clearTimeout);
       spinnerTimeouts.current.clear();
+      if (pendingExecuteRef.current) clearTimeout(pendingExecuteRef.current);
     };
   }, []);
 
@@ -461,10 +476,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             ref={suggestionsRef}
             suggestions={suggestions}
             selectedIndex={selectedSuggestionIndex}
-            onSelect={(command) => {
-              setShowSuggestions(false);
-              handleCommand(command);
-              inputRef.current?.focus();
+            onSelect={(index) => {
+              selectSuggestion(index);
             }}
             onMouseEnter={setSelectedSuggestionIndex}
           />

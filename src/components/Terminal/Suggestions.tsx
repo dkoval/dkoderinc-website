@@ -4,7 +4,7 @@ import { CommandSuggestion } from './types';
 interface SuggestionsProps {
   suggestions: CommandSuggestion[];
   selectedIndex: number;
-  onSelect: (command: string) => void;
+  onSelect: (index: number) => void;
   onMouseEnter: (index: number) => void;
 }
 
@@ -23,7 +23,7 @@ const Suggestions = React.forwardRef<HTMLDivElement, SuggestionsProps>(
             style={{
               background: index === selectedIndex ? 'var(--terminal-surface)' : 'transparent',
             }}
-            onClick={() => onSelect(suggestion.command)}
+            onClick={() => onSelect(index)}
             onMouseEnter={() => onMouseEnter(index)}
           >
             {suggestion.icon}
