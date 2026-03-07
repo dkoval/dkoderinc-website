@@ -226,9 +226,9 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     spinnerTimeouts.current.add(timeoutId);
   };
 
-  const executeWithPreview = (displayText: string, command: string) => {
+  const executeWithPreview = (command: string) => {
     setShowSuggestions(false);
-    setInputCommand(displayText);
+    setInputCommand(command);
     setAutoSuggestion(null);
     inputRef.current?.focus();
     if (pendingExecuteRef.current) {
@@ -254,11 +254,11 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         setSelectedSuggestionIndex(0);
         return;
       }
-      executeWithPreview(selectedCommand, selectedCommand);
+      executeWithPreview(selectedCommand);
     } else {
       const selectedTheme = VALID_THEMES[index];
       setSuggestionMode('commands');
-      executeWithPreview(`theme ${selectedTheme}`, `theme ${selectedTheme}`);
+      executeWithPreview(`theme ${selectedTheme}`);
     }
   };
 
@@ -355,7 +355,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         }
         return;
       case 'Escape':
-        if (suggestionMode === 'themes') {
+        if (showSuggestions && suggestionMode === 'themes') {
           backToCommands();
         } else if (showSuggestions) {
           setShowSuggestions(false);
@@ -504,9 +504,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             ref={suggestionsRef}
             suggestions={suggestions}
             selectedIndex={selectedSuggestionIndex}
-            onSelect={(index) => {
-              selectSuggestion(index);
-            }}
+            onSelect={selectSuggestion}
             onMouseEnter={setSelectedSuggestionIndex}
             mode={suggestionMode}
             themes={VALID_THEMES}
