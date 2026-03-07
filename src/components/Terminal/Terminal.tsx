@@ -226,45 +226,39 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     spinnerTimeouts.current.add(timeoutId);
   };
 
+  const executeWithPreview = (displayText: string, command: string) => {
+    setShowSuggestions(false);
+    setInputCommand(displayText);
+    setAutoSuggestion(null);
+    inputRef.current?.focus();
+    if (pendingExecuteRef.current) {
+      clearTimeout(pendingExecuteRef.current);
+      pendingExecuteRef.current = null;
+    }
+    pendingExecuteRef.current = setTimeout(() => {
+      pendingExecuteRef.current = null;
+      handleCommand(command);
+    }, 300);
+  };
+
+  const backToCommands = () => {
+    setSuggestionMode('commands');
+    setSelectedSuggestionIndex(suggestions.findIndex(s => s.command === 'theme'));
+  };
+
   const selectSuggestion = (index: number) => {
     if (suggestionMode === 'commands') {
       const selectedCommand = suggestions[index].command;
-
-      // Drill into theme sub-menu instead of auto-executing
       if (selectedCommand === 'theme') {
         setSuggestionMode('themes');
         setSelectedSuggestionIndex(0);
         return;
       }
-
-      setShowSuggestions(false);
-      setInputCommand(selectedCommand);
-      setAutoSuggestion(null);
-      inputRef.current?.focus();
-      if (pendingExecuteRef.current) {
-        clearTimeout(pendingExecuteRef.current);
-        pendingExecuteRef.current = null;
-      }
-      pendingExecuteRef.current = setTimeout(() => {
-        pendingExecuteRef.current = null;
-        handleCommand(selectedCommand);
-      }, 300);
+      executeWithPreview(selectedCommand, selectedCommand);
     } else {
-      // Theme sub-menu: execute the selected theme
       const selectedTheme = VALID_THEMES[index];
       setSuggestionMode('commands');
-      setShowSuggestions(false);
-      setInputCommand(`theme ${selectedTheme}`);
-      setAutoSuggestion(null);
-      inputRef.current?.focus();
-      if (pendingExecuteRef.current) {
-        clearTimeout(pendingExecuteRef.current);
-        pendingExecuteRef.current = null;
-      }
-      pendingExecuteRef.current = setTimeout(() => {
-        pendingExecuteRef.current = null;
-        handleCommand(`theme ${selectedTheme}`);
-      }, 300);
+      executeWithPreview(`theme ${selectedTheme}`, `theme ${selectedTheme}`);
     }
   };
 
@@ -362,8 +356,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         return;
       case 'Escape':
         if (suggestionMode === 'themes') {
-          setSuggestionMode('commands');
-          setSelectedSuggestionIndex(suggestions.findIndex(s => s.command === 'theme'));
+          backToCommands();
         } else if (showSuggestions) {
           setShowSuggestions(false);
         } else {
@@ -518,10 +511,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             mode={suggestionMode}
             themes={VALID_THEMES}
             currentTheme={theme}
-            onBack={() => {
-              setSuggestionMode('commands');
-              setSelectedSuggestionIndex(suggestions.findIndex(s => s.command === 'theme'));
-            }}
+            onBack={backToCommands}
           />
         )}
       </div>
