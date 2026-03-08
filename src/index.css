@@ -37,58 +37,36 @@
   --terminal-vignette: rgba(10, 6, 0, 0.5);
 }
 
-/* Theme: White phosphor */
-:root[data-theme="white"] {
-  --terminal-primary: #B0B0B0;
-  --terminal-primary-dim: #888888;
-  --terminal-primary-dark: #444444;
-  --terminal-bg: #050505;
-  --terminal-surface: #0E0E0E;
-  --terminal-border: #333333;
-  --terminal-gray: #606060;
-  --terminal-error: #FF4444;
-  --terminal-output: #c0c0c0;
-  --terminal-glow: rgba(176, 176, 176, 0.3);
-  --terminal-glow-soft: rgba(176, 176, 176, 0.1);
-  --terminal-scanline: rgba(176, 176, 176, 0.03);
-  --terminal-vignette: rgba(5, 5, 5, 0.5);
-}
-
-/* Theme: Gruvbox (modern Easter egg) */
-:root[data-theme="gruvbox"] {
-  --terminal-primary: #EBDBB2;
-  --terminal-primary-dim: #A89984;
-  --terminal-primary-dark: #504945;
-  --terminal-bg: #1D2021;
-  --terminal-surface: #282828;
-  --terminal-border: #333333;
-  --terminal-gray: #928374;
-  --terminal-error: #FB4934;
-  --terminal-output: #D5C4A1;
-  --terminal-glow: rgba(235, 219, 178, 0.15);
-  --terminal-glow-soft: rgba(235, 219, 178, 0.05);
+/* Theme: Tokyo Night */
+:root[data-theme="tokyo-night"] {
+  --terminal-primary: #7AA2F7;
+  --terminal-primary-dim: #565F89;
+  --terminal-primary-dark: #3B4261;
+  --terminal-bg: #1A1B26;
+  --terminal-surface: #24283B;
+  --terminal-border: #3B4261;
+  --terminal-gray: #565F89;
+  --terminal-error: #F7768E;
+  --terminal-output: #A9B1D6;
+  --terminal-glow: rgba(122, 162, 247, 0.15);
+  --terminal-glow-soft: rgba(122, 162, 247, 0.05);
   --terminal-scanline: rgba(0, 0, 0, 0.02);
   --terminal-vignette: rgba(0, 0, 0, 0.3);
-  --terminal-accent-green: #B8BB26;
-  --terminal-accent-yellow: #FABD2F;
-  --terminal-accent-blue: #83A598;
-  --terminal-accent-orange: #FE8019;
-  --terminal-accent-purple: #D3869B;
 }
 
-/* Theme: Darcula (JetBrains-inspired) */
-:root[data-theme="darcula"] {
-  --terminal-primary: #A9B7C6;
-  --terminal-primary-dim: #6A8759;
-  --terminal-primary-dark: #555555;
-  --terminal-bg: #2B2B2B;
-  --terminal-surface: #313335;
-  --terminal-border: #333333;
-  --terminal-gray: #808080;
-  --terminal-error: #FF6B68;
-  --terminal-output: #BABABA;
-  --terminal-glow: rgba(169, 183, 198, 0.12);
-  --terminal-glow-soft: rgba(169, 183, 198, 0.05);
+/* Theme: One Dark Pro */
+:root[data-theme="one-dark-pro"] {
+  --terminal-primary: #61AFEF;
+  --terminal-primary-dim: #5C6370;
+  --terminal-primary-dark: #4B5263;
+  --terminal-bg: #282C34;
+  --terminal-surface: #2C313A;
+  --terminal-border: #3E4452;
+  --terminal-gray: #5C6370;
+  --terminal-error: #E06C75;
+  --terminal-output: #ABB2BF;
+  --terminal-glow: rgba(97, 175, 239, 0.15);
+  --terminal-glow-soft: rgba(97, 175, 239, 0.05);
   --terminal-scanline: rgba(0, 0, 0, 0.02);
   --terminal-vignette: rgba(0, 0, 0, 0.25);
 }

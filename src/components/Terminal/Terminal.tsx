@@ -10,6 +10,10 @@ import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
 
 const MAX_HISTORY = 50;
 const PURIFY_CONFIG = { ADD_ATTR: ['target', 'style'], ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'polyline'] };
+const THEME_EASTER_EGGS: Partial<Record<ThemeName, string>> = {
+  'tokyo-night': 'Welcome to Neo-Tokyo. The night shift begins.',
+  'one-dark-pro': 'Dark mode activated. Your eyes will thank you.',
+};
 
 export type TerminalHandle = {
   handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => void;
@@ -83,7 +87,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
       return;
     }
 
-    // Suggest theme arguments: "theme gr" → "theme gruvbox"
+    // Suggest theme arguments: "theme tok" → "theme tokyo-night"
     const lower = input.toLowerCase();
     if (lower.startsWith('theme ') && lower.length > 6) {
       const partial = lower.slice(6);
@@ -185,12 +189,14 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             { content: `Usage: theme <name>`, type: 'output' },
           ];
         } else if (VALID_THEMES.includes(arg as ThemeName)) {
-          const isGruvboxFirstTime = arg === 'gruvbox' && !localStorage.getItem('dkoder-gruvbox-seen');
+          const eggMessage = THEME_EASTER_EGGS[arg as ThemeName];
+          const eggKey = `dkoder-${arg}-seen`;
+          const isFirstTime = eggMessage && !localStorage.getItem(eggKey);
           setTheme(arg as ThemeName);
-          if (isGruvboxFirstTime) {
-            localStorage.setItem('dkoder-gruvbox-seen', '1');
+          if (isFirstTime) {
+            localStorage.setItem(eggKey, '1');
             outputLines = [
-              { content: 'Monitor upgrade detected. Welcome to the 21st century.', type: 'output' },
+              { content: eggMessage, type: 'output' },
             ];
           } else {
             outputLines = [

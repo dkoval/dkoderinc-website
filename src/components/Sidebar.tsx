@@ -6,9 +6,8 @@ import { useTheme, ThemeName } from '../ThemeContext';
 const HEADSHOT_FILTERS: Record<ThemeName, string> = {
   green: 'grayscale(100%) sepia(60%) hue-rotate(80deg) saturate(200%)',
   amber: 'grayscale(100%) sepia(80%) saturate(200%)',
-  white: 'grayscale(100%)',
-  darcula: 'grayscale(100%) brightness(0.9) contrast(1.1)',
-  gruvbox: 'grayscale(100%) sepia(40%) saturate(150%)',
+  'tokyo-night': 'grayscale(100%) sepia(20%) hue-rotate(190deg) saturate(200%) brightness(0.9)',
+  'one-dark-pro': 'grayscale(100%) sepia(15%) hue-rotate(180deg) saturate(150%) brightness(0.9)',
 };
 
 const Sidebar: React.FC = () => {
