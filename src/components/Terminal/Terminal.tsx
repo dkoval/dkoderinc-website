@@ -164,14 +164,15 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
       spinnerTimeouts.current.delete(timeoutId);
       let outputLines: TerminalLine[];
 
-      if (trimmedCmd === 'whoami') {
-        const key = isMobile ? 'whoami' : 'whoamiDesktop';
-        outputLines = commands[key].map(line => ({
-          content: line,
-          type: 'output' as const,
-        }));
-      } else if (trimmedCmd === 'skills') {
-        const key = isMobile ? 'skillsMobile' : 'skills';
+      // Commands with mobile/desktop output variants
+      const RESPONSIVE_COMMANDS: Record<string, { mobile: string; desktop: string }> = {
+        whoami: { mobile: 'whoami', desktop: 'whoamiDesktop' },
+        skills: { mobile: 'skillsMobile', desktop: 'skills' },
+      };
+
+      if (trimmedCmd in RESPONSIVE_COMMANDS) {
+        const variant = RESPONSIVE_COMMANDS[trimmedCmd];
+        const key = isMobile ? variant.mobile : variant.desktop;
         outputLines = commands[key].map(line => ({
           content: line,
           type: 'output' as const,
