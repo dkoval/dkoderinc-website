@@ -498,7 +498,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               value={inputCommand}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10"
+              className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10 caret-transparent"
               style={{ color: 'var(--terminal-primary)' }}
               placeholder={isMobile ? "Tap Cmds for suggestions..." : "Type a command or press Tab for suggestions..."}
               inputMode={isMobile ? "none" : undefined}
@@ -510,6 +510,13 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               inputCommand={inputCommand}
               suggestion={autoSuggestion}
             />
+            <span
+              className="terminal-cursor font-mono text-sm pointer-events-none absolute top-0 left-0 z-0"
+              style={{ color: 'var(--terminal-primary)', paddingLeft: `${inputCommand.length}ch` }}
+              aria-hidden="true"
+            >
+              ▌
+            </span>
           </div>
         </div>
         {showSuggestions && (

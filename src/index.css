@@ -203,6 +203,23 @@ body {
   text-shadow: 0 0 4px var(--terminal-glow);
 }
 
+/* Custom block cursor with phosphor glow */
+.terminal-cursor {
+  display: inline-block;
+  animation: blink-glow 1.2s step-end infinite;
+}
+
+@keyframes blink-glow {
+  0%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 8px var(--terminal-glow), 0 0 20px var(--terminal-glow-soft);
+  }
+  50% {
+    opacity: 0;
+    text-shadow: none;
+  }
+}
+
 /* Subtle CRT flicker */
 @keyframes flicker {
   0%, 100% { opacity: 1; }
