@@ -1,8 +1,15 @@
 import React from 'react';
+import StatusBar from './StatusBar';
 
-type Props = { children: React.ReactNode; bellFlash?: boolean };
+type Props = {
+  children: React.ReactNode;
+  bellFlash?: boolean;
+  onThemeClick?: () => void;
+  onSoundToggle?: () => void;
+  soundEnabled?: boolean;
+};
 
-const TerminalWindow: React.FC<Props> = ({ children, bellFlash }) => (
+const TerminalWindow: React.FC<Props> = ({ children, bellFlash, onThemeClick, onSoundToggle, soundEnabled }) => (
   <div
     className={`flex flex-col flex-1 rounded overflow-hidden ${bellFlash ? 'bell-flash' : ''}`}
     style={{
@@ -32,6 +39,12 @@ const TerminalWindow: React.FC<Props> = ({ children, bellFlash }) => (
     <div className="flex-1 overflow-hidden flex flex-col">
       {children}
     </div>
+    {/* Status bar */}
+    <StatusBar
+      onThemeClick={onThemeClick}
+      onSoundToggle={onSoundToggle}
+      soundEnabled={soundEnabled}
+    />
   </div>
 );
 
