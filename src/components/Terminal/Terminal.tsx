@@ -185,12 +185,17 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             { content: `Usage: theme <name>`, type: 'output' },
           ];
         } else if (VALID_THEMES.includes(arg as ThemeName)) {
-          const isGruvboxFirstTime = arg === 'gruvbox' && !localStorage.getItem('dkoder-gruvbox-seen');
+          const easterEggs: Partial<Record<ThemeName, { key: string; message: string }>> = {
+            'tokyo-night': { key: 'dkoder-tokyo-night-seen', message: 'Welcome to Neo-Tokyo. The night shift begins.' },
+            'one-dark-pro': { key: 'dkoder-one-dark-pro-seen', message: 'Dark mode activated. Your eyes will thank you.' },
+          };
+          const egg = easterEggs[arg as ThemeName];
+          const isFirstTime = egg && !localStorage.getItem(egg.key);
           setTheme(arg as ThemeName);
-          if (isGruvboxFirstTime) {
-            localStorage.setItem('dkoder-gruvbox-seen', '1');
+          if (isFirstTime) {
+            localStorage.setItem(egg.key, '1');
             outputLines = [
-              { content: 'Monitor upgrade detected. Welcome to the 21st century.', type: 'output' },
+              { content: egg.message, type: 'output' },
             ];
           } else {
             outputLines = [

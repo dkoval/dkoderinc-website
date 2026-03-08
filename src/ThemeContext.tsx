@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 
-export type ThemeName = 'green' | 'amber' | 'white' | 'darcula' | 'gruvbox';
+export type ThemeName = 'green' | 'amber' | 'tokyo-night' | 'one-dark-pro';
 
 // Also referenced in index.html inline script (can't import there)
-export const VALID_THEMES: ThemeName[] = ['green', 'amber', 'white', 'darcula', 'gruvbox'];
+export const VALID_THEMES: ThemeName[] = ['green', 'amber', 'tokyo-night', 'one-dark-pro'];
 const STORAGE_KEY = 'dkoder-theme';
 
 interface ThemeContextType {
