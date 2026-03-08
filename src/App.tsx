@@ -206,7 +206,7 @@ const App: React.FC = () => {
                   <span className="md:hidden">
                     {RESTART_FINAL_MOBILE.slice(0, Math.min(typingChar, RESTART_FINAL_MOBILE.length))}
                   </span>
-                  <span className={typingDone ? 'animate-blink' : ''}>&#x2588;</span>
+                  <span className={typingDone ? 'cursor-afterglow' : ''}>&#x2588;</span>
                 </p>
               )}
             </div>

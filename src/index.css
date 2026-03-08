@@ -220,6 +220,26 @@ body {
   }
 }
 
+/* Phosphor afterglow — cursor dims instead of disappearing */
+@keyframes blink-afterglow {
+  0%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 8px var(--terminal-glow), 0 0 20px var(--terminal-glow-soft);
+  }
+  33% {
+    opacity: 0.15;
+    text-shadow: 0 0 4px var(--terminal-glow-soft);
+  }
+  50% {
+    opacity: 0;
+    text-shadow: none;
+  }
+}
+
+.cursor-afterglow {
+  animation: blink-afterglow 1.2s ease-in-out infinite;
+}
+
 /* Subtle CRT flicker */
 @keyframes flicker {
   0%, 100% { opacity: 1; }
