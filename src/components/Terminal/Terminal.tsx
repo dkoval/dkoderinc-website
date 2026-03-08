@@ -170,6 +170,12 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
           content: line,
           type: 'output' as const,
         }));
+      } else if (trimmedCmd === 'skills') {
+        const key = isMobile ? 'skillsMobile' : 'skills';
+        outputLines = commands[key].map(line => ({
+          content: line,
+          type: 'output' as const,
+        }));
       } else if (trimmedCmd === 'uptime') {
         const seconds = Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000);
         const timeStr = getCurrentTime();
