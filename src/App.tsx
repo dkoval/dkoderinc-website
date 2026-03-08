@@ -69,6 +69,10 @@ const App: React.FC = () => {
     });
   }, []);
 
+  useEffect(() => {
+    return () => { if (bellTimerRef.current) clearTimeout(bellTimerRef.current); };
+  }, []);
+
   const [shutdownPhase, setShutdownPhase] = useState<ShutdownPhase>(null);
   const [shutdownLines, setShutdownLines] = useState(0);
   const [sessionKey, setSessionKey] = useState(0);
