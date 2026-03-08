@@ -442,7 +442,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   };
 
   return (
-    <section className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-flicker" style={{ background: 'var(--terminal-bg)' }}>
+    <section className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-flicker crt-breathe" style={{ background: 'var(--terminal-bg)' }}>
       <div
         ref={terminalRef}
         className="flex-1 overflow-y-auto overflow-x-hidden mb-4 text-sm terminal-scroll"

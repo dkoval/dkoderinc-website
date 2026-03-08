@@ -215,13 +215,25 @@ body {
   animation: flicker 4s infinite;
 }
 
+/* CRT ambient breathing — slow luminance drift */
+@keyframes breathe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(0.98); }
+}
+
+.crt-breathe {
+  animation: breathe 8s ease-in-out infinite;
+}
+
 /* Disable flicker on mobile and for reduced motion */
 @media (max-width: 767px) {
   .crt-flicker { animation: none; }
+  .crt-breathe { animation: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .crt-flicker { animation: none; }
+  .crt-breathe { animation: none; }
   .ai-spinner::before { animation: none; content: '...'; }
   .animate-blink { animation: none; }
 }
