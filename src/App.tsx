@@ -57,6 +57,18 @@ const App: React.FC = () => {
   const handleBootComplete = useCallback(() => setShowBootSplash(false), []);
   const terminalRef = useRef<TerminalHandle>(null);
 
+  const [bellFlash, setBellFlash] = useState(false);
+  const bellTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const handleBell = useCallback(() => {
+    if (bellTimerRef.current) clearTimeout(bellTimerRef.current);
+    setBellFlash(false);
+    requestAnimationFrame(() => {
+      setBellFlash(true);
+      bellTimerRef.current = setTimeout(() => setBellFlash(false), 150);
+    });
+  }, []);
+
   const [shutdownPhase, setShutdownPhase] = useState<ShutdownPhase>(null);
   const [shutdownLines, setShutdownLines] = useState(0);
   const [sessionKey, setSessionKey] = useState(0);
@@ -224,8 +236,8 @@ const App: React.FC = () => {
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           <Sidebar key={sessionKey} />
           <main className="flex flex-1 overflow-hidden p-3 md:p-4">
-            <TerminalWindow>
-              <Terminal key={sessionKey} ref={terminalRef} onShutdown={handleShutdown} />
+            <TerminalWindow bellFlash={bellFlash}>
+              <Terminal key={sessionKey} ref={terminalRef} onShutdown={handleShutdown} onBell={handleBell} />
             </TerminalWindow>
           </main>
         </div>

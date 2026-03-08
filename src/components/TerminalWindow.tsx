@@ -1,10 +1,10 @@
 import React from 'react';
 
-type Props = { children: React.ReactNode };
+type Props = { children: React.ReactNode; bellFlash?: boolean };
 
-const TerminalWindow: React.FC<Props> = ({ children }) => (
+const TerminalWindow: React.FC<Props> = ({ children, bellFlash }) => (
   <div
-    className="flex flex-col flex-1 rounded overflow-hidden"
+    className={`flex flex-col flex-1 rounded overflow-hidden ${bellFlash ? 'bell-flash' : ''}`}
     style={{
       border: '1px solid var(--terminal-border)',
       boxShadow: '0 0 20px var(--terminal-glow), inset 0 0 20px var(--terminal-glow-soft)',

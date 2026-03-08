@@ -203,6 +203,20 @@ body {
   text-shadow: 0 0 4px var(--terminal-glow);
 }
 
+/* Terminal bell flash — intensified border glow */
+@keyframes bell-flash {
+  0% {
+    box-shadow: 0 0 40px var(--terminal-glow), inset 0 0 40px var(--terminal-glow-soft);
+  }
+  100% {
+    box-shadow: 0 0 20px var(--terminal-glow), inset 0 0 20px var(--terminal-glow-soft);
+  }
+}
+
+.bell-flash {
+  animation: bell-flash 150ms ease-out;
+}
+
 /* Custom block cursor with phosphor glow */
 .terminal-cursor {
   display: inline-block;

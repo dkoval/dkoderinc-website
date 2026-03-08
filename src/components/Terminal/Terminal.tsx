@@ -34,9 +34,10 @@ const useIsMobile = () => {
 
 type TerminalProps = {
   onShutdown?: () => void;
+  onBell?: () => void;
 };
 
-const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref) => {
+const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell }, ref) => {
   const isMobile = useIsMobile();
   const { theme, setTheme } = useTheme();
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
@@ -217,6 +218,9 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         }
       } else {
         const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
+        if (typeof output === 'string' && output.startsWith('Command not found')) {
+          onBell?.();
+        }
         outputLines = Array.isArray(output)
           ? output.map(line => ({
               content: line,
