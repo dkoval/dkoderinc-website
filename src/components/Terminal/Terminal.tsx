@@ -42,6 +42,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const suppressHoverRef = useRef(false);
   const spinnerTimeouts = useRef(new Set<ReturnType<typeof setTimeout>>());
   const spinnerIdRef = useRef(0);
   const touchStartY = useRef<number | null>(null);
@@ -310,6 +311,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       setSuggestionMode('commands');
       setShowSuggestions(true);
       setSelectedSuggestionIndex(0);
+      suppressHoverRef.current = true;
+      setTimeout(() => { suppressHoverRef.current = false; }, 100);
     }
   };
 
@@ -577,7 +580,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
             suggestions={suggestions}
             selectedIndex={selectedSuggestionIndex}
             onSelect={selectSuggestion}
-            onMouseEnter={setSelectedSuggestionIndex}
+            onMouseEnter={(i) => { if (!suppressHoverRef.current) setSelectedSuggestionIndex(i); }}
             mode={suggestionMode}
             themes={VALID_THEMES}
             currentTheme={theme}
