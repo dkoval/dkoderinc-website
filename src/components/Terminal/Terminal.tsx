@@ -256,6 +256,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
 
   const executeWithPreview = (command: string) => {
     setShowSuggestions(false);
+    setSelectedSuggestionIndex(0);
     setInputCommand(command);
     setAutoSuggestion(null);
     inputRef.current?.focus();
@@ -286,6 +287,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
     } else {
       const selectedTheme = VALID_THEMES[index];
       setSuggestionMode('commands');
+      setSelectedSuggestionIndex(0);
       executeWithPreview(`theme ${selectedTheme}`);
     }
   };
@@ -387,6 +389,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
           backToCommands();
         } else if (showSuggestions) {
           setShowSuggestions(false);
+          setSelectedSuggestionIndex(0);
         } else {
           setInputCommand('');
           setAutoSuggestion(null);
@@ -416,6 +419,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       ) {
         setShowSuggestions(false);
         setSuggestionMode('commands');
+        setSelectedSuggestionIndex(0);
       }
     };
 
