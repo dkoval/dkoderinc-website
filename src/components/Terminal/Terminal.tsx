@@ -55,6 +55,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   const revealRafRef = useRef<number>(0);
   const revealLastTimeRef = useRef<number>(0);
   const revealStartIndexRef = useRef<number>(0);
+  const isInputBlocked = revealingLines !== null;
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', {
@@ -107,7 +108,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (revealingLines !== null) return;
+    if (isInputBlocked) return;
     if (pendingExecuteRef.current) {
       clearTimeout(pendingExecuteRef.current);
       pendingExecuteRef.current = null;
@@ -121,7 +122,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   };
 
   const handleCommand = (cmd: string) => {
-    if (revealingLines !== null) return;
+    if (isInputBlocked) return;
     const trimmedCmd = cmd.trim().toLowerCase();
 
     if (trimmedCmd === '') return;
@@ -379,7 +380,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
 
   useImperativeHandle(ref, () => ({
     handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => {
-      if (revealingLines !== null) return;
+      if (isInputBlocked) return;
       switch (action) {
         case 'tab': actionTab(); break;
         case 'up': actionUp(); break;
@@ -391,7 +392,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   }));
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (revealingLines !== null) { e.preventDefault(); return; }
+    if (isInputBlocked) { e.preventDefault(); return; }
     switch (e.key) {
       case 'Tab':
         e.preventDefault();
@@ -507,7 +508,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
         setTerminalOutput(prev => [...prev, revealingLines[revealedCount]]);
         return; // State change will re-trigger this effect for the next line
       }
-      // Keep polling until 40ms elapses
+      // Keep polling until 10ms elapses
       revealRafRef.current = requestAnimationFrame(step);
     };
 
@@ -517,7 +518,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
 
   // Notify parent of reveal state changes
   useEffect(() => {
-    onRevealStateChange?.(revealingLines !== null);
+    onRevealStateChange?.(isInputBlocked);
   }, [revealingLines, onRevealStateChange]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -547,7 +548,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       >
         {terminalOutput.map((line, index) => (
           <div key={index} className={`group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded ${
-            revealingLines !== null && index >= revealStartIndexRef.current ? 'line-reveal' : ''
+            isInputBlocked && index >= revealStartIndexRef.current ? 'line-reveal' : ''
           }`}>
             <p
               className="font-mono flex-1 break-words"
@@ -603,7 +604,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
         </div>
       </div>
       <div className="relative">
-        <div className={`flex items-center space-x-2 w-full p-2 ${revealingLines !== null ? 'input-blocked' : ''}`} style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
+        <div className={`flex items-center space-x-2 w-full p-2 ${isInputBlocked ? 'input-blocked' : ''}`} style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
           <span className="font-mono text-sm shrink-0 select-none">
             <span style={{ color: 'var(--terminal-primary-dim)' }}>~ </span>
             <span style={{ color: 'var(--terminal-primary)' }}>$ </span>
