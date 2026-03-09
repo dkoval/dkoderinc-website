@@ -215,18 +215,11 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
           ];
         }
       } else if (trimmedCmd === 'sound' || trimmedCmd === 'sound on' || trimmedCmd === 'sound off') {
-        if (trimmedCmd === 'sound') {
-          outputLines = [
-            { content: `Sound: ${soundEnabled ? 'on' : 'off'}`, type: 'output' },
-            { content: 'Usage: sound on | sound off', type: 'output' },
-          ];
-        } else {
-          const wantOn = trimmedCmd === 'sound on';
-          onSoundSet?.(wantOn);
-          outputLines = [
-            { content: `Sound ${wantOn ? 'enabled' : 'disabled'}.`, type: 'output' },
-          ];
-        }
+        const wantOn = trimmedCmd === 'sound' ? !soundEnabled : trimmedCmd === 'sound on';
+        onSoundSet?.(wantOn);
+        outputLines = [
+          { content: `Sound ${wantOn ? 'enabled' : 'disabled'}.`, type: 'output' },
+        ];
       } else {
         const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
         if (typeof output === 'string' && output.startsWith('Command not found')) {
