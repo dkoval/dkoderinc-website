@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import { ChevronRight } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { suggestions, commands } from './commands';
 import { TerminalLine } from './types';
@@ -7,6 +6,7 @@ import Suggestions from './Suggestions';
 import AutoSuggestion from './AutoSuggestion';
 import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
 import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
+import useIsMobile from '../../hooks/useIsMobile';
 
 const MAX_HISTORY = 50;
 const PURIFY_CONFIG = { ADD_ATTR: ['target', 'style'], ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'polyline'] };
@@ -19,25 +19,18 @@ export type TerminalHandle = {
   handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => void;
 };
 
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && !window.matchMedia('(min-width: 768px)').matches
-  );
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 768px)');
-    const handler = (e: MediaQueryListEvent) => setIsMobile(!e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  return isMobile;
-};
-
 type TerminalProps = {
   onShutdown?: () => void;
+  onBell?: () => void;
+  playSound?: (sound: 'keypress' | 'execute' | 'error' | 'themeSwitch' | 'boot') => void;
+  soundEnabled?: boolean;
+  onSoundSet?: (enabled: boolean) => void;
+  onRevealStateChange?: (isRevealing: boolean) => void;
 };
 
-const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref) => {
+const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onRevealStateChange }, ref) => {
   const isMobile = useIsMobile();
+  const promptPrefix = '~ $ ';
   const { theme, setTheme } = useTheme();
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
   const [inputCommand, setInputCommand] = useState('');
@@ -50,10 +43,19 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const suppressHoverRef = useRef(false);
   const spinnerTimeouts = useRef(new Set<ReturnType<typeof setTimeout>>());
   const spinnerIdRef = useRef(0);
   const touchStartY = useRef<number | null>(null);
   const pendingExecuteRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const [revealingLines, setRevealingLines] = useState<TerminalLine[] | null>(null);
+  const [revealedCount, setRevealedCount] = useState(0);
+  const revealRafRef = useRef<number>(0);
+  const revealLastTimeRef = useRef<number>(0);
+  const revealStartIndexRef = useRef<number>(0);
+  const isInputBlocked = revealingLines !== null;
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', {
@@ -66,7 +68,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
 
   const displayHelp = () => {
     return [
-      { content: '$ help', type: 'input' as const, timestamp: getCurrentTime() },
+      { content: `${promptPrefix}help`, type: 'input' as const, timestamp: getCurrentTime() },
       { content: 'Available commands:', type: 'output' as const },
       ...suggestions.map((_, i) => ({
         content: '',
@@ -106,18 +108,21 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isInputBlocked) return;
     if (pendingExecuteRef.current) {
       clearTimeout(pendingExecuteRef.current);
       pendingExecuteRef.current = null;
     }
     const value = e.target.value;
     setInputCommand(value);
+    playSound?.('keypress');
     updateAutoSuggestion(value);
     setShowSuggestions(false);
     setSuggestionMode('commands');
   };
 
   const handleCommand = (cmd: string) => {
+    if (isInputBlocked) return;
     const trimmedCmd = cmd.trim().toLowerCase();
 
     if (trimmedCmd === '') return;
@@ -132,7 +137,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     if (trimmedCmd === 'exit') {
       setTerminalOutput(prev => [
         ...prev,
-        { content: `$ ${trimmedCmd}`, type: 'input', timestamp: getCurrentTime() },
+        { content: `${promptPrefix}${trimmedCmd}`, type: 'input', timestamp: getCurrentTime() },
       ]);
       setInputCommand('');
       setAutoSuggestion(null);
@@ -143,7 +148,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     // Add input line + spinner with unique ID
     const currentSpinnerId = ++spinnerIdRef.current;
     const inputLine: TerminalLine = {
-      content: `$ ${trimmedCmd}`,
+      content: `${promptPrefix}${trimmedCmd}`,
       type: 'input',
       timestamp: getCurrentTime(),
     };
@@ -154,10 +159,13 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     };
 
     setTerminalOutput(prev => [...prev, inputLine, spinnerLine]);
+    playSound?.('execute');
     setCommandHistory(prev => [...prev, trimmedCmd].slice(-MAX_HISTORY));
     setHistoryIndex(-1);
     setInputCommand('');
     setAutoSuggestion(null);
+
+    const startTime = performance.now();
 
     // After delay, replace this specific spinner with real output
     const timeoutId = setTimeout(() => {
@@ -200,6 +208,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
           const eggKey = `dkoder-${arg}-seen`;
           const isFirstTime = eggMessage && !localStorage.getItem(eggKey);
           setTheme(arg as ThemeName);
+          playSound?.('themeSwitch');
           if (isFirstTime) {
             localStorage.setItem(eggKey, '1');
             outputLines = [
@@ -215,8 +224,18 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             { content: `Unknown theme: ${arg}. Available: ${VALID_THEMES.join(', ')}`, type: 'error' },
           ];
         }
+      } else if (trimmedCmd === 'sound' || trimmedCmd === 'sound on' || trimmedCmd === 'sound off') {
+        const wantOn = trimmedCmd === 'sound' ? !soundEnabled : trimmedCmd === 'sound on';
+        onSoundSet?.(wantOn);
+        outputLines = [
+          { content: `Sound ${wantOn ? 'enabled' : 'disabled'}.`, type: 'output' },
+        ];
       } else {
         const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
+        if (typeof output === 'string' && output.startsWith('Command not found')) {
+          onBell?.();
+          playSound?.('error');
+        }
         outputLines = Array.isArray(output)
           ? output.map(line => ({
               content: line,
@@ -229,18 +248,42 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             }];
       }
 
-      // Replace this specific spinner line with real output
-      setTerminalOutput(prev => {
-        const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
-        if (spinnerIndex === -1) return [...prev, ...outputLines];
-        return [...prev.slice(0, spinnerIndex), ...outputLines, ...prev.slice(spinnerIndex + 1)];
-      });
+      // Append timing line (exclude theme commands — they have phosphor transition feedback)
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
+      const showTiming = !trimmedCmd.startsWith('theme');
+      const timingLine: TerminalLine = { content: `took ${elapsed}s`, type: 'timing' };
+      const newLines = showTiming ? [...outputLines, timingLine] : outputLines;
+
+      // Progressive reveal for multi-line outputs
+      const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        && newLines.length > 1;
+
+      if (shouldAnimate) {
+        // Remove spinner, then start reveal
+        setTerminalOutput(prev => {
+          const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
+          if (spinnerIndex === -1) return prev;
+          const withoutSpinner = [...prev.slice(0, spinnerIndex), ...prev.slice(spinnerIndex + 1)];
+          revealStartIndexRef.current = withoutSpinner.length;
+          return withoutSpinner;
+        });
+        setRevealingLines(newLines);
+        setRevealedCount(0);
+      } else {
+        // Instant reveal (single-line outputs, reduced motion)
+        setTerminalOutput(prev => {
+          const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
+          if (spinnerIndex === -1) return [...prev, ...newLines];
+          return [...prev.slice(0, spinnerIndex), ...newLines, ...prev.slice(spinnerIndex + 1)];
+        });
+      }
     }, 600);
     spinnerTimeouts.current.add(timeoutId);
   };
 
   const executeWithPreview = (command: string) => {
     setShowSuggestions(false);
+    setSelectedSuggestionIndex(0);
     setInputCommand(command);
     setAutoSuggestion(null);
     inputRef.current?.focus();
@@ -271,6 +314,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
     } else {
       const selectedTheme = VALID_THEMES[index];
       setSuggestionMode('commands');
+      setSelectedSuggestionIndex(0);
       executeWithPreview(`theme ${selectedTheme}`);
     }
   };
@@ -293,6 +337,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
       setSuggestionMode('commands');
       setShowSuggestions(true);
       setSelectedSuggestionIndex(0);
+      suppressHoverRef.current = true;
+      setTimeout(() => { suppressHoverRef.current = false; }, 100);
     }
   };
 
@@ -334,6 +380,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
 
   useImperativeHandle(ref, () => ({
     handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => {
+      if (isInputBlocked) return;
       switch (action) {
         case 'tab': actionTab(); break;
         case 'up': actionUp(); break;
@@ -345,6 +392,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   }));
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isInputBlocked) { e.preventDefault(); return; }
     switch (e.key) {
       case 'Tab':
         e.preventDefault();
@@ -372,6 +420,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
           backToCommands();
         } else if (showSuggestions) {
           setShowSuggestions(false);
+          setSelectedSuggestionIndex(0);
         } else {
           setInputCommand('');
           setAutoSuggestion(null);
@@ -401,6 +450,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
       ) {
         setShowSuggestions(false);
         setSuggestionMode('commands');
+        setSelectedSuggestionIndex(0);
       }
     };
 
@@ -418,12 +468,58 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   }, [terminalOutput]);
 
   useEffect(() => {
+    const sentinel = sentinelRef.current;
+    const container = terminalRef.current;
+    if (!sentinel || !container) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowScrollIndicator(!entry.isIntersecting),
+      { root: container, threshold: 0, rootMargin: '20px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [terminalOutput]);
+
+  useEffect(() => {
     return () => {
       spinnerTimeouts.current.forEach(clearTimeout);
       spinnerTimeouts.current.clear();
       if (pendingExecuteRef.current) clearTimeout(pendingExecuteRef.current);
+      cancelAnimationFrame(revealRafRef.current);
     };
   }, []);
+
+  // Progressive reveal animation
+  useEffect(() => {
+    if (!revealingLines || revealingLines.length === 0) return;
+
+    if (revealedCount >= revealingLines.length) {
+      setRevealingLines(null);
+      return;
+    }
+
+    revealLastTimeRef.current = 0;
+
+    const step = (timestamp: number) => {
+      if (!revealLastTimeRef.current) revealLastTimeRef.current = timestamp;
+      if (timestamp - revealLastTimeRef.current >= 10) {
+        revealLastTimeRef.current = timestamp;
+        setRevealedCount(prev => prev + 1);
+        setTerminalOutput(prev => [...prev, revealingLines[revealedCount]]);
+        return; // State change will re-trigger this effect for the next line
+      }
+      // Keep polling until 10ms elapses
+      revealRafRef.current = requestAnimationFrame(step);
+    };
+
+    revealRafRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(revealRafRef.current);
+  }, [revealingLines, revealedCount]);
+
+  // Notify parent of reveal state changes
+  useEffect(() => {
+    onRevealStateChange?.(isInputBlocked);
+  }, [revealingLines, onRevealStateChange]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -442,7 +538,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
   };
 
   return (
-    <section className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-flicker" style={{ background: 'var(--terminal-bg)' }}>
+    <section className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-breathe" style={{ background: 'var(--terminal-bg)' }}>
       <div
         ref={terminalRef}
         className="flex-1 overflow-y-auto overflow-x-hidden mb-4 text-sm terminal-scroll"
@@ -451,7 +547,9 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
         onTouchEnd={handleTouchEnd}
       >
         {terminalOutput.map((line, index) => (
-          <div key={index} className="group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded">
+          <div key={index} className={`group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded ${
+            isInputBlocked && index >= revealStartIndexRef.current ? 'line-reveal' : ''
+          }`}>
             <p
               className="font-mono flex-1 break-words"
               style={
@@ -460,7 +558,11 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
                 { color: 'var(--terminal-output)' }
               }
             >
-              {line.type === 'spinner' ? (
+              {line.type === 'timing' ? (
+                <span className="block text-right" style={{ color: 'var(--terminal-gray)', fontSize: '0.75rem' }}>
+                  {line.content}
+                </span>
+              ) : line.type === 'spinner' ? (
                 <span className="inline-flex items-center gap-2">
                   <span className="ai-spinner" />
                   <span style={{ color: 'var(--terminal-gray)' }}>{line.content}</span>
@@ -487,10 +589,26 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             </span>
           </div>
         ))}
+        <div ref={sentinelRef} className="h-px" />
+        <div
+          className="scroll-indicator font-mono"
+          style={{
+            color: 'var(--terminal-primary-dim)',
+            opacity: showScrollIndicator ? 0.6 : 0,
+            fontSize: '0.75rem',
+            padding: '2px 0',
+            background: 'var(--terminal-bg)',
+          }}
+        >
+          ▼ more
+        </div>
       </div>
       <div className="relative">
-        <div className="flex items-center space-x-2 w-full p-2" style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
-          <ChevronRight className="w-5 h-5" style={{ color: 'var(--terminal-primary)' }} />
+        <div className={`flex items-center space-x-2 w-full p-2 ${isInputBlocked ? 'input-blocked' : ''}`} style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
+          <span className="font-mono text-sm shrink-0 select-none">
+            <span style={{ color: 'var(--terminal-primary-dim)' }}>~ </span>
+            <span style={{ color: 'var(--terminal-primary)' }}>$ </span>
+          </span>
           <div className="relative flex-1">
             <input
               ref={inputRef}
@@ -498,7 +616,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               value={inputCommand}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10"
+              className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10 caret-transparent"
               style={{ color: 'var(--terminal-primary)' }}
               placeholder={isMobile ? "Tap Cmds for suggestions..." : "Type a command or press Tab for suggestions..."}
               inputMode={isMobile ? "none" : undefined}
@@ -510,6 +628,13 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
               inputCommand={inputCommand}
               suggestion={autoSuggestion}
             />
+            <span
+              className="terminal-cursor font-mono text-sm pointer-events-none absolute top-0 left-0 z-0"
+              style={{ color: 'var(--terminal-primary)', paddingLeft: `${inputCommand.length}ch` }}
+              aria-hidden="true"
+            >
+              ▌
+            </span>
           </div>
         </div>
         {showSuggestions && (
@@ -518,7 +643,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown }, ref)
             suggestions={suggestions}
             selectedIndex={selectedSuggestionIndex}
             onSelect={selectSuggestion}
-            onMouseEnter={setSelectedSuggestionIndex}
+            onMouseEnter={(i) => { if (!suppressHoverRef.current) setSelectedSuggestionIndex(i); }}
             mode={suggestionMode}
             themes={VALID_THEMES}
             currentTheme={theme}

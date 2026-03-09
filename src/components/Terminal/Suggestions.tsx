@@ -39,6 +39,7 @@ const Suggestions = React.forwardRef<HTMLDivElement, SuggestionsProps>(
                 className="w-full px-4 py-2 flex items-center space-x-3 text-left text-sm transition-colors min-h-[44px] md:min-h-0"
                 style={{
                   background: index === selectedIndex ? 'var(--terminal-surface)' : 'transparent',
+                  borderLeft: index === selectedIndex ? '2px solid var(--terminal-primary)' : '2px solid transparent',
                 }}
                 onClick={() => onSelect(index)}
                 onMouseEnter={() => onMouseEnter(index)}
@@ -55,6 +56,7 @@ const Suggestions = React.forwardRef<HTMLDivElement, SuggestionsProps>(
                 className="w-full px-4 py-2 flex items-center space-x-3 text-left text-sm transition-colors min-h-[44px] md:min-h-0"
                 style={{
                   background: index === selectedIndex ? 'var(--terminal-surface)' : 'transparent',
+                  borderLeft: index === selectedIndex ? '2px solid var(--terminal-primary)' : '2px solid transparent',
                 }}
                 onClick={() => onSelect(index)}
                 onMouseEnter={() => onMouseEnter(index)}

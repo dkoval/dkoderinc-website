@@ -6,6 +6,7 @@ import Terminal, { TerminalHandle } from './components/Terminal';
 import { resetPageLoadTime } from './constants';
 import { List } from 'lucide-react';
 import { useTheme } from './ThemeContext';
+import useSoundEngine from './hooks/useSoundEngine';
 
 const MOBILE_BTN_STYLE = {
   background: 'var(--terminal-surface)',
@@ -53,9 +54,31 @@ type ShutdownPhase = null | 'messages' | 'crt-off' | 'black' | 'restart-prompt';
 
 const App: React.FC = () => {
   const { transitioning } = useTheme();
+  const sound = useSoundEngine();
   const [showBootSplash, setShowBootSplash] = useState(true);
-  const handleBootComplete = useCallback(() => setShowBootSplash(false), []);
+  const handleBootComplete = useCallback(() => {
+    setShowBootSplash(false);
+    sound.play('boot');
+  }, [sound]);
   const terminalRef = useRef<TerminalHandle>(null);
+
+  const [bellFlash, setBellFlash] = useState(false);
+  const bellTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const handleBell = useCallback(() => {
+    if (bellTimerRef.current) clearTimeout(bellTimerRef.current);
+    setBellFlash(false);
+    requestAnimationFrame(() => {
+      setBellFlash(true);
+      bellTimerRef.current = setTimeout(() => setBellFlash(false), 150);
+    });
+  }, []);
+
+  useEffect(() => {
+    return () => { if (bellTimerRef.current) clearTimeout(bellTimerRef.current); };
+  }, []);
+
+  const [isRevealing, setIsRevealing] = useState(false);
 
   const [shutdownPhase, setShutdownPhase] = useState<ShutdownPhase>(null);
   const [shutdownLines, setShutdownLines] = useState(0);
@@ -206,7 +229,7 @@ const App: React.FC = () => {
                   <span className="md:hidden">
                     {RESTART_FINAL_MOBILE.slice(0, Math.min(typingChar, RESTART_FINAL_MOBILE.length))}
                   </span>
-                  <span className={typingDone ? 'animate-blink' : ''}>&#x2588;</span>
+                  <span className={typingDone ? 'cursor-afterglow' : ''}>&#x2588;</span>
                 </p>
               )}
             </div>
@@ -224,8 +247,17 @@ const App: React.FC = () => {
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           <Sidebar key={sessionKey} />
           <main className="flex flex-1 overflow-hidden p-3 md:p-4">
-            <TerminalWindow>
-              <Terminal key={sessionKey} ref={terminalRef} onShutdown={handleShutdown} />
+            <TerminalWindow bellFlash={bellFlash} onSoundToggle={sound.toggle} soundEnabled={sound.enabled}>
+              <Terminal
+                key={sessionKey}
+                ref={terminalRef}
+                onShutdown={handleShutdown}
+                onBell={handleBell}
+                playSound={sound.play}
+                soundEnabled={sound.enabled}
+                onSoundSet={sound.setEnabled}
+                onRevealStateChange={setIsRevealing}
+              />
             </TerminalWindow>
           </main>
         </div>
@@ -237,7 +269,7 @@ const App: React.FC = () => {
           {mobileKeys.map(({ label, action, icon, emphasized }) => (
             <button
               key={label}
-              className="flex-1 py-2 font-mono text-sm rounded inline-flex items-center justify-center gap-1"
+              className={`flex-1 py-2 font-mono text-sm rounded inline-flex items-center justify-center gap-1 ${isRevealing ? 'opacity-50 pointer-events-none' : ''}`}
               style={emphasized ? MOBILE_BTN_STYLE_EMPHASIZED : MOBILE_BTN_STYLE}
               data-mobile-action={action}
               onClick={() => {

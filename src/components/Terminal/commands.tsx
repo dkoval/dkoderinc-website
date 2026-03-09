@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Mail, Sparkles, User, Info, Clock, LogOut, History, Palette } from 'lucide-react';
+import { Cpu, Mail, Sparkles, User, Info, Clock, LogOut, History, Palette, Volume2 } from 'lucide-react';
 import { CommandSuggestion } from './types';
 
 export const suggestions: CommandSuggestion[] = [
@@ -10,6 +10,7 @@ export const suggestions: CommandSuggestion[] = [
   { command: 'contact', description: 'Get contact information', icon: <Mail className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'uptime', description: 'Session uptime', icon: <Clock className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'theme', description: 'Switch color theme', icon: <Palette className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
+  { command: 'sound', description: 'Toggle terminal sounds', icon: <Volume2 className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'clear', description: 'Clear terminal screen', icon: <Sparkles className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'exit', description: 'Terminate the current session', icon: <LogOut className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
 ];
@@ -62,15 +63,27 @@ export const commands: Record<string, string[]> = {
   whoami: [
     'Dmytro Koval',
     '────────────',
-    'Focus: Backend & Distributed Systems',
+    'Focus:      Backend & Distributed Systems',
+    'Approach:   Managing complexity through modular, decoupled design',
+    'Heuristic:  First Principles + Battle-Hardened Experience + AI-Acceleration',
+    'Delivery:   Distilling vague requirements into production-grade reality',
+    'Standard:   Engineering for failure to ensure predictable system recovery',
   ],
   whoamiDesktop: [
-    '  ██████╗ ██╗  ██╗      Dmytro Koval',
-    '  ██╔══██╗██║ ██╔╝      ────────────',
-    '  ██║  ██║█████╔╝       Focus: Backend & Distributed Systems',
+    '  ██████╗ ██╗  ██╗',
+    '  ██╔══██╗██║ ██╔╝',
+    '  ██║  ██║█████╔╝',
     '  ██║  ██║██╔═██╗',
     '  ██████╔╝██║  ██╗',
     '  ╚═════╝ ╚═╝  ╚═╝',
+    '',
+    '  Dmytro Koval',
+    '  ────────────',
+    '  Focus:      Backend & Distributed Systems',
+    '  Approach:   Managing complexity through modular, decoupled design',
+    '  Heuristic:  First Principles + Battle-Hardened Experience + AI-Acceleration',
+    '  Delivery:   Distilling vague requirements into production-grade reality',
+    '  Standard:   Engineering for failure to ensure predictable system recovery',
   ],
   history: [
     ' 1  Started professional software development',

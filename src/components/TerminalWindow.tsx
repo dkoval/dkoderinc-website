@@ -1,10 +1,17 @@
 import React from 'react';
+import StatusBar from './StatusBar';
 
-type Props = { children: React.ReactNode };
+type Props = {
+  children: React.ReactNode;
+  bellFlash?: boolean;
+  onThemeClick?: () => void;
+  onSoundToggle?: () => void;
+  soundEnabled?: boolean;
+};
 
-const TerminalWindow: React.FC<Props> = ({ children }) => (
+const TerminalWindow: React.FC<Props> = ({ children, bellFlash, onThemeClick, onSoundToggle, soundEnabled }) => (
   <div
-    className="flex flex-col flex-1 rounded overflow-hidden"
+    className={`flex flex-col flex-1 rounded overflow-hidden ${bellFlash ? 'bell-flash' : ''}`}
     style={{
       border: '1px solid var(--terminal-border)',
       boxShadow: '0 0 20px var(--terminal-glow), inset 0 0 20px var(--terminal-glow-soft)',
@@ -32,6 +39,12 @@ const TerminalWindow: React.FC<Props> = ({ children }) => (
     <div className="flex-1 overflow-hidden flex flex-col">
       {children}
     </div>
+    {/* Status bar */}
+    <StatusBar
+      onThemeClick={onThemeClick}
+      onSoundToggle={onSoundToggle}
+      soundEnabled={soundEnabled}
+    />
   </div>
 );
 
