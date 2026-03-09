@@ -148,6 +148,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
     setInputCommand('');
     setAutoSuggestion(null);
 
+    const startTime = performance.now();
+
     // After delay, replace this specific spinner with real output
     const timeoutId = setTimeout(() => {
       spinnerTimeouts.current.delete(timeoutId);
@@ -221,11 +223,17 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
             }];
       }
 
+      // Append timing line (exclude theme commands — they have phosphor transition feedback)
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
+      const showTiming = !trimmedCmd.startsWith('theme');
+      const timingLine: TerminalLine = { content: `took ${elapsed}s`, type: 'timing' };
+      const newLines = showTiming ? [...outputLines, timingLine] : outputLines;
+
       // Replace this specific spinner line with real output
       setTerminalOutput(prev => {
         const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
-        if (spinnerIndex === -1) return [...prev, ...outputLines];
-        return [...prev.slice(0, spinnerIndex), ...outputLines, ...prev.slice(spinnerIndex + 1)];
+        if (spinnerIndex === -1) return [...prev, ...newLines];
+        return [...prev.slice(0, spinnerIndex), ...newLines, ...prev.slice(spinnerIndex + 1)];
       });
     }, 600);
     spinnerTimeouts.current.add(timeoutId);
@@ -452,7 +460,11 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
                 { color: 'var(--terminal-output)' }
               }
             >
-              {line.type === 'spinner' ? (
+              {line.type === 'timing' ? (
+                <span className="block text-right" style={{ color: 'var(--terminal-gray)', fontSize: '0.75rem' }}>
+                  {line.content}
+                </span>
+              ) : line.type === 'spinner' ? (
                 <span className="inline-flex items-center gap-2">
                   <span className="ai-spinner" />
                   <span style={{ color: 'var(--terminal-gray)' }}>{line.content}</span>

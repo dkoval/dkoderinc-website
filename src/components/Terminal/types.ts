@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 
 export interface TerminalLine {
   content: string;
-  type: 'input' | 'output' | 'error' | 'success' | 'spinner';
+  type: 'input' | 'output' | 'error' | 'success' | 'spinner' | 'timing';
   isHtml?: boolean;
   timestamp?: string;
   helpEntry?: { commandIndex: number };
