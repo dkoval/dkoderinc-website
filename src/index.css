@@ -234,6 +234,15 @@ body {
   filter: brightness(1.3);
 }
 
+/* Scroll indicator */
+.scroll-indicator {
+  position: sticky;
+  bottom: 0;
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
 /* Custom block cursor with phosphor glow */
 .terminal-cursor {
   display: inline-block;

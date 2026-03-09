@@ -43,6 +43,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   const spinnerIdRef = useRef(0);
   const touchStartY = useRef<number | null>(null);
   const pendingExecuteRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', {
@@ -418,6 +420,19 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   }, [terminalOutput]);
 
   useEffect(() => {
+    const sentinel = sentinelRef.current;
+    const container = terminalRef.current;
+    if (!sentinel || !container) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowScrollIndicator(!entry.isIntersecting),
+      { root: container, threshold: 0, rootMargin: '20px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [terminalOutput]);
+
+  useEffect(() => {
     return () => {
       spinnerTimeouts.current.forEach(clearTimeout);
       spinnerTimeouts.current.clear();
@@ -491,6 +506,18 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
             </span>
           </div>
         ))}
+        <div ref={sentinelRef} className="h-px" />
+      </div>
+      <div
+        className="scroll-indicator font-mono"
+        style={{
+          color: 'var(--terminal-primary-dim)',
+          opacity: showScrollIndicator ? 0.6 : 0,
+          fontSize: '0.75rem',
+          padding: '2px 0',
+        }}
+      >
+        ▼ more
       </div>
       <div className="relative">
         <div className="flex items-center space-x-2 w-full p-2" style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
