@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import { ChevronRight } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { suggestions, commands } from './commands';
 import { TerminalLine } from './types';
@@ -27,6 +26,7 @@ type TerminalProps = {
 
 const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell }, ref) => {
   const isMobile = useIsMobile();
+  const promptPrefix = isMobile ? '~ $ ' : 'visitor@dkoderinc ~ $ ';
   const { theme, setTheme } = useTheme();
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
   const [inputCommand, setInputCommand] = useState('');
@@ -55,7 +55,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
 
   const displayHelp = () => {
     return [
-      { content: '$ help', type: 'input' as const, timestamp: getCurrentTime() },
+      { content: `${promptPrefix}help`, type: 'input' as const, timestamp: getCurrentTime() },
       { content: 'Available commands:', type: 'output' as const },
       ...suggestions.map((_, i) => ({
         content: '',
@@ -121,7 +121,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
     if (trimmedCmd === 'exit') {
       setTerminalOutput(prev => [
         ...prev,
-        { content: `$ ${trimmedCmd}`, type: 'input', timestamp: getCurrentTime() },
+        { content: `${promptPrefix}${trimmedCmd}`, type: 'input', timestamp: getCurrentTime() },
       ]);
       setInputCommand('');
       setAutoSuggestion(null);
@@ -132,7 +132,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
     // Add input line + spinner with unique ID
     const currentSpinnerId = ++spinnerIdRef.current;
     const inputLine: TerminalLine = {
-      content: `$ ${trimmedCmd}`,
+      content: `${promptPrefix}${trimmedCmd}`,
       type: 'input',
       timestamp: getCurrentTime(),
     };
@@ -482,7 +482,21 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       </div>
       <div className="relative">
         <div className="flex items-center space-x-2 w-full p-2" style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
-          <ChevronRight className="w-5 h-5" style={{ color: 'var(--terminal-primary)' }} />
+          <span className="font-mono text-sm shrink-0 select-none">
+            {isMobile ? (
+              <>
+                <span style={{ color: 'var(--terminal-primary-dim)' }}>~ </span>
+                <span style={{ color: 'var(--terminal-primary)' }}>$ </span>
+              </>
+            ) : (
+              <>
+                <span style={{ color: 'var(--terminal-primary-dim)' }}>visitor</span>
+                <span style={{ color: 'var(--terminal-primary)' }}>@dkoderinc</span>
+                <span style={{ color: 'var(--terminal-primary-dim)' }}> ~ </span>
+                <span style={{ color: 'var(--terminal-primary)' }}>$ </span>
+              </>
+            )}
+          </span>
           <div className="relative flex-1">
             <input
               ref={inputRef}
