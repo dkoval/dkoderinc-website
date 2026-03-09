@@ -29,7 +29,7 @@ type TerminalProps = {
 
 const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell, playSound, soundEnabled, onSoundSet }, ref) => {
   const isMobile = useIsMobile();
-  const promptPrefix = isMobile ? '~ $ ' : 'visitor@dkoderinc ~ $ ';
+  const promptPrefix = '~ $ ';
   const { theme, setTheme } = useTheme();
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
   const [inputCommand, setInputCommand] = useState('');
@@ -535,19 +535,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       <div className="relative">
         <div className="flex items-center space-x-2 w-full p-2" style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
           <span className="font-mono text-sm shrink-0 select-none">
-            {isMobile ? (
-              <>
-                <span style={{ color: 'var(--terminal-primary-dim)' }}>~ </span>
-                <span style={{ color: 'var(--terminal-primary)' }}>$ </span>
-              </>
-            ) : (
-              <>
-                <span style={{ color: 'var(--terminal-primary-dim)' }}>visitor</span>
-                <span style={{ color: 'var(--terminal-primary)' }}>@dkoderinc</span>
-                <span style={{ color: 'var(--terminal-primary-dim)' }}> ~ </span>
-                <span style={{ color: 'var(--terminal-primary)' }}>$ </span>
-              </>
-            )}
+            <span style={{ color: 'var(--terminal-primary-dim)' }}>~ </span>
+            <span style={{ color: 'var(--terminal-primary)' }}>$ </span>
           </span>
           <div className="relative flex-1">
             <input
