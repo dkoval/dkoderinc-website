@@ -520,17 +520,18 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
           </div>
         ))}
         <div ref={sentinelRef} className="h-px" />
-      </div>
-      <div
-        className="scroll-indicator font-mono"
-        style={{
-          color: 'var(--terminal-primary-dim)',
-          opacity: showScrollIndicator ? 0.6 : 0,
-          fontSize: '0.75rem',
-          padding: '2px 0',
-        }}
-      >
-        ▼ more
+        <div
+          className="scroll-indicator font-mono"
+          style={{
+            color: 'var(--terminal-primary-dim)',
+            opacity: showScrollIndicator ? 0.6 : 0,
+            fontSize: '0.75rem',
+            padding: '2px 0',
+            background: 'var(--terminal-bg)',
+          }}
+        >
+          ▼ more
+        </div>
       </div>
       <div className="relative">
         <div className="flex items-center space-x-2 w-full p-2" style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
