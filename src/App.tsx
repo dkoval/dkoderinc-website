@@ -6,6 +6,7 @@ import Terminal, { TerminalHandle } from './components/Terminal';
 import { resetPageLoadTime } from './constants';
 import { List } from 'lucide-react';
 import { useTheme } from './ThemeContext';
+import useSoundEngine from './hooks/useSoundEngine';
 
 const MOBILE_BTN_STYLE = {
   background: 'var(--terminal-surface)',
@@ -53,8 +54,12 @@ type ShutdownPhase = null | 'messages' | 'crt-off' | 'black' | 'restart-prompt';
 
 const App: React.FC = () => {
   const { transitioning } = useTheme();
+  const sound = useSoundEngine();
   const [showBootSplash, setShowBootSplash] = useState(true);
-  const handleBootComplete = useCallback(() => setShowBootSplash(false), []);
+  const handleBootComplete = useCallback(() => {
+    setShowBootSplash(false);
+    sound.play('boot');
+  }, [sound]);
   const terminalRef = useRef<TerminalHandle>(null);
 
   const [bellFlash, setBellFlash] = useState(false);
@@ -240,8 +245,16 @@ const App: React.FC = () => {
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           <Sidebar key={sessionKey} />
           <main className="flex flex-1 overflow-hidden p-3 md:p-4">
-            <TerminalWindow bellFlash={bellFlash}>
-              <Terminal key={sessionKey} ref={terminalRef} onShutdown={handleShutdown} onBell={handleBell} />
+            <TerminalWindow bellFlash={bellFlash} onSoundToggle={sound.toggle} soundEnabled={sound.enabled}>
+              <Terminal
+                key={sessionKey}
+                ref={terminalRef}
+                onShutdown={handleShutdown}
+                onBell={handleBell}
+                playSound={sound.play}
+                soundEnabled={sound.enabled}
+                onSoundToggle={sound.toggle}
+              />
             </TerminalWindow>
           </main>
         </div>

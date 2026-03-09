@@ -22,9 +22,12 @@ export type TerminalHandle = {
 type TerminalProps = {
   onShutdown?: () => void;
   onBell?: () => void;
+  playSound?: (sound: 'keypress' | 'execute' | 'error' | 'themeSwitch' | 'boot') => void;
+  soundEnabled?: boolean;
+  onSoundToggle?: () => void;
 };
 
-const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell }, ref) => {
+const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell, playSound, soundEnabled, onSoundToggle }, ref) => {
   const isMobile = useIsMobile();
   const promptPrefix = isMobile ? '~ $ ' : 'visitor@dkoderinc ~ $ ';
   const { theme, setTheme } = useTheme();
@@ -103,6 +106,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
     }
     const value = e.target.value;
     setInputCommand(value);
+    playSound?.('keypress');
     updateAutoSuggestion(value);
     setShowSuggestions(false);
     setSuggestionMode('commands');
@@ -145,6 +149,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
     };
 
     setTerminalOutput(prev => [...prev, inputLine, spinnerLine]);
+    playSound?.('execute');
     setCommandHistory(prev => [...prev, trimmedCmd].slice(-MAX_HISTORY));
     setHistoryIndex(-1);
     setInputCommand('');
@@ -193,6 +198,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
           const eggKey = `dkoder-${arg}-seen`;
           const isFirstTime = eggMessage && !localStorage.getItem(eggKey);
           setTheme(arg as ThemeName);
+          playSound?.('themeSwitch');
           if (isFirstTime) {
             localStorage.setItem(eggKey, '1');
             outputLines = [
@@ -208,10 +214,24 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
             { content: `Unknown theme: ${arg}. Available: ${VALID_THEMES.join(', ')}`, type: 'error' },
           ];
         }
+      } else if (trimmedCmd === 'sound' || trimmedCmd === 'sound on' || trimmedCmd === 'sound off') {
+        if (trimmedCmd === 'sound') {
+          outputLines = [
+            { content: `Sound: ${soundEnabled ? 'on' : 'off'}`, type: 'output' },
+            { content: 'Usage: sound on | sound off', type: 'output' },
+          ];
+        } else {
+          const wantOn = trimmedCmd === 'sound on';
+          onSoundToggle?.();
+          outputLines = [
+            { content: `Sound ${wantOn ? 'enabled' : 'disabled'}.`, type: 'output' },
+          ];
+        }
       } else {
         const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
         if (typeof output === 'string' && output.startsWith('Command not found')) {
           onBell?.();
+          playSound?.('error');
         }
         outputLines = Array.isArray(output)
           ? output.map(line => ({
