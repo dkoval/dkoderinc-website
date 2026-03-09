@@ -78,6 +78,8 @@ const App: React.FC = () => {
     return () => { if (bellTimerRef.current) clearTimeout(bellTimerRef.current); };
   }, []);
 
+  const [isRevealing, setIsRevealing] = useState(false);
+
   const [shutdownPhase, setShutdownPhase] = useState<ShutdownPhase>(null);
   const [shutdownLines, setShutdownLines] = useState(0);
   const [sessionKey, setSessionKey] = useState(0);
@@ -254,6 +256,7 @@ const App: React.FC = () => {
                 playSound={sound.play}
                 soundEnabled={sound.enabled}
                 onSoundSet={sound.setEnabled}
+                onRevealStateChange={setIsRevealing}
               />
             </TerminalWindow>
           </main>
@@ -266,7 +269,7 @@ const App: React.FC = () => {
           {mobileKeys.map(({ label, action, icon, emphasized }) => (
             <button
               key={label}
-              className="flex-1 py-2 font-mono text-sm rounded inline-flex items-center justify-center gap-1"
+              className={`flex-1 py-2 font-mono text-sm rounded inline-flex items-center justify-center gap-1 ${isRevealing ? 'opacity-50 pointer-events-none' : ''}`}
               style={emphasized ? MOBILE_BTN_STYLE_EMPHASIZED : MOBILE_BTN_STYLE}
               data-mobile-action={action}
               onClick={() => {

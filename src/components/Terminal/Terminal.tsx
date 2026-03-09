@@ -25,9 +25,10 @@ type TerminalProps = {
   playSound?: (sound: 'keypress' | 'execute' | 'error' | 'themeSwitch' | 'boot') => void;
   soundEnabled?: boolean;
   onSoundSet?: (enabled: boolean) => void;
+  onRevealStateChange?: (isRevealing: boolean) => void;
 };
 
-const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell, playSound, soundEnabled, onSoundSet }, ref) => {
+const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onRevealStateChange }, ref) => {
   const isMobile = useIsMobile();
   const promptPrefix = '~ $ ';
   const { theme, setTheme } = useTheme();
@@ -49,6 +50,11 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   const pendingExecuteRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const [revealingLines, setRevealingLines] = useState<TerminalLine[] | null>(null);
+  const [revealedCount, setRevealedCount] = useState(0);
+  const revealRafRef = useRef<number>(0);
+  const revealLastTimeRef = useRef<number>(0);
+  const revealStartIndexRef = useRef<number>(0);
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', {
@@ -101,6 +107,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (revealingLines !== null) return;
     if (pendingExecuteRef.current) {
       clearTimeout(pendingExecuteRef.current);
       pendingExecuteRef.current = null;
@@ -114,6 +121,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   };
 
   const handleCommand = (cmd: string) => {
+    if (revealingLines !== null) return;
     const trimmedCmd = cmd.trim().toLowerCase();
 
     if (trimmedCmd === '') return;
@@ -245,12 +253,29 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       const timingLine: TerminalLine = { content: `took ${elapsed}s`, type: 'timing' };
       const newLines = showTiming ? [...outputLines, timingLine] : outputLines;
 
-      // Replace this specific spinner line with real output
-      setTerminalOutput(prev => {
-        const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
-        if (spinnerIndex === -1) return [...prev, ...newLines];
-        return [...prev.slice(0, spinnerIndex), ...newLines, ...prev.slice(spinnerIndex + 1)];
-      });
+      // Progressive reveal for multi-line outputs
+      const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        && newLines.length > 1;
+
+      if (shouldAnimate) {
+        // Remove spinner, then start reveal
+        setTerminalOutput(prev => {
+          const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
+          if (spinnerIndex === -1) return prev;
+          const withoutSpinner = [...prev.slice(0, spinnerIndex), ...prev.slice(spinnerIndex + 1)];
+          revealStartIndexRef.current = withoutSpinner.length;
+          return withoutSpinner;
+        });
+        setRevealingLines(newLines);
+        setRevealedCount(0);
+      } else {
+        // Instant reveal (single-line outputs, reduced motion)
+        setTerminalOutput(prev => {
+          const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
+          if (spinnerIndex === -1) return [...prev, ...newLines];
+          return [...prev.slice(0, spinnerIndex), ...newLines, ...prev.slice(spinnerIndex + 1)];
+        });
+      }
     }, 600);
     spinnerTimeouts.current.add(timeoutId);
   };
@@ -354,6 +379,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
 
   useImperativeHandle(ref, () => ({
     handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => {
+      if (revealingLines !== null) return;
       switch (action) {
         case 'tab': actionTab(); break;
         case 'up': actionUp(); break;
@@ -365,6 +391,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   }));
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (revealingLines !== null) { e.preventDefault(); return; }
     switch (e.key) {
       case 'Tab':
         e.preventDefault();
@@ -457,8 +484,41 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       spinnerTimeouts.current.forEach(clearTimeout);
       spinnerTimeouts.current.clear();
       if (pendingExecuteRef.current) clearTimeout(pendingExecuteRef.current);
+      cancelAnimationFrame(revealRafRef.current);
     };
   }, []);
+
+  // Progressive reveal animation
+  useEffect(() => {
+    if (!revealingLines || revealingLines.length === 0) return;
+
+    if (revealedCount >= revealingLines.length) {
+      setRevealingLines(null);
+      return;
+    }
+
+    revealLastTimeRef.current = 0;
+
+    const step = (timestamp: number) => {
+      if (!revealLastTimeRef.current) revealLastTimeRef.current = timestamp;
+      if (timestamp - revealLastTimeRef.current >= 10) {
+        revealLastTimeRef.current = timestamp;
+        setRevealedCount(prev => prev + 1);
+        setTerminalOutput(prev => [...prev, revealingLines[revealedCount]]);
+        return; // State change will re-trigger this effect for the next line
+      }
+      // Keep polling until 40ms elapses
+      revealRafRef.current = requestAnimationFrame(step);
+    };
+
+    revealRafRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(revealRafRef.current);
+  }, [revealingLines, revealedCount]);
+
+  // Notify parent of reveal state changes
+  useEffect(() => {
+    onRevealStateChange?.(revealingLines !== null);
+  }, [revealingLines, onRevealStateChange]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -486,7 +546,9 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
         onTouchEnd={handleTouchEnd}
       >
         {terminalOutput.map((line, index) => (
-          <div key={index} className="group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded">
+          <div key={index} className={`group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded ${
+            revealingLines !== null && index >= revealStartIndexRef.current ? 'line-reveal' : ''
+          }`}>
             <p
               className="font-mono flex-1 break-words"
               style={
@@ -541,7 +603,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
         </div>
       </div>
       <div className="relative">
-        <div className="flex items-center space-x-2 w-full p-2" style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
+        <div className={`flex items-center space-x-2 w-full p-2 ${revealingLines !== null ? 'input-blocked' : ''}`} style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
           <span className="font-mono text-sm shrink-0 select-none">
             <span style={{ color: 'var(--terminal-primary-dim)' }}>~ </span>
             <span style={{ color: 'var(--terminal-primary)' }}>$ </span>

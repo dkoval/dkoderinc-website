@@ -302,6 +302,27 @@ body {
   animation: breathe 8s ease-in-out infinite, flicker 4s infinite;
 }
 
+/* Progressive output reveal */
+@keyframes line-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.line-reveal {
+  animation: line-fade-in 80ms ease-out forwards;
+}
+
+/* Input blocked during output reveal */
+.input-blocked {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.input-blocked .terminal-cursor {
+  animation: none;
+  opacity: 0.3;
+}
+
 /* Disable flicker on mobile and for reduced motion */
 @media (max-width: 767px) {
   .crt-flicker { animation: none; }
@@ -315,4 +336,5 @@ body {
   .animate-blink { animation: none; }
   .terminal-cursor { animation: none; opacity: 1; }
   .cursor-afterglow { animation: none; opacity: 1; }
+  .line-reveal { animation: none; opacity: 1; }
 }
