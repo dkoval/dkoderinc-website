@@ -24,10 +24,10 @@ type TerminalProps = {
   onBell?: () => void;
   playSound?: (sound: 'keypress' | 'execute' | 'error' | 'themeSwitch' | 'boot') => void;
   soundEnabled?: boolean;
-  onSoundToggle?: () => void;
+  onSoundSet?: (enabled: boolean) => void;
 };
 
-const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell, playSound, soundEnabled, onSoundToggle }, ref) => {
+const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell, playSound, soundEnabled, onSoundSet }, ref) => {
   const isMobile = useIsMobile();
   const promptPrefix = isMobile ? '~ $ ' : 'visitor@dkoderinc ~ $ ';
   const { theme, setTheme } = useTheme();
@@ -222,7 +222,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
           ];
         } else {
           const wantOn = trimmedCmd === 'sound on';
-          onSoundToggle?.();
+          onSoundSet?.(wantOn);
           outputLines = [
             { content: `Sound ${wantOn ? 'enabled' : 'disabled'}.`, type: 'output' },
           ];

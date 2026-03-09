@@ -253,7 +253,7 @@ const App: React.FC = () => {
                 onBell={handleBell}
                 playSound={sound.play}
                 soundEnabled={sound.enabled}
-                onSoundToggle={sound.toggle}
+                onSoundSet={sound.setEnabled}
               />
             </TerminalWindow>
           </main>

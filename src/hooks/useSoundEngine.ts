@@ -94,7 +94,7 @@ const useSoundEngine = () => {
     setEnabled(prev => !prev);
   }, []);
 
-  return { enabled, toggle, play };
+  return { enabled, toggle, setEnabled, play };
 };
 
 export default useSoundEngine;
