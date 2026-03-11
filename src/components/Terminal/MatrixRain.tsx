@@ -1,5 +1,4 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useTheme } from '../../ThemeContext';
 
 // Half-width katakana (U+FF66–FF9D) + code symbols
 const KATAKANA = Array.from({ length: 56 }, (_, i) => String.fromCharCode(0xFF66 + i));
@@ -28,8 +27,6 @@ const MatrixRain: React.FC<MatrixRainProps> = ({ visible, onFadeOutComplete }) =
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const columnsRef = useRef<Column[]>([]);
   const rafRef = useRef<number>(0);
-  const { theme } = useTheme();
-
   // Read theme colors from CSS custom properties
   const getColors = useCallback(() => {
     const style = getComputedStyle(document.documentElement);
@@ -141,7 +138,7 @@ const MatrixRain: React.FC<MatrixRainProps> = ({ visible, onFadeOutComplete }) =
       cancelAnimationFrame(rafRef.current);
       resizeObserver.disconnect();
     };
-  }, [theme, getColors, initColumns]);
+  }, [getColors, initColumns]);
 
   const handleTransitionEnd = () => {
     if (!visible) {
