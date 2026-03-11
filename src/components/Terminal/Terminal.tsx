@@ -72,14 +72,16 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
 
   // When idle state changes, manage rain visibility
   useEffect(() => {
+    let rafId: number;
     if (isIdle && !isMobile && !reducedMotion) {
       setShowRain(true);
       // Trigger fade-in on next frame so CSS transition fires
-      requestAnimationFrame(() => setRainVisible(true));
+      rafId = requestAnimationFrame(() => setRainVisible(true));
     } else {
       setRainVisible(false);
       // showRain is cleared by onFadeOutComplete callback
     }
+    return () => { if (rafId) cancelAnimationFrame(rafId); };
   }, [isIdle, isMobile, reducedMotion]);
 
   const handleRainFadeOutComplete = () => {
@@ -170,6 +172,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       ]);
       setInputCommand('');
       setAutoSuggestion(null);
+      setShowRain(false);
+      setRainVisible(false);
       onShutdown?.();
       return;
     }

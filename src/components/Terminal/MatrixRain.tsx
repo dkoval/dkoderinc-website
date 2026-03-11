@@ -73,6 +73,10 @@ const MatrixRain: React.FC<MatrixRainProps> = ({ visible, onFadeOutComplete }) =
     });
     resizeObserver.observe(canvas.parentElement!);
 
+    // Clear canvas fully on mount
+    ctx.fillStyle = getColors().bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     let colors = getColors();
     // Re-read colors periodically to handle theme changes
     let frameCount = 0;
