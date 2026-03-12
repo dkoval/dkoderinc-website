@@ -288,8 +288,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       const newLines = showTiming ? [...outputLines, timingLine] : outputLines;
 
       // Progressive reveal for multi-line outputs
-      const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        && newLines.length > 1;
+      const shouldAnimate = !reducedMotion && newLines.length > 1;
 
       if (shouldAnimate) {
         // Remove spinner, then start reveal
