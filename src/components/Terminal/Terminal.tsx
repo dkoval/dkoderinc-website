@@ -7,6 +7,8 @@ import AutoSuggestion from './AutoSuggestion';
 import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
 import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
 import useIsMobile from '../../hooks/useIsMobile';
+import useIdleTimer from '../../hooks/useIdleTimer';
+import MatrixRain from './MatrixRain';
 
 const MAX_HISTORY = 50;
 const PURIFY_CONFIG = { ADD_ATTR: ['target', 'style'], ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'polyline'] };
@@ -56,6 +58,35 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   const revealLastTimeRef = useRef<number>(0);
   const revealStartIndexRef = useRef<number>(0);
   const isInputBlocked = revealingLines !== null;
+
+  // Matrix rain idle effect
+  const reducedMotion = typeof window !== 'undefined'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const isIdle = useIdleTimer({
+    containerRef: sectionRef,
+    paused: isInputBlocked || isMobile || reducedMotion,
+  });
+  const [showRain, setShowRain] = useState(false);
+  const [rainVisible, setRainVisible] = useState(false);
+
+  // When idle state changes, manage rain visibility
+  useEffect(() => {
+    let rafId: number;
+    if (isIdle && !isMobile && !reducedMotion) {
+      setShowRain(true);
+      // Trigger fade-in on next frame so CSS transition fires
+      rafId = requestAnimationFrame(() => setRainVisible(true));
+    } else {
+      setRainVisible(false);
+      // showRain is cleared by onFadeOutComplete callback
+    }
+    return () => { if (rafId) cancelAnimationFrame(rafId); };
+  }, [isIdle, isMobile, reducedMotion]);
+
+  const handleRainFadeOutComplete = () => {
+    setShowRain(false);
+  };
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', {
@@ -141,6 +172,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       ]);
       setInputCommand('');
       setAutoSuggestion(null);
+      setShowRain(false);
+      setRainVisible(false);
       onShutdown?.();
       return;
     }
@@ -255,8 +288,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       const newLines = showTiming ? [...outputLines, timingLine] : outputLines;
 
       // Progressive reveal for multi-line outputs
-      const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        && newLines.length > 1;
+      const shouldAnimate = !reducedMotion && newLines.length > 1;
 
       if (shouldAnimate) {
         // Remove spinner, then start reveal
@@ -538,14 +570,25 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   };
 
   return (
-    <section className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-breathe" style={{ background: 'var(--terminal-bg)' }}>
-      <div
-        ref={terminalRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden mb-4 text-sm terminal-scroll"
-        style={{ background: 'var(--terminal-bg)' }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
+    <section ref={sectionRef} className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-breathe" style={{ background: 'var(--terminal-bg)' }}>
+      <div className="flex-1 relative overflow-hidden mb-4">
+        {showRain && (
+          <MatrixRain
+            visible={rainVisible}
+            onFadeOutComplete={handleRainFadeOutComplete}
+          />
+        )}
+        <div
+          ref={terminalRef}
+          className="h-full overflow-y-auto overflow-x-hidden text-sm terminal-scroll"
+          style={{
+            background: 'var(--terminal-bg)',
+            opacity: rainVisible ? 0 : 1,
+            transition: 'opacity 400ms ease-in-out',
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
         {terminalOutput.map((line, index) => (
           <div key={index} className={`group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded ${
             isInputBlocked && index >= revealStartIndexRef.current ? 'line-reveal' : ''
@@ -601,6 +644,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
           }}
         >
           ▼ more
+        </div>
         </div>
       </div>
       <div className="relative">
