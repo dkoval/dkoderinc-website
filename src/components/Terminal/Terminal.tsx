@@ -48,7 +48,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   const suppressHoverRef = useRef(false);
   const spinnerTimeouts = useRef(new Set<ReturnType<typeof setTimeout>>());
   const spinnerIdRef = useRef(0);
-  const touchStartY = useRef<number | null>(null);
+
   const pendingExecuteRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
@@ -553,22 +553,6 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
     onRevealStateChange?.(isInputBlocked);
   }, [revealingLines, onRevealStateChange]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartY.current === null) return;
-    const deltaY = touchStartY.current - e.changedTouches[0].clientY;
-    touchStartY.current = null;
-    if (Math.abs(deltaY) < 50) return;
-    if (deltaY > 0) {
-      actionUp();
-    } else {
-      actionDown();
-    }
-  };
-
   return (
     <section ref={sectionRef} className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-breathe" style={{ background: 'var(--terminal-bg)' }}>
       <div className="flex-1 relative overflow-hidden mb-4">
@@ -586,8 +570,6 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
             opacity: rainVisible ? 0 : 1,
             transition: 'opacity 400ms ease-in-out',
           }}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
         >
         {terminalOutput.map((line, index) => (
           <div key={index} className={`group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded ${
