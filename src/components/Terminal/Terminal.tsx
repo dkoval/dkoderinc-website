@@ -131,6 +131,16 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       }
     }
 
+    // Suggest sound arguments: "sound o" → "sound on" / "sound of" → "sound off"
+    if (lower.startsWith('sound ') && lower.length > 6) {
+      const partial = lower.slice(6);
+      const match = ['on', 'off'].find(s => s.startsWith(partial));
+      if (match) {
+        setAutoSuggestion(`sound ${match}`);
+        return;
+      }
+    }
+
     const matchingCommand = suggestions
       .map(s => s.command)
       .find(cmd => cmd.toLowerCase().startsWith(lower));
@@ -257,12 +267,28 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
             { content: `Unknown theme: ${arg}. Available: ${VALID_THEMES.join(', ')}`, type: 'error' },
           ];
         }
-      } else if (trimmedCmd === 'sound' || trimmedCmd === 'sound on' || trimmedCmd === 'sound off') {
-        const wantOn = trimmedCmd === 'sound' ? !soundEnabled : trimmedCmd === 'sound on';
-        onSoundSet?.(wantOn);
-        outputLines = [
-          { content: `Sound ${wantOn ? 'enabled' : 'disabled'}.`, type: 'output' },
-        ];
+      } else if (trimmedCmd === 'sound' || trimmedCmd.startsWith('sound ')) {
+        const arg = trimmedCmd.replace('sound', '').trim();
+        if (!arg) {
+          outputLines = [
+            { content: `Sound: ${soundEnabled ? 'on' : 'off'}`, type: 'output' },
+            { content: `Usage: sound <on|off>`, type: 'output' },
+          ];
+        } else if (arg === 'on') {
+          onSoundSet?.(true);
+          outputLines = [
+            { content: 'Sound enabled.', type: 'output' },
+          ];
+        } else if (arg === 'off') {
+          onSoundSet?.(false);
+          outputLines = [
+            { content: 'Sound disabled.', type: 'output' },
+          ];
+        } else {
+          outputLines = [
+            { content: `Unknown option: ${arg}. Usage: sound <on|off>`, type: 'error' },
+          ];
+        }
       } else {
         const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
         if (typeof output === 'string' && output.startsWith('Command not found')) {
