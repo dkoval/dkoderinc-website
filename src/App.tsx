@@ -44,11 +44,7 @@ const RESTART_LINES = [
 const RESTART_FINAL_DESKTOP = 'Press any key to continue... ';
 const RESTART_FINAL_MOBILE = 'Tap to continue... ';
 
-const RESTART_ALL_TEXTS = [
-  RESTART_LINES[0].text,
-  RESTART_LINES[1].text,
-  RESTART_FINAL_DESKTOP,
-];
+const RESTART_ALL_TEXTS = [...RESTART_LINES.map(l => l.text), RESTART_FINAL_DESKTOP];
 
 type ShutdownPhase = null | 'messages' | 'crt-off' | 'black' | 'restart-prompt';
 
@@ -59,7 +55,7 @@ const App: React.FC = () => {
   const handleBootComplete = useCallback(() => {
     setShowBootSplash(false);
     sound.play('boot');
-  }, [sound]);
+  }, [sound.play]);
   const terminalRef = useRef<TerminalHandle>(null);
 
   const [bellFlash, setBellFlash] = useState(false);

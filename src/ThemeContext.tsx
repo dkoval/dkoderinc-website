@@ -21,10 +21,12 @@ const ThemeContext = createContext<ThemeContextType>({
 export const useTheme = () => useContext(ThemeContext);
 
 const getInitialTheme = (): ThemeName => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored && VALID_THEMES.includes(stored as ThemeName)) {
-    return stored as ThemeName;
-  }
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored && VALID_THEMES.includes(stored as ThemeName)) {
+      return stored as ThemeName;
+    }
+  } catch { /* restricted storage */ }
   return 'green';
 };
 
