@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import DOMPurify from 'dompurify';
 import { suggestions, commands } from './commands';
+import { Volume2, VolumeX } from 'lucide-react';
 import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
 import AutoSuggestion from './AutoSuggestion';
@@ -58,6 +59,16 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   const revealLastTimeRef = useRef<number>(0);
   const revealStartIndexRef = useRef<number>(0);
   const isInputBlocked = revealingLines !== null;
+
+  // Derive suggestions with dynamic sound icon based on current state
+  const displaySuggestions = suggestions.map(s =>
+    s.command === 'sound'
+      ? { ...s, icon: soundEnabled
+          ? <Volume2 className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} />
+          : <VolumeX className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} />
+        }
+      : s
+  );
 
   // Matrix rain idle effect
   const reducedMotion = typeof window !== 'undefined'
@@ -368,6 +379,10 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
         setSelectedSuggestionIndex(0);
         return;
       }
+      if (selectedCommand === 'sound') {
+        executeWithPreview(soundEnabled ? 'sound off' : 'sound on');
+        return;
+      }
       executeWithPreview(selectedCommand);
     } else {
       const selectedTheme = VALID_THEMES[index];
@@ -620,10 +635,10 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
                 </span>
               ) : line.helpEntry ? (
                 <span className="inline-flex items-center gap-3">
-                  {suggestions[line.helpEntry.commandIndex].icon}
-                  <span style={{ color: 'var(--terminal-primary)' }}>{suggestions[line.helpEntry.commandIndex].command}</span>
+                  {displaySuggestions[line.helpEntry.commandIndex].icon}
+                  <span style={{ color: 'var(--terminal-primary)' }}>{displaySuggestions[line.helpEntry.commandIndex].command}</span>
                   <span style={{ color: 'var(--terminal-primary-dark)' }}>-</span>
-                  <span style={{ color: 'var(--terminal-gray)' }}>{suggestions[line.helpEntry.commandIndex].description}</span>
+                  <span style={{ color: 'var(--terminal-gray)' }}>{displaySuggestions[line.helpEntry.commandIndex].description}</span>
                 </span>
               ) : line.isHtml ? (
                 <span
@@ -692,7 +707,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
         {showSuggestions && (
           <Suggestions
             ref={suggestionsRef}
-            suggestions={suggestions}
+            suggestions={displaySuggestions}
             selectedIndex={selectedSuggestionIndex}
             onSelect={selectSuggestion}
             onMouseEnter={(i) => { if (!suppressHoverRef.current) setSelectedSuggestionIndex(i); }}
