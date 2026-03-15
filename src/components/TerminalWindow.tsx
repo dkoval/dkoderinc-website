@@ -4,12 +4,11 @@ import StatusBar from './StatusBar';
 type Props = {
   children: React.ReactNode;
   bellFlash?: boolean;
-  onThemeClick?: () => void;
   onSoundToggle?: () => void;
   soundEnabled?: boolean;
 };
 
-const TerminalWindow: React.FC<Props> = ({ children, bellFlash, onThemeClick, onSoundToggle, soundEnabled }) => (
+const TerminalWindow: React.FC<Props> = ({ children, bellFlash, onSoundToggle, soundEnabled }) => (
   <div
     className={`flex flex-col flex-1 rounded overflow-hidden ${bellFlash ? 'bell-flash' : ''}`}
     style={{
@@ -41,7 +40,6 @@ const TerminalWindow: React.FC<Props> = ({ children, bellFlash, onThemeClick, on
     </div>
     {/* Status bar */}
     <StatusBar
-      onThemeClick={onThemeClick}
       onSoundToggle={onSoundToggle}
       soundEnabled={soundEnabled}
     />

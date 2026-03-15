@@ -3,6 +3,13 @@ import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 import { PAGE_LOAD_TIME, formatUptime } from '../constants';
 import { useTheme, ThemeName } from '../ThemeContext';
 
+const SOCIAL_LINKS = [
+  { href: 'https://github.com/dkoval', Icon: Github, label: 'github.com' },
+  { href: 'https://linkedin.com/in/dmytrokoval', Icon: Linkedin, label: 'linkedin.com' },
+  { href: 'https://twitter.com/dkovalbuzz', Icon: Twitter, label: 'twitter.com' },
+  { href: 'mailto:dkoderinc@gmail.com', Icon: Mail, label: 'dkoderinc@gmail.com' },
+] as const;
+
 const HEADSHOT_FILTERS: Record<ThemeName, string> = {
   green: 'grayscale(100%) sepia(60%) hue-rotate(80deg) saturate(200%)',
   amber: 'grayscale(100%) sepia(80%) saturate(200%)',
@@ -58,18 +65,13 @@ const Sidebar: React.FC = () => {
         {/* Social links as known_hosts */}
         <div className="font-mono text-sm border rounded p-3" style={{ borderColor: 'var(--terminal-border)' }}>
           <p className="mb-2" style={{ color: 'var(--terminal-gray)' }}>~/.ssh/known_hosts</p>
-          {[
-            { href: 'https://github.com/dkoval', icon: <Github className="w-3 h-3" />, label: 'github.com' },
-            { href: 'https://linkedin.com/in/dmytrokoval', icon: <Linkedin className="w-3 h-3" />, label: 'linkedin.com' },
-            { href: 'https://twitter.com/dkovalbuzz', icon: <Twitter className="w-3 h-3" />, label: 'twitter.com' },
-            { href: 'mailto:dkoderinc@gmail.com', icon: <Mail className="w-3 h-3" />, label: 'dkoderinc@gmail.com' },
-          ].map(({ href, icon, label }) => (
+          {SOCIAL_LINKS.map(({ href, Icon, label }) => (
             <a key={href} href={href}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 mb-1 hover:opacity-80 transition-opacity"
               style={{ color: 'var(--terminal-primary)' }}>
-              {icon}
+              <Icon className="w-3 h-3" />
               <span>{label}</span>
             </a>
           ))}
@@ -86,15 +88,10 @@ const Sidebar: React.FC = () => {
         />
         <span className="font-mono font-bold" style={{ color: 'var(--terminal-primary)' }}>Dmytro Koval</span>
         <div className="flex gap-2 ml-auto">
-          {[
-            { href: 'https://github.com/dkoval', icon: <Github className="w-4 h-4" /> },
-            { href: 'https://linkedin.com/in/dmytrokoval', icon: <Linkedin className="w-4 h-4" /> },
-            { href: 'https://twitter.com/dkovalbuzz', icon: <Twitter className="w-4 h-4" /> },
-            { href: 'mailto:dkoderinc@gmail.com', icon: <Mail className="w-4 h-4" /> },
-          ].map(({ href, icon }) => (
+          {SOCIAL_LINKS.map(({ href, Icon }) => (
             <a key={href} href={href} target="_blank" rel="noopener noreferrer"
               style={{ color: 'var(--terminal-primary)' }} className="hover:opacity-80">
-              {icon}
+              <Icon className="w-4 h-4" />
             </a>
           ))}
         </div>

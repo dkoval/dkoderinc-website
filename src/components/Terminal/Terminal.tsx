@@ -19,6 +19,11 @@ const THEME_EASTER_EGGS: Partial<Record<ThemeName, string>> = {
   'one-dark-pro': 'Dark mode activated. Your eyes will thank you.',
 };
 
+const RESPONSIVE_COMMANDS: Record<string, { mobile: string; desktop: string }> = {
+  whoami: { mobile: 'whoami', desktop: 'whoamiDesktop' },
+  skills: { mobile: 'skillsMobile', desktop: 'skills' },
+};
+
 export type TerminalHandle = {
   handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => void;
 };
@@ -72,8 +77,9 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   ), [soundEnabled]);
 
   // Matrix rain idle effect
-  const reducedMotion = typeof window !== 'undefined'
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const [reducedMotion] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
   const sectionRef = useRef<HTMLDivElement>(null);
   const isIdle = useIdleTimer({
     containerRef: sectionRef,
@@ -227,12 +233,6 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       spinnerTimeouts.current.delete(timeoutId);
       let outputLines: TerminalLine[];
 
-      // Commands with mobile/desktop output variants
-      const RESPONSIVE_COMMANDS: Record<string, { mobile: string; desktop: string }> = {
-        whoami: { mobile: 'whoami', desktop: 'whoamiDesktop' },
-        skills: { mobile: 'skillsMobile', desktop: 'skills' },
-      };
-
       if (trimmedCmd in RESPONSIVE_COMMANDS) {
         const variant = RESPONSIVE_COMMANDS[trimmedCmd];
         const key = isMobile ? variant.mobile : variant.desktop;
@@ -301,22 +301,17 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
             { content: `Unknown option: ${arg}. Usage: sound <on|off>`, type: 'error' },
           ];
         }
+      } else if (trimmedCmd in commands) {
+        const output = commands[trimmedCmd as keyof typeof commands];
+        outputLines = output.map(line => ({
+          content: line,
+          type: 'output' as const,
+          isHtml: output.isHtml,
+        }));
       } else {
-        const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
-        if (typeof output === 'string' && output.startsWith('Command not found')) {
-          onBell?.();
-          playSound?.('error');
-        }
-        outputLines = Array.isArray(output)
-          ? output.map(line => ({
-              content: line,
-              type: 'output' as const,
-              isHtml: trimmedCmd === 'contact' || trimmedCmd === 'man dmytro',
-            }))
-          : [{
-              content: output,
-              type: output.startsWith('Command not found') ? 'error' as const : 'output' as const,
-            }];
+        onBell?.();
+        playSound?.('error');
+        outputLines = [{ content: `Command not found: ${cmd}`, type: 'error' as const }];
       }
 
       // Append timing line (exclude theme commands — they have phosphor transition feedback)
@@ -552,7 +547,8 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [terminalOutput]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     return () => {
