@@ -157,6 +157,9 @@ const App: React.FC = () => {
     }
 
     setTypingDone(true);
+    // sound.play omitted: adding it would restart the animation on sound toggle.
+    // Stale closure is acceptable — play() gates on enabled internally, and we want
+    // the sound state captured at animation start to persist through the sequence.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shutdownPhase, typingLine, typingChar]);
 

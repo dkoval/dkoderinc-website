@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef, useMemo } from 'react';
 import DOMPurify from 'dompurify';
 import { suggestions, commands } from './commands';
 import { Volume2, VolumeX } from 'lucide-react';
@@ -8,6 +8,7 @@ import AutoSuggestion from './AutoSuggestion';
 import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
 import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
 import useIsMobile from '../../hooks/useIsMobile';
+import { SoundType } from '../../hooks/useSoundEngine';
 import useIdleTimer from '../../hooks/useIdleTimer';
 import MatrixRain from './MatrixRain';
 
@@ -25,7 +26,7 @@ export type TerminalHandle = {
 type TerminalProps = {
   onShutdown?: () => void;
   onBell?: () => void;
-  playSound?: (sound: 'keypress' | 'execute' | 'error' | 'themeSwitch' | 'boot') => void;
+  playSound?: (sound: SoundType) => void;
   soundEnabled?: boolean;
   onSoundSet?: (enabled: boolean) => void;
   onRevealStateChange?: (isRevealing: boolean) => void;
@@ -61,14 +62,14 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   const isInputBlocked = revealingLines !== null;
 
   // Derive suggestions with dynamic sound icon based on current state
-  const displaySuggestions = suggestions.map(s =>
+  const displaySuggestions = useMemo(() => suggestions.map(s =>
     s.command === 'sound'
       ? { ...s, icon: soundEnabled
           ? <Volume2 className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} />
           : <VolumeX className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} />
         }
       : s
-  );
+  ), [soundEnabled]);
 
   // Matrix rain idle effect
   const reducedMotion = typeof window !== 'undefined'
