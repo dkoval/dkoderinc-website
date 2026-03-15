@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
 
-type SoundType = 'keypress' | 'execute' | 'error' | 'themeSwitch' | 'boot';
+export type SoundType = 'keypress' | 'execute' | 'error' | 'themeSwitch' | 'boot' | 'shutdown' | 'systemType';
 
 const STORAGE_KEY = 'dkoder-sound-enabled';
 
@@ -87,6 +87,16 @@ const useSoundEngine = () => {
         });
         break;
       }
+      case 'shutdown': {
+        const notes = [660, 440, 220];
+        notes.forEach((freq, i) => {
+          setTimeout(() => playTone(freq, 80, 'sine', 0.04), i * 50);
+        });
+        break;
+      }
+      case 'systemType':
+        playTone(600, 20, 'sine', 0.02);
+        break;
     }
   }, [enabled, playTone, getContext]);
 
