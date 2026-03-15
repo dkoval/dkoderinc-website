@@ -88,9 +88,10 @@ const App: React.FC = () => {
   const [typingDone, setTypingDone] = useState(false);
 
   const handleShutdown = useCallback(() => {
+    sound.play('shutdown');
     setShutdownPhase('messages');
     setShutdownLines(0);
-  }, []);
+  }, [sound.play]);
 
   const handleRestart = useCallback(() => {
     resetPageLoadTime();
@@ -140,7 +141,10 @@ const App: React.FC = () => {
     if (!currentText) return;
 
     if (typingChar < currentText.length) {
-      const timer = setTimeout(() => setTypingChar(c => c + 1), 50);
+      const timer = setTimeout(() => {
+        sound.play('systemType');
+        setTypingChar(c => c + 1);
+      }, 50);
       return () => clearTimeout(timer);
     }
 
@@ -153,6 +157,10 @@ const App: React.FC = () => {
     }
 
     setTypingDone(true);
+    // sound.play omitted: adding it would restart the animation on sound toggle.
+    // Stale closure is acceptable — play() gates on enabled internally, and we want
+    // the sound state captured at animation start to persist through the sequence.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shutdownPhase, typingLine, typingChar]);
 
   // Attach restart listener only after typing completes

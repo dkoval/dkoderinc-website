@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef, useMemo } from 'react';
 import DOMPurify from 'dompurify';
 import { suggestions, commands } from './commands';
+import { Volume2, VolumeX } from 'lucide-react';
 import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
 import AutoSuggestion from './AutoSuggestion';
 import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
 import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
 import useIsMobile from '../../hooks/useIsMobile';
+import { SoundType } from '../../hooks/useSoundEngine';
 import useIdleTimer from '../../hooks/useIdleTimer';
 import MatrixRain from './MatrixRain';
 
@@ -24,7 +26,7 @@ export type TerminalHandle = {
 type TerminalProps = {
   onShutdown?: () => void;
   onBell?: () => void;
-  playSound?: (sound: 'keypress' | 'execute' | 'error' | 'themeSwitch' | 'boot') => void;
+  playSound?: (sound: SoundType) => void;
   soundEnabled?: boolean;
   onSoundSet?: (enabled: boolean) => void;
   onRevealStateChange?: (isRevealing: boolean) => void;
@@ -58,6 +60,16 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
   const revealLastTimeRef = useRef<number>(0);
   const revealStartIndexRef = useRef<number>(0);
   const isInputBlocked = revealingLines !== null;
+
+  // Derive suggestions with dynamic sound icon based on current state
+  const displaySuggestions = useMemo(() => suggestions.map(s =>
+    s.command === 'sound'
+      ? { ...s, icon: soundEnabled
+          ? <Volume2 className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} />
+          : <VolumeX className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} />
+        }
+      : s
+  ), [soundEnabled]);
 
   // Matrix rain idle effect
   const reducedMotion = typeof window !== 'undefined'
@@ -127,6 +139,16 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       const match = VALID_THEMES.find(t => t.startsWith(partial));
       if (match) {
         setAutoSuggestion(`theme ${match}`);
+        return;
+      }
+    }
+
+    // Suggest sound arguments: "sound o" → "sound on" / "sound of" → "sound off"
+    if (lower.startsWith('sound ') && lower.length > 6) {
+      const partial = lower.slice(6);
+      const match = ['on', 'off'].find(s => s.startsWith(partial));
+      if (match) {
+        setAutoSuggestion(`sound ${match}`);
         return;
       }
     }
@@ -257,12 +279,28 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
             { content: `Unknown theme: ${arg}. Available: ${VALID_THEMES.join(', ')}`, type: 'error' },
           ];
         }
-      } else if (trimmedCmd === 'sound' || trimmedCmd === 'sound on' || trimmedCmd === 'sound off') {
-        const wantOn = trimmedCmd === 'sound' ? !soundEnabled : trimmedCmd === 'sound on';
-        onSoundSet?.(wantOn);
-        outputLines = [
-          { content: `Sound ${wantOn ? 'enabled' : 'disabled'}.`, type: 'output' },
-        ];
+      } else if (trimmedCmd === 'sound' || trimmedCmd.startsWith('sound ')) {
+        const arg = trimmedCmd.replace('sound', '').trim();
+        if (!arg) {
+          outputLines = [
+            { content: `Sound: ${soundEnabled ? 'on' : 'off'}`, type: 'output' },
+            { content: `Usage: sound <on|off>`, type: 'output' },
+          ];
+        } else if (arg === 'on') {
+          onSoundSet?.(true);
+          outputLines = [
+            { content: 'Sound enabled.', type: 'output' },
+          ];
+        } else if (arg === 'off') {
+          onSoundSet?.(false);
+          outputLines = [
+            { content: 'Sound disabled.', type: 'output' },
+          ];
+        } else {
+          outputLines = [
+            { content: `Unknown option: ${arg}. Usage: sound <on|off>`, type: 'error' },
+          ];
+        }
       } else {
         const output = commands[trimmedCmd as keyof typeof commands] || `Command not found: ${cmd}`;
         if (typeof output === 'string' && output.startsWith('Command not found')) {
@@ -340,6 +378,10 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       if (selectedCommand === 'theme') {
         setSuggestionMode('themes');
         setSelectedSuggestionIndex(0);
+        return;
+      }
+      if (selectedCommand === 'sound') {
+        executeWithPreview(soundEnabled ? 'sound off' : 'sound on');
         return;
       }
       executeWithPreview(selectedCommand);
@@ -594,10 +636,10 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
                 </span>
               ) : line.helpEntry ? (
                 <span className="inline-flex items-center gap-3">
-                  {suggestions[line.helpEntry.commandIndex].icon}
-                  <span style={{ color: 'var(--terminal-primary)' }}>{suggestions[line.helpEntry.commandIndex].command}</span>
+                  {displaySuggestions[line.helpEntry.commandIndex].icon}
+                  <span style={{ color: 'var(--terminal-primary)' }}>{displaySuggestions[line.helpEntry.commandIndex].command}</span>
                   <span style={{ color: 'var(--terminal-primary-dark)' }}>-</span>
-                  <span style={{ color: 'var(--terminal-gray)' }}>{suggestions[line.helpEntry.commandIndex].description}</span>
+                  <span style={{ color: 'var(--terminal-gray)' }}>{displaySuggestions[line.helpEntry.commandIndex].description}</span>
                 </span>
               ) : line.isHtml ? (
                 <span
@@ -666,7 +708,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
         {showSuggestions && (
           <Suggestions
             ref={suggestionsRef}
-            suggestions={suggestions}
+            suggestions={displaySuggestions}
             selectedIndex={selectedSuggestionIndex}
             onSelect={selectSuggestion}
             onMouseEnter={(i) => { if (!suppressHoverRef.current) setSelectedSuggestionIndex(i); }}
