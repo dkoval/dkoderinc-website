@@ -45,7 +45,11 @@ const StatusBar: React.FC<StatusBarProps> = ({ onThemeClick, onSoundToggle, soun
             <span style={{ color: 'var(--terminal-border)' }}>│</span>
             <button
               className="status-bar-item cursor-pointer bg-transparent border-none p-0 font-mono"
-              style={{ color: 'var(--terminal-gray)', fontSize: 'inherit' }}
+              style={{
+                color: soundEnabled ? 'var(--terminal-primary)' : 'var(--terminal-gray)',
+                fontSize: 'inherit',
+                textDecoration: soundEnabled ? 'none' : 'line-through',
+              }}
               onClick={onSoundToggle}
               title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
             >
