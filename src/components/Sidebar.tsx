@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 import { PAGE_LOAD_TIME, formatUptime } from '../constants';
 import { useTheme, ThemeName } from '../ThemeContext';
@@ -17,7 +17,7 @@ const HEADSHOT_FILTERS: Record<ThemeName, string> = {
   'one-dark-pro': 'grayscale(100%) sepia(15%) hue-rotate(180deg) saturate(150%) brightness(0.9)',
 };
 
-const Sidebar: React.FC = () => {
+const Sidebar = () => {
   const [uptime, setUptime] = useState(0);
   const { theme } = useTheme();
 

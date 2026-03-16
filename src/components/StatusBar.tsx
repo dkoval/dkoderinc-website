@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../ThemeContext';
 import useIsMobile from '../hooks/useIsMobile';
 
@@ -7,7 +7,7 @@ type StatusBarProps = {
   soundEnabled?: boolean;
 };
 
-const StatusBar: React.FC<StatusBarProps> = ({ onSoundToggle, soundEnabled = false }) => {
+const StatusBar = ({ onSoundToggle, soundEnabled = false }: StatusBarProps) => {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const [clock, setClock] = useState(() => new Date());

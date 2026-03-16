@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 type Props = { onComplete: () => void };
 
@@ -11,7 +11,7 @@ const LINES = [
   'Starting bash...',
 ];
 
-const BootSplash: React.FC<Props> = ({ onComplete }) => {
+const BootSplash = ({ onComplete }: Props) => {
   const [visibleLines, setVisibleLines] = useState(0);
   const [done, setDone] = useState(false);
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import { Ref } from 'react';
 import { ChevronLeft, Palette } from 'lucide-react';
 import { CommandSuggestion } from './types';
 import { ThemeName } from '../../ThemeContext';
@@ -12,10 +12,10 @@ interface SuggestionsProps {
   themes?: ThemeName[];
   currentTheme?: ThemeName;
   onBack?: () => void;
+  ref?: Ref<HTMLDivElement>;
 }
 
-const Suggestions = React.forwardRef<HTMLDivElement, SuggestionsProps>(
-  ({ suggestions, selectedIndex, onSelect, onMouseEnter, mode, themes, currentTheme, onBack }, ref) => {
+const Suggestions = ({ suggestions, selectedIndex, onSelect, onMouseEnter, mode, themes, currentTheme, onBack, ref }: SuggestionsProps) => {
     return (
       <div
         ref={ref}
@@ -70,9 +70,6 @@ const Suggestions = React.forwardRef<HTMLDivElement, SuggestionsProps>(
             ))}
       </div>
     );
-  }
-);
-
-Suggestions.displayName = 'Suggestions';
+};
 
 export default Suggestions;

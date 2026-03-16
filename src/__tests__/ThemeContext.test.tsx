@@ -1,8 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
-import React from 'react';
+import { ReactNode } from 'react';
 import { ThemeProvider, useTheme } from '../ThemeContext';
 
-const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const wrapper = ({ children }: { children: ReactNode }) => (
   <ThemeProvider>{children}</ThemeProvider>
 );
 

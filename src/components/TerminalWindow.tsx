@@ -1,14 +1,14 @@
-import React from 'react';
+import { ReactNode } from 'react';
 import StatusBar from './StatusBar';
 
 type Props = {
-  children: React.ReactNode;
+  children: ReactNode;
   bellFlash?: boolean;
   onSoundToggle?: () => void;
   soundEnabled?: boolean;
 };
 
-const TerminalWindow: React.FC<Props> = ({ children, bellFlash, onSoundToggle, soundEnabled }) => (
+const TerminalWindow = ({ children, bellFlash, onSoundToggle, soundEnabled }: Props) => (
   <div
     className={`flex flex-col flex-1 rounded overflow-hidden ${bellFlash ? 'bell-flash' : ''}`}
     style={{

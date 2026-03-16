@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import BootSplash from './components/BootSplash';
 import Sidebar from './components/Sidebar';
 import TerminalWindow from './components/TerminalWindow';
@@ -48,14 +48,14 @@ const RESTART_ALL_TEXTS = [...RESTART_LINES.map(l => l.text), RESTART_FINAL_DESK
 
 type ShutdownPhase = null | 'messages' | 'crt-off' | 'black' | 'restart-prompt';
 
-const App: React.FC = () => {
+const App = () => {
   const { transitioning } = useTheme();
   const sound = useSoundEngine();
   const [showBootSplash, setShowBootSplash] = useState(true);
   const handleBootComplete = useCallback(() => {
     setShowBootSplash(false);
     sound.play('boot');
-  }, [sound.play]);
+  }, [sound]);
   const terminalRef = useRef<TerminalHandle>(null);
 
   const [bellFlash, setBellFlash] = useState(false);
@@ -87,7 +87,7 @@ const App: React.FC = () => {
     sound.play('shutdown');
     setShutdownPhase('messages');
     setShutdownLines(0);
-  }, [sound.play]);
+  }, [sound]);
 
   const handleRestart = useCallback(() => {
     resetPageLoadTime();
