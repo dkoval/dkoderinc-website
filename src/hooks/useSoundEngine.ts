@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, useEffect } from 'react';
+import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 
 export type SoundType = 'keypress' | 'execute' | 'error' | 'themeSwitch' | 'boot' | 'shutdown' | 'systemType';
 
@@ -10,6 +10,16 @@ const useSoundEngine = () => {
     catch { return false; }
   });
   const ctxRef = useRef<AudioContext | null>(null);
+  const reducedMotionRef = useRef(
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handler = (e: MediaQueryListEvent) => { reducedMotionRef.current = e.matches; };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, enabled ? '1' : '0'); }
@@ -50,7 +60,7 @@ const useSoundEngine = () => {
 
   const play = useCallback((sound: SoundType) => {
     if (!enabled) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (reducedMotionRef.current) return;
 
     switch (sound) {
       case 'keypress':
@@ -104,7 +114,7 @@ const useSoundEngine = () => {
     setEnabled(prev => !prev);
   }, []);
 
-  return { enabled, toggle, setEnabled, play };
+  return useMemo(() => ({ enabled, toggle, setEnabled, play }), [enabled, toggle, setEnabled, play]);
 };
 
 export default useSoundEngine;

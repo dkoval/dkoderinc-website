@@ -3,12 +3,11 @@ import { useTheme } from '../ThemeContext';
 import useIsMobile from '../hooks/useIsMobile';
 
 type StatusBarProps = {
-  onThemeClick?: () => void;
   onSoundToggle?: () => void;
   soundEnabled?: boolean;
 };
 
-const StatusBar: React.FC<StatusBarProps> = ({ onThemeClick, onSoundToggle, soundEnabled = false }) => {
+const StatusBar: React.FC<StatusBarProps> = ({ onSoundToggle, soundEnabled = false }) => {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const [clock, setClock] = useState(() => new Date());
@@ -31,15 +30,13 @@ const StatusBar: React.FC<StatusBarProps> = ({ onThemeClick, onSoundToggle, soun
         [0] bash
       </span>
       <div className="flex items-center gap-2">
-        <button
-          className="status-bar-item flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 font-mono"
+        <span
+          className="status-bar-item flex items-center gap-1 font-mono"
           style={{ color: 'var(--terminal-gray)', fontSize: 'inherit' }}
-          onClick={onThemeClick}
-          title="Switch theme"
         >
           <span style={{ color: 'var(--terminal-primary)' }}>●</span>
           <span>{theme}</span>
-        </button>
+        </span>
         {!isMobile && (
           <>
             <span style={{ color: 'var(--terminal-border)' }}>│</span>
