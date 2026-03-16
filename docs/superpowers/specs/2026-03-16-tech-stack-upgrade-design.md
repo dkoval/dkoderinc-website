@@ -24,6 +24,7 @@ Aggressive single-branch upgrade of all major dependencies simultaneously, using
 | `typescript-eslint` | ^8.3.0 | latest stable | Yes |
 | `eslint-plugin-react-hooks` | ^5.1.0-rc.0 | latest stable | No |
 | `eslint-plugin-react-refresh` | ^0.4.11 | latest stable | No |
+| `@eslint/js` | ^9.9.1 | latest stable (ESLint 10 compat) | Yes |
 | `@types/react` | ^18.3.5 | ^19.x | Yes |
 | `@types/react-dom` | ^18.3.0 | ^19.x | Yes |
 | `lucide-react` | ^0.344.0 | ^0.577.0 | No |
@@ -55,8 +56,8 @@ Aggressive single-branch upgrade of all major dependencies simultaneously, using
 `ref` is now a regular prop on function components. `forwardRef` still works but triggers deprecation warnings.
 
 **Files affected:**
-- `src/components/Terminal/Terminal.tsx` — Remove `forwardRef` wrapper, accept `ref` as prop parameter alongside destructured props. `useImperativeHandle(ref, ...)` stays as-is.
-- `src/components/Terminal/Suggestions.tsx` — Remove `React.forwardRef` wrapper, accept `ref` as prop.
+- `src/components/Terminal/Terminal.tsx` — Remove `forwardRef` wrapper, accept `ref` as prop parameter alongside destructured props. `useImperativeHandle(ref, ...)` stays as-is. Also remove `.displayName` assignment (no longer needed without `forwardRef`).
+- `src/components/Terminal/Suggestions.tsx` — Remove `React.forwardRef` wrapper, accept `ref` as prop. Also remove `.displayName` assignment.
 
 ### React 19: Replace `React.FC` (discouraged)
 
@@ -78,16 +79,28 @@ Aggressive single-branch upgrade of all major dependencies simultaneously, using
 
 With `"jsx": "react-jsx"` (automatic transform, already configured), `import React` is unnecessary in files that only use it for JSX. After removing `React.FC`, most files won't need the namespace import at all — only named imports (`useState`, `useEffect`, etc.).
 
-**Files where `import React` can be removed entirely** (after `React.FC` removal):
-- `src/main.tsx` (keep `ReactDOM` import)
-- `src/components/TerminalWindow.tsx`
-- `src/components/Terminal/AutoSuggestion.tsx`
-- `src/components/Terminal/commands.tsx`
-- `src/components/Terminal/Suggestions.tsx`
-- `src/__tests__/ThemeContext.test.tsx`
+**Important:** `@types/react@19` removes the global `React` namespace. Any file using `React.X` without an explicit `import React` will fail to compile. This means `React.FC` removal and import cleanup must happen in the same step per file.
 
-**Files where `import React` becomes named imports only:**
-- All component files that import hooks (`useState`, `useEffect`, `useRef`, etc.) already use named imports — just drop the `React` default import.
+**Files where `import React` is replaced with specific named imports:**
+- `src/main.tsx` — `React.StrictMode` → `import { StrictMode } from 'react'` (keep `ReactDOM` import)
+- `src/components/TerminalWindow.tsx` — `React.ReactNode` → `import { ReactNode } from 'react'`
+- `src/ThemeContext.tsx` — `React.ReactNode` → add `ReactNode` to existing named imports
+- `src/test/helpers.tsx` — `React.ReactNode` → add `ReactNode` to existing named imports; `React.FC` removed
+- `src/__tests__/ThemeContext.test.tsx` — `React.ReactNode` → add `ReactNode` to named imports; `React.FC` removed
+- `src/components/Terminal/Terminal.tsx` — `React.ChangeEvent`, `React.KeyboardEvent` → add `ChangeEvent, KeyboardEvent` to existing named imports; drop `React` default + `forwardRef`
+
+**Files where `import React` can be removed entirely** (no `React.*` references remain after `React.FC` removal):
+- `src/components/Terminal/AutoSuggestion.tsx`
+- `src/components/Terminal/commands.tsx` (JSX works via automatic transform)
+- `src/components/Terminal/Suggestions.tsx` (after `forwardRef` removal)
+
+**Files where `import React` becomes named imports only** (drop `React` default, keep named hooks):
+- `src/App.tsx` — `import { useState, useCallback, useRef, useEffect } from 'react'`
+- `src/components/Sidebar.tsx` — `import { useState, useEffect } from 'react'`
+- `src/components/StatusBar.tsx` — `import { useState, useEffect } from 'react'`
+- `src/components/BootSplash.tsx` — `import { useState, useEffect } from 'react'`
+
+**Note on `MatrixRain.tsx`:** This file already lacks `import React` but uses `React.FC` — it currently compiles because `@types/react@18` declares a global namespace. With `@types/react@19` this will fail. The `React.FC` removal fixes it; no import changes needed since hooks are already named imports.
 
 ## Config File Changes
 
@@ -150,11 +163,12 @@ languageOptions: {
 
 ## Test Updates
 
-Test files referencing `forwardRef` or `React.FC` patterns need updating:
-- `src/components/Terminal/__tests__/Terminal.test.tsx` — Update if mocking `forwardRef`
-- `src/components/Terminal/__tests__/Suggestions.test.tsx` — Update if asserting ref behavior
+- `src/components/Terminal/__tests__/Terminal.test.tsx` — Update any `forwardRef`-related mocks or assertions. Remove `React.FC` references if present.
+- `src/components/Terminal/__tests__/Suggestions.test.tsx` — No ref-related assertions exist; no changes needed for `forwardRef` removal. Update `React.FC`/`import React` if present.
 
-All 78 existing tests must pass after the upgrade. The test infrastructure itself (Vitest 4.1.0, testing-library, jsdom) is already current.
+All 78 existing tests must pass after the upgrade.
+
+**Vitest / Vite compatibility:** Vitest is tightly coupled to Vite internals. Vitest 4.x compatibility with Vite 8 must be verified during implementation. If incompatible, Vitest will need a major bump as well.
 
 ## What Does NOT Change
 
