@@ -12,9 +12,10 @@ interface SuggestionsProps {
   themes?: ThemeName[];
   currentTheme?: ThemeName;
   onBack?: () => void;
+  ref?: Ref<HTMLDivElement>;
 }
 
-const Suggestions = ({ suggestions, selectedIndex, onSelect, onMouseEnter, mode, themes, currentTheme, onBack, ref }: SuggestionsProps & { ref?: Ref<HTMLDivElement> }) => {
+const Suggestions = ({ suggestions, selectedIndex, onSelect, onMouseEnter, mode, themes, currentTheme, onBack, ref }: SuggestionsProps) => {
     return (
       <div
         ref={ref}

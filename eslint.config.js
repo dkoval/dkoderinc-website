@@ -19,7 +19,9 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // react-hooks v7: flags standard mount-initialization setState patterns (false positives)
       'react-hooks/set-state-in-effect': 'off',
+      // react-hooks v7: ref-as-prop is the standard pattern in React 19
       'react-hooks/refs': 'off',
       'react-refresh/only-export-components': [
         'warn',
