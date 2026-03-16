@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useImperativeHandle, useMemo, ChangeEvent, KeyboardEvent, Ref } from 'react';
 import DOMPurify from 'dompurify';
 import { suggestions, commands } from './commands';
 import { Volume2, VolumeX } from 'lucide-react';
@@ -37,7 +37,7 @@ type TerminalProps = {
   onRevealStateChange?: (isRevealing: boolean) => void;
 };
 
-const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onRevealStateChange }, ref) => {
+const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onRevealStateChange, ref }: TerminalProps & { ref?: Ref<TerminalHandle> }) => {
   const isMobile = useIsMobile();
   const promptPrefix = '~ $ ';
   const { theme, setTheme } = useTheme();
@@ -166,7 +166,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
     setAutoSuggestion(matchingCommand || null);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (isInputBlocked) return;
     if (pendingExecuteRef.current) {
       clearTimeout(pendingExecuteRef.current);
@@ -460,7 +460,7 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
     },
   }));
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (isInputBlocked) { e.preventDefault(); return; }
     switch (e.key) {
       case 'Tab':
@@ -717,8 +717,6 @@ const Terminal = forwardRef<TerminalHandle, TerminalProps>(({ onShutdown, onBell
       </div>
     </section>
   );
-});
-
-Terminal.displayName = 'Terminal';
+};
 
 export default Terminal;
