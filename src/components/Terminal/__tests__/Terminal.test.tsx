@@ -1,23 +1,15 @@
 import { screen, fireEvent, act } from '@testing-library/react';
 import Terminal from '../Terminal';
-import { renderWithProviders } from '../../../test/helpers';
+import { renderWithProviders, mockMatchMedia } from '../../../test/helpers';
 
 // Helper: set up matchMedia for Terminal tests
 // - prefers-reduced-motion: true (skip progressive reveal)
 // - min-width: 768px: configurable (desktop by default)
-const setupMatchMedia = (mobile = false) => {
-  vi.mocked(window.matchMedia).mockImplementation((query: string) => ({
-    matches:
-      query === '(prefers-reduced-motion: reduce)' ||
-      (query === '(min-width: 768px)' && !mobile),
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  }));
+const setupTerminalMedia = (mobile = false) => {
+  mockMatchMedia(query =>
+    query === '(prefers-reduced-motion: reduce)' ||
+    (query === '(min-width: 768px)' && !mobile),
+  );
 };
 
 const defaultProps = {
@@ -38,7 +30,7 @@ const submitCommand = (command: string) => {
 
 describe('Terminal', () => {
   beforeEach(() => {
-    setupMatchMedia();
+    setupTerminalMedia();
     vi.useFakeTimers();
   });
 
@@ -137,7 +129,7 @@ describe('Terminal', () => {
   });
 
   it('uses mobile variant for responsive commands', () => {
-    setupMatchMedia(true); // mobile
+    setupTerminalMedia(true); // mobile
     renderWithProviders(<Terminal {...defaultProps} />);
     submitCommand('skills');
     act(() => { vi.advanceTimersByTime(600); });

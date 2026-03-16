@@ -21,12 +21,11 @@ class MockIntersectionObserver implements IntersectionObserver {
   readonly rootMargin = '';
   readonly thresholds = [0];
   constructor(private callback: IntersectionObserverCallback) {
-    setTimeout(() => {
-      callback(
-        [{ isIntersecting: true, intersectionRatio: 1 } as IntersectionObserverEntry],
-        this
-      );
-    }, 0);
+    // Fire synchronously so behavior is deterministic regardless of timer mode
+    callback(
+      [{ isIntersecting: true, intersectionRatio: 1 } as IntersectionObserverEntry],
+      this
+    );
   }
   observe = vi.fn();
   unobserve = vi.fn();
@@ -84,8 +83,22 @@ Object.defineProperty(navigator, 'vibrate', {
   value: vi.fn(),
 });
 
+// Default matchMedia predicate (all queries return false = mobile, no reduced motion)
+const defaultMatchMedia = (query: string) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener: vi.fn(),
+  removeListener: vi.fn(),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+});
+
 // Clean up between tests
 afterEach(() => {
   localStorage.clear();
   vi.restoreAllMocks();
+  // Reset matchMedia to default so per-test overrides don't bleed
+  (window.matchMedia as ReturnType<typeof vi.fn>).mockImplementation(defaultMatchMedia);
 });

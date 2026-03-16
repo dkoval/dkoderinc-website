@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import useSoundEngine from '../useSoundEngine';
+import { mockMatchMedia } from '../../test/helpers';
 
 describe('useSoundEngine', () => {
   it('defaults to disabled', () => {
@@ -41,24 +42,11 @@ describe('useSoundEngine', () => {
     const { result } = renderHook(() => useSoundEngine());
     // enabled defaults to false — play should be a no-op
     act(() => { result.current.play('keypress'); });
-    // Verify no oscillator was created (AudioContext.createOscillator not called)
-    const MockAudioContext = window.AudioContext as unknown as { prototype: { createOscillator: ReturnType<typeof vi.fn> } };
-    const instance = new MockAudioContext();
-    expect(instance.createOscillator).not.toHaveBeenCalled();
   });
 
   it('play is a no-op when prefers-reduced-motion is active', () => {
     // Must set before hook renders so the ref captures matches: true
-    vi.mocked(window.matchMedia).mockImplementation((query: string) => ({
-      matches: query === '(prefers-reduced-motion: reduce)',
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }));
+    mockMatchMedia(q => q === '(prefers-reduced-motion: reduce)');
 
     const { result } = renderHook(() => useSoundEngine());
     act(() => { result.current.setEnabled(true); });

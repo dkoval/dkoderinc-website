@@ -1,20 +1,11 @@
 import { screen } from '@testing-library/react';
 import Sidebar from '../Sidebar';
-import { renderWithProviders } from '../../test/helpers';
+import { renderWithProviders, mockMatchMedia } from '../../test/helpers';
 
 describe('Sidebar', () => {
   describe('desktop', () => {
     beforeEach(() => {
-      vi.mocked(window.matchMedia).mockImplementation((query: string) => ({
-        matches: query === '(min-width: 768px)',
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      }));
+      mockMatchMedia(q => q === '(min-width: 768px)');
     });
 
     it('renders headshot image', () => {
