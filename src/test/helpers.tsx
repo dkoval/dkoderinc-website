@@ -1,15 +1,11 @@
-import { ReactElement, ReactNode } from 'react';
+import { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { ThemeProvider } from '../ThemeContext';
-
-const AllProviders = ({ children }: { children: ReactNode }) => (
-  <ThemeProvider>{children}</ThemeProvider>
-);
 
 export const renderWithProviders = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllProviders, ...options });
+) => render(ui, { wrapper: ({ children }) => <ThemeProvider>{children}</ThemeProvider>, ...options });
 
 /** Override window.matchMedia with a predicate that determines `matches` per query. */
 export const mockMatchMedia = (

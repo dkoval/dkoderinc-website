@@ -55,7 +55,7 @@ const App = () => {
   const handleBootComplete = useCallback(() => {
     setShowBootSplash(false);
     sound.play('boot');
-  }, [sound.play]);
+  }, [sound]);
   const terminalRef = useRef<TerminalHandle>(null);
 
   const [bellFlash, setBellFlash] = useState(false);
@@ -87,7 +87,7 @@ const App = () => {
     sound.play('shutdown');
     setShutdownPhase('messages');
     setShutdownLines(0);
-  }, [sound.play]);
+  }, [sound]);
 
   const handleRestart = useCallback(() => {
     resetPageLoadTime();

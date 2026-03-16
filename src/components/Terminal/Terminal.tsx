@@ -551,9 +551,10 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   }, []);
 
   useEffect(() => {
+    const timeouts = spinnerTimeouts.current;
     return () => {
-      spinnerTimeouts.current.forEach(clearTimeout);
-      spinnerTimeouts.current.clear();
+      timeouts.forEach(clearTimeout);
+      timeouts.clear();
       if (pendingExecuteRef.current) clearTimeout(pendingExecuteRef.current);
       cancelAnimationFrame(revealRafRef.current);
     };
