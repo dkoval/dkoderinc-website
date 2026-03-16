@@ -49,7 +49,7 @@ type MatrixRainProps = {
   onFadeOutComplete: () => void;
 };
 
-const MatrixRain: React.FC<MatrixRainProps> = ({ visible, onFadeOutComplete }) => {
+const MatrixRain = ({ visible, onFadeOutComplete }: MatrixRainProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const columnsRef = useRef<Column[]>([]);
   const rafRef = useRef<number>(0);

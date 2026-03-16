@@ -1,11 +1,9 @@
-import React from 'react';
-
 interface AutoSuggestionProps {
   inputCommand: string;
   suggestion: string | null;
 }
 
-const AutoSuggestion: React.FC<AutoSuggestionProps> = ({ inputCommand, suggestion }) => {
+const AutoSuggestion = ({ inputCommand, suggestion }: AutoSuggestionProps) => {
   if (!suggestion) return null;
 
   return (

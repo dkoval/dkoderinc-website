@@ -1,8 +1,8 @@
-import React, { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { ThemeProvider } from '../ThemeContext';
 
-const AllProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const AllProviders = ({ children }: { children: ReactNode }) => (
   <ThemeProvider>{children}</ThemeProvider>
 );
 

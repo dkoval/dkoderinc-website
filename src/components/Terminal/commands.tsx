@@ -1,4 +1,3 @@
-import React from 'react';
 import { Cpu, Mail, Sparkles, User, Info, Clock, LogOut, History, Palette, Volume2 } from 'lucide-react';
 import { CommandSuggestion } from './types';
 

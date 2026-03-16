@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
 
 export type ThemeName = 'green' | 'amber' | 'tokyo-night' | 'one-dark-pro';
 
@@ -30,7 +30,7 @@ const getInitialTheme = (): ThemeName => {
   return 'green';
 };
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setThemeState] = useState<ThemeName>(getInitialTheme);
   const [transitioning, setTransitioning] = useState(false);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
