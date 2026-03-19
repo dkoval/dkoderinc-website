@@ -1,4 +1,4 @@
-import { Cpu, Mail, Sparkles, User, Info, Clock, LogOut, History, Palette, Volume2 } from 'lucide-react';
+import { Cpu, Mail, Sparkles, User, Info, Clock, LogOut, History, Palette, Volume2, HelpCircle } from 'lucide-react';
 import { CommandSuggestion } from './types';
 
 export const suggestions: CommandSuggestion[] = [
@@ -10,6 +10,7 @@ export const suggestions: CommandSuggestion[] = [
   { command: 'uptime', description: 'Session uptime', icon: <Clock className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'theme', description: 'Switch color theme', icon: <Palette className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'sound', description: 'Toggle terminal sounds', icon: <Volume2 className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
+  { command: 'help', description: 'Show available commands', icon: <HelpCircle className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'clear', description: 'Clear terminal screen', icon: <Sparkles className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
   { command: 'exit', description: 'Terminate the current session', icon: <LogOut className="w-4 h-4" style={{ color: 'var(--terminal-primary)' }} /> },
 ];
