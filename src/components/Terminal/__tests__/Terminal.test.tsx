@@ -38,9 +38,11 @@ describe('Terminal', () => {
     vi.useRealTimers();
   });
 
-  it('renders help screen on mount', () => {
+  it('renders MOTD hint on mount', () => {
     renderWithProviders(<Terminal {...defaultProps} />);
-    expect(screen.getByText('Available commands:')).toBeInTheDocument();
+    expect(screen.getAllByText((_, el) =>
+      el?.tagName === 'SPAN' && /Type.*'help'.*Tab.*explore/.test(el.textContent ?? '')
+    ).length).toBeGreaterThan(0);
   });
 
   it('renders known command output after spinner delay', () => {
@@ -78,7 +80,7 @@ describe('Terminal', () => {
     expect(link.closest('a')).toHaveAttribute('href', 'https://github.com/dkoval');
   });
 
-  it('clears terminal and shows help on clear command', () => {
+  it('clears terminal and shows MOTD on clear command', () => {
     renderWithProviders(<Terminal {...defaultProps} />);
     submitCommand('history');
     act(() => { vi.advanceTimersByTime(600); });
@@ -87,6 +89,14 @@ describe('Terminal', () => {
     // Clear — synchronous, no timer needed
     submitCommand('clear');
     expect(screen.queryByText(/Still shipping/)).not.toBeInTheDocument();
+    expect(screen.getAllByText((_, el) =>
+      el?.tagName === 'SPAN' && /Type.*'help'.*Tab.*explore/.test(el.textContent ?? '')
+    ).length).toBeGreaterThan(0);
+  });
+
+  it('shows full help output when help command is typed', () => {
+    renderWithProviders(<Terminal {...defaultProps} />);
+    submitCommand('help');
     expect(screen.getByText('Available commands:')).toBeInTheDocument();
   });
 
