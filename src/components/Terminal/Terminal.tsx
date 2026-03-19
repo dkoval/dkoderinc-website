@@ -116,6 +116,15 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     });
   };
 
+  const displayMotd = (): TerminalLine[] => {
+    const hint = isMobile
+      ? 'Tap <span style="color: var(--terminal-primary)">≡</span> to explore commands.'
+      : 'Type <span style="color: var(--terminal-primary)">\'help\'</span> or press <span style="color: var(--terminal-primary)">Tab</span> to explore.';
+    return [
+      { content: `<span style="color: var(--terminal-gray)">${hint}</span>`, type: 'output' as const, isHtml: true },
+    ];
+  };
+
   const displayHelp = () => {
     return [
       { content: `${promptPrefix}help`, type: 'input' as const, timestamp: getCurrentTime() },
@@ -188,7 +197,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     if (trimmedCmd === '') return;
 
     if (trimmedCmd === 'clear') {
-      setTerminalOutput(displayHelp());
+      setTerminalOutput(displayMotd());
       setInputCommand('');
       setAutoSuggestion(null);
       return;
@@ -505,7 +514,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   };
 
   useEffect(() => {
-    setTerminalOutput(displayHelp());
+    setTerminalOutput(displayMotd());
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -683,7 +692,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
               onKeyDown={handleKeyDown}
               className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10 caret-transparent"
               style={{ color: 'var(--terminal-primary)' }}
-              placeholder={isMobile ? "Tap Cmds for suggestions..." : "Type a command or press Tab for suggestions..."}
               inputMode={isMobile ? "none" : undefined}
               autoCapitalize="none"
               spellCheck={false}
