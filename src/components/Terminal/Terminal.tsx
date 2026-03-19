@@ -196,6 +196,15 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
     if (trimmedCmd === '') return;
 
+    if (trimmedCmd === 'help') {
+      setTerminalOutput(prev => [...prev, ...displayHelp()]);
+      setCommandHistory(prev => [...prev, trimmedCmd].slice(-MAX_HISTORY));
+      setHistoryIndex(-1);
+      setInputCommand('');
+      setAutoSuggestion(null);
+      return;
+    }
+
     if (trimmedCmd === 'clear') {
       setTerminalOutput(displayMotd());
       setInputCommand('');
