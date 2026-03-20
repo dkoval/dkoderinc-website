@@ -19,30 +19,43 @@ const THEME_EASTER_EGGS: Partial<Record<ThemeName, string>> = {
   'one-dark-pro': 'Dark mode activated. Your eyes will thank you.',
 };
 
-const THEME_HEX_COLORS: Record<ThemeName, { color: string; rgb: string }> = {
-  green: { color: '#00FF41', rgb: '0, 255, 65' },
-  amber: { color: '#FFB000', rgb: '255, 176, 0' },
-  'tokyo-night': { color: '#7aa2f7', rgb: '122, 162, 247' },
-  'one-dark-pro': { color: '#98c379', rgb: '152, 195, 121' },
+const THEME_HEX_COLORS: Record<ThemeName, string> = {
+  green: '#00FF41',
+  amber: '#FFB000',
+  'tokyo-night': '#7aa2f7',
+  'one-dark-pro': '#61AFEF',
 };
+
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 const HEX_RADIUS = 5;
 const HEX_TILE_W = Math.sqrt(3) * HEX_RADIUS;
 const HEX_TILE_H = 3 * HEX_RADIUS;
+const HEX_TILE_W_STR = HEX_TILE_W.toFixed(2);
+const HEX_TILE_H_STR = HEX_TILE_H.toFixed(2);
+
+function hexPoints(r: number, cx: number, cy: number): string {
+  return Array.from({ length: 6 }, (_, i) => {
+    const a = (Math.PI / 3) * i - Math.PI / 6;
+    return `${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`;
+  }).join(' ');
+}
 
 function buildHexPatternUri(color: string, opacity: number): string {
   const r = HEX_RADIUS;
   const w = HEX_TILE_W;
-  const h = HEX_TILE_H;
-  function pts(cx: number, cy: number) {
-    return Array.from({ length: 6 }, (_, i) => {
-      const a = (Math.PI / 3) * i - Math.PI / 6;
-      return `${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`;
-    }).join(' ');
-  }
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w.toFixed(2)}" height="${h.toFixed(2)}"><polygon points="${pts(w / 2, r)}" fill="none" stroke="${color}" stroke-width="0.4" opacity="${opacity}"/><polygon points="${pts(0, r * 2.5)}" fill="none" stroke="${color}" stroke-width="0.4" opacity="${opacity}"/><polygon points="${pts(w, r * 2.5)}" fill="none" stroke="${color}" stroke-width="0.4" opacity="${opacity}"/></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${HEX_TILE_W_STR}" height="${HEX_TILE_H_STR}"><polygon points="${hexPoints(r, w / 2, r)}" fill="none" stroke="${color}" stroke-width="0.4" opacity="${opacity}"/><polygon points="${hexPoints(r, 0, r * 2.5)}" fill="none" stroke="${color}" stroke-width="0.4" opacity="${opacity}"/><polygon points="${hexPoints(r, w, r * 2.5)}" fill="none" stroke="${color}" stroke-width="0.4" opacity="${opacity}"/></svg>`;
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
+
+const THEME_HEX_URIS: Record<ThemeName, string> = Object.fromEntries(
+  Object.entries(THEME_HEX_COLORS).map(([t, c]) => [t, buildHexPatternUri(c, 0.3)])
+) as Record<ThemeName, string>;
 
 const RESPONSIVE_COMMANDS: Record<string, { mobile: string; desktop: string }> = {
   whoami: { mobile: 'whoami', desktop: 'whoamiDesktop' },
@@ -107,11 +120,10 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   ), [soundEnabled]);
 
   const hexBgStyle = useMemo(() => {
-    const { color, rgb } = THEME_HEX_COLORS[theme];
     const mask = 'radial-gradient(ellipse at 50% 45%, black 15%, transparent 65%)';
     return {
-      backgroundImage: `radial-gradient(ellipse at 50% 45%, rgba(${rgb}, 0.12) 0%, transparent 60%), url("${buildHexPatternUri(color, 0.3)}")`,
-      backgroundSize: `100% 100%, ${HEX_TILE_W.toFixed(2)}px ${HEX_TILE_H}px`,
+      backgroundImage: `radial-gradient(ellipse at 50% 45%, ${hexToRgba(THEME_HEX_COLORS[theme], 0.12)} 0%, transparent 60%), url("${THEME_HEX_URIS[theme]}")`,
+      backgroundSize: `100% 100%, ${HEX_TILE_W_STR}px ${HEX_TILE_H_STR}px`,
       backgroundRepeat: 'no-repeat, repeat',
       WebkitMaskImage: mask,
       maskImage: mask,
