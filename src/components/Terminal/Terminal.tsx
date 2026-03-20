@@ -19,6 +19,31 @@ const THEME_EASTER_EGGS: Partial<Record<ThemeName, string>> = {
   'one-dark-pro': 'Dark mode activated. Your eyes will thank you.',
 };
 
+const THEME_HEX_COLORS: Record<ThemeName, { color: string; rgb: string }> = {
+  green: { color: '#00FF41', rgb: '0, 255, 65' },
+  amber: { color: '#FFB000', rgb: '255, 176, 0' },
+  'tokyo-night': { color: '#7aa2f7', rgb: '122, 162, 247' },
+  'one-dark-pro': { color: '#98c379', rgb: '152, 195, 121' },
+};
+
+const HEX_RADIUS = 5;
+const HEX_TILE_W = Math.sqrt(3) * HEX_RADIUS;
+const HEX_TILE_H = 3 * HEX_RADIUS;
+
+function buildHexPatternUri(color: string, opacity: number): string {
+  const r = HEX_RADIUS;
+  const w = HEX_TILE_W;
+  const h = HEX_TILE_H;
+  function pts(cx: number, cy: number) {
+    return Array.from({ length: 6 }, (_, i) => {
+      const a = (Math.PI / 3) * i - Math.PI / 6;
+      return `${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`;
+    }).join(' ');
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w.toFixed(2)}" height="${h.toFixed(2)}"><polygon points="${pts(w / 2, r)}" fill="none" stroke="${color}" stroke-width="0.4" opacity="${opacity}"/><polygon points="${pts(0, r * 2.5)}" fill="none" stroke="${color}" stroke-width="0.4" opacity="${opacity}"/><polygon points="${pts(w, r * 2.5)}" fill="none" stroke="${color}" stroke-width="0.4" opacity="${opacity}"/></svg>`;
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
 const RESPONSIVE_COMMANDS: Record<string, { mobile: string; desktop: string }> = {
   whoami: { mobile: 'whoami', desktop: 'whoamiDesktop' },
   skills: { mobile: 'skillsMobile', desktop: 'skills' },
@@ -80,6 +105,18 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         }
       : s
   ), [soundEnabled]);
+
+  const hexBgStyle = useMemo(() => {
+    const { color, rgb } = THEME_HEX_COLORS[theme];
+    const mask = 'radial-gradient(ellipse at 50% 45%, black 15%, transparent 65%)';
+    return {
+      backgroundImage: `radial-gradient(ellipse at 50% 45%, rgba(${rgb}, 0.12) 0%, transparent 60%), url("${buildHexPatternUri(color, 0.3)}")`,
+      backgroundSize: `100% 100%, ${HEX_TILE_W.toFixed(2)}px ${HEX_TILE_H}px`,
+      backgroundRepeat: 'no-repeat, repeat',
+      WebkitMaskImage: mask,
+      maskImage: mask,
+    };
+  }, [theme]);
 
   // Matrix rain idle effect
   const [reducedMotion] = useState(() =>
@@ -674,6 +711,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   return (
     <section ref={sectionRef} className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-breathe" style={{ background: 'var(--terminal-bg)' }}>
       <div className="flex-1 relative overflow-hidden mb-4">
+        <div className="hex-bg absolute inset-0 pointer-events-none z-0" style={hexBgStyle} />
         {showRain && (
           <MatrixRain
             visible={rainVisible}
@@ -682,9 +720,8 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         )}
         <div
           ref={terminalRef}
-          className="h-full overflow-y-auto overflow-x-hidden text-sm terminal-scroll"
+          className="h-full overflow-y-auto overflow-x-hidden text-sm terminal-scroll relative z-[1]"
           style={{
-            background: 'var(--terminal-bg)',
             opacity: rainVisible ? 0 : 1,
             transition: 'opacity 400ms ease-in-out',
           }}
@@ -740,15 +777,14 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
             opacity: showScrollIndicator ? 0.6 : 0,
             fontSize: '0.75rem',
             padding: '2px 0',
-            background: 'var(--terminal-bg)',
           }}
         >
           ▼ more
         </div>
         </div>
       </div>
-      <div className="relative">
-        <div className={`flex items-center space-x-2 w-full p-2 ${isInputBlocked ? 'input-blocked' : ''}`} style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}>
+      <div className="relative z-[1]">
+        <div className={`flex items-center space-x-2 w-full p-2 ${isInputBlocked ? 'input-blocked' : ''}`} style={{ border: '1px solid var(--terminal-border)' }}>
           <span className="font-mono text-sm shrink-0 select-none">
             <span style={{ color: 'var(--terminal-primary-dim)' }}>~ </span>
             <span style={{ color: 'var(--terminal-primary)' }}>$ </span>
