@@ -120,6 +120,11 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     });
   };
 
+  // Plain-text MOTD hints (used by typing animation; HTML version derived below)
+  const motdPlainText = isMobile
+    ? 'Tap \u2261 to explore commands.'
+    : "Type 'help' or press Tab to explore.";
+
   const displayMotd = (): TerminalLine[] => {
     const hint = isMobile
       ? 'Tap <span style="color: var(--terminal-primary)">≡</span> to explore commands.'
@@ -127,6 +132,14 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     return [
       { content: `<span style="color: var(--terminal-gray)">${hint}</span>`, type: 'output' as const, isHtml: true },
     ];
+  };
+
+  const cancelMotdAnimation = () => {
+    if (!motdAnimatingRef.current) return;
+    motdAnimatingRef.current = false;
+    if (motdDelayRef.current) { clearTimeout(motdDelayRef.current); motdDelayRef.current = null; }
+    if (motdIntervalRef.current) { clearInterval(motdIntervalRef.current); motdIntervalRef.current = null; }
+    setTerminalOutput(displayMotd());
   };
 
   const displayHelp = () => {
@@ -182,12 +195,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (isInputBlocked) return;
-    if (motdAnimatingRef.current) {
-      motdAnimatingRef.current = false;
-      if (motdDelayRef.current) { clearTimeout(motdDelayRef.current); motdDelayRef.current = null; }
-      if (motdIntervalRef.current) { clearInterval(motdIntervalRef.current); motdIntervalRef.current = null; }
-      setTerminalOutput(displayMotd());
-    }
+    cancelMotdAnimation();
     if (pendingExecuteRef.current) {
       clearTimeout(pendingExecuteRef.current);
       pendingExecuteRef.current = null;
@@ -202,12 +210,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   const handleCommand = (cmd: string) => {
     if (isInputBlocked) return;
-    if (motdAnimatingRef.current) {
-      motdAnimatingRef.current = false;
-      if (motdDelayRef.current) { clearTimeout(motdDelayRef.current); motdDelayRef.current = null; }
-      if (motdIntervalRef.current) { clearInterval(motdIntervalRef.current); motdIntervalRef.current = null; }
-      setTerminalOutput(displayMotd());
-    }
+    cancelMotdAnimation();
     const trimmedCmd = cmd.trim().toLowerCase();
 
     if (trimmedCmd === '') return;
@@ -433,12 +436,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   // Extracted action handlers for both keyboard and mobile button use
   const actionTab = () => {
-    if (motdAnimatingRef.current) {
-      motdAnimatingRef.current = false;
-      if (motdDelayRef.current) { clearTimeout(motdDelayRef.current); motdDelayRef.current = null; }
-      if (motdIntervalRef.current) { clearInterval(motdIntervalRef.current); motdIntervalRef.current = null; }
-      setTerminalOutput(displayMotd());
-    }
+    cancelMotdAnimation();
     if (showSuggestions) {
       selectSuggestion(selectedSuggestionIndex);
     } else if (autoSuggestion) {
@@ -578,10 +576,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       return;
     }
 
-    const plainText = isMobile
-      ? 'Tap \u2261 to explore commands.'
-      : "Type 'help' or press Tab to explore.";
-
     motdAnimatingRef.current = true;
     setTerminalOutput([{ content: '', type: 'output' }]);
 
@@ -591,7 +585,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       motdDelayRef.current = null;
 
       motdIntervalRef.current = setInterval(() => {
-        if (!motdAnimatingRef.current || charIndex >= plainText.length) {
+        if (!motdAnimatingRef.current || charIndex >= motdPlainText.length) {
           if (motdIntervalRef.current) clearInterval(motdIntervalRef.current);
           motdIntervalRef.current = null;
           motdAnimatingRef.current = false;
@@ -599,7 +593,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
           return;
         }
         charIndex++;
-        setTerminalOutput([{ content: plainText.slice(0, charIndex), type: 'output' }]);
+        setTerminalOutput([{ content: motdPlainText.slice(0, charIndex), type: 'output' }]);
       }, 30);
     }, 300);
 
