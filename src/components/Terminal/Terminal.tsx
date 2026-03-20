@@ -35,10 +35,11 @@ type TerminalProps = {
   soundEnabled?: boolean;
   onSoundSet?: (enabled: boolean) => void;
   onRevealStateChange?: (isRevealing: boolean) => void;
+  bootComplete?: boolean;
   ref?: Ref<TerminalHandle>;
 };
 
-const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onRevealStateChange, ref }: TerminalProps) => {
+const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onRevealStateChange, bootComplete, ref }: TerminalProps) => {
   const isMobile = useIsMobile();
   const promptPrefix = '~ $ ';
   const { theme, setTheme } = useTheme();
