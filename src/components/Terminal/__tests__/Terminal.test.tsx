@@ -19,6 +19,7 @@ const defaultProps = {
   soundEnabled: false,
   onSoundSet: vi.fn(),
   onRevealStateChange: vi.fn(),
+  bootComplete: true,
 };
 
 // Helper: type a command and submit
@@ -98,6 +99,20 @@ describe('Terminal', () => {
     renderWithProviders(<Terminal {...defaultProps} />);
     submitCommand('help');
     expect(screen.getByText('Available commands:')).toBeInTheDocument();
+  });
+
+  it('snaps MOTD to final state on early user input', () => {
+    // Override reduced-motion to false so animation would normally play
+    mockMatchMedia(query => query === '(min-width: 768px)');
+    renderWithProviders(<Terminal {...defaultProps} />);
+    // Advance past the 300ms delay to start the animation
+    act(() => { vi.advanceTimersByTime(350); });
+    // User starts typing — animation should snap to final state
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'h' } });
+    expect(screen.getAllByText((_, el) =>
+      el?.tagName === 'SPAN' && /Type.*'help'.*Tab.*explore/.test(el.textContent ?? '')
+    ).length).toBeGreaterThan(0);
   });
 
   it('shows theme info when no argument given', () => {
