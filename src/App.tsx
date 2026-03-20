@@ -261,6 +261,7 @@ const App = () => {
                 soundEnabled={sound.enabled}
                 onSoundSet={sound.setEnabled}
                 onRevealStateChange={setIsRevealing}
+                bootComplete={!showBootSplash}
               />
             </TerminalWindow>
           </main>
