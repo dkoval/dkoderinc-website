@@ -57,6 +57,9 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   const suppressHoverRef = useRef(false);
   const spinnerTimeouts = useRef(new Set<ReturnType<typeof setTimeout>>());
   const spinnerIdRef = useRef(0);
+  const motdDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const motdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const motdAnimatingRef = useRef(false);
 
   const pendingExecuteRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -179,6 +182,12 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (isInputBlocked) return;
+    if (motdAnimatingRef.current) {
+      motdAnimatingRef.current = false;
+      if (motdDelayRef.current) { clearTimeout(motdDelayRef.current); motdDelayRef.current = null; }
+      if (motdIntervalRef.current) { clearInterval(motdIntervalRef.current); motdIntervalRef.current = null; }
+      setTerminalOutput(displayMotd());
+    }
     if (pendingExecuteRef.current) {
       clearTimeout(pendingExecuteRef.current);
       pendingExecuteRef.current = null;
@@ -193,6 +202,12 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   const handleCommand = (cmd: string) => {
     if (isInputBlocked) return;
+    if (motdAnimatingRef.current) {
+      motdAnimatingRef.current = false;
+      if (motdDelayRef.current) { clearTimeout(motdDelayRef.current); motdDelayRef.current = null; }
+      if (motdIntervalRef.current) { clearInterval(motdIntervalRef.current); motdIntervalRef.current = null; }
+      setTerminalOutput(displayMotd());
+    }
     const trimmedCmd = cmd.trim().toLowerCase();
 
     if (trimmedCmd === '') return;
@@ -418,6 +433,12 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   // Extracted action handlers for both keyboard and mobile button use
   const actionTab = () => {
+    if (motdAnimatingRef.current) {
+      motdAnimatingRef.current = false;
+      if (motdDelayRef.current) { clearTimeout(motdDelayRef.current); motdDelayRef.current = null; }
+      if (motdIntervalRef.current) { clearInterval(motdIntervalRef.current); motdIntervalRef.current = null; }
+      setTerminalOutput(displayMotd());
+    }
     if (showSuggestions) {
       selectSuggestion(selectedSuggestionIndex);
     } else if (autoSuggestion) {
@@ -524,7 +545,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   };
 
   useEffect(() => {
-    setTerminalOutput(displayMotd());
+    setTerminalOutput([{ content: '', type: 'output' }]);
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -546,6 +567,49 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // MOTD typing animation — triggered when boot splash completes
+  useEffect(() => {
+    if (!bootComplete) return;
+
+    // Reduced motion or no bootComplete prop: show MOTD instantly
+    if (reducedMotion) {
+      setTerminalOutput(displayMotd());
+      return;
+    }
+
+    const plainText = isMobile
+      ? 'Tap \u2261 to explore commands.'
+      : "Type 'help' or press Tab to explore.";
+
+    motdAnimatingRef.current = true;
+    setTerminalOutput([{ content: '', type: 'output' }]);
+
+    let charIndex = 0;
+
+    motdDelayRef.current = setTimeout(() => {
+      motdDelayRef.current = null;
+
+      motdIntervalRef.current = setInterval(() => {
+        if (!motdAnimatingRef.current || charIndex >= plainText.length) {
+          if (motdIntervalRef.current) clearInterval(motdIntervalRef.current);
+          motdIntervalRef.current = null;
+          motdAnimatingRef.current = false;
+          setTerminalOutput(displayMotd());
+          return;
+        }
+        charIndex++;
+        setTerminalOutput([{ content: plainText.slice(0, charIndex), type: 'output' }]);
+      }, 30);
+    }, 300);
+
+    return () => {
+      if (motdDelayRef.current) { clearTimeout(motdDelayRef.current); motdDelayRef.current = null; }
+      if (motdIntervalRef.current) { clearInterval(motdIntervalRef.current); motdIntervalRef.current = null; }
+      motdAnimatingRef.current = false;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bootComplete]);
 
   useEffect(() => {
     if (terminalRef.current) {
@@ -575,6 +639,8 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       timeouts.forEach(clearTimeout);
       timeouts.clear();
       if (pendingExecuteRef.current) clearTimeout(pendingExecuteRef.current);
+      if (motdDelayRef.current) clearTimeout(motdDelayRef.current);
+      if (motdIntervalRef.current) clearInterval(motdIntervalRef.current);
       cancelAnimationFrame(revealRafRef.current);
     };
   }, []);
