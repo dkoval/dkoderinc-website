@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useImperativeHandle, useMemo, ChangeEvent, KeyboardEvent, Ref } from 'react';
+import { useState, useEffect, useRef, useImperativeHandle, useMemo, useCallback, ChangeEvent, KeyboardEvent, Ref } from 'react';
 import DOMPurify from 'dompurify';
 import { suggestions, commands } from './commands';
 import { Volume2, VolumeX } from 'lucide-react';
@@ -14,6 +14,10 @@ import useIdleTimer from '../../hooks/useIdleTimer';
 import MatrixRain from './MatrixRain';
 
 const MAX_HISTORY = 50;
+export const MAX_OUTPUT = 500;
+
+export const appendOutput = (prev: TerminalLine[], ...lines: TerminalLine[]): TerminalLine[] =>
+  [...prev, ...lines].slice(-MAX_OUTPUT);
 const PURIFY_CONFIG = { ADD_ATTR: ['target', 'style'], ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'polyline'] };
 const THEME_EASTER_EGGS: Partial<Record<ThemeName, string>> = {
   'tokyo-night': 'Welcome to Neo-Tokyo. The night shift begins.',
@@ -113,6 +117,42 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   const revealStartIndexRef = useRef<number>(0);
   const isInputBlocked = revealingLines !== null;
 
+  // Latest-ref pattern: keep refs in sync so useCallback closures read current values
+  const themeRef = useRef(theme);
+  const soundEnabledRef = useRef(soundEnabled);
+  const isMobileRef = useRef(isMobile);
+  const inputCommandRef = useRef(inputCommand);
+  const showSuggestionsRef = useRef(showSuggestions);
+  const selectedSuggestionIndexRef = useRef(selectedSuggestionIndex);
+  const suggestionModeRef = useRef(suggestionMode);
+  const autoSuggestionRef = useRef(autoSuggestion);
+  const historyIndexRef = useRef(historyIndex);
+  const commandHistoryRef = useRef(commandHistory);
+  const isInputBlockedRef = useRef(isInputBlocked);
+
+  themeRef.current = theme;
+  soundEnabledRef.current = soundEnabled;
+  isMobileRef.current = isMobile;
+  inputCommandRef.current = inputCommand;
+  showSuggestionsRef.current = showSuggestions;
+  selectedSuggestionIndexRef.current = selectedSuggestionIndex;
+  suggestionModeRef.current = suggestionMode;
+  autoSuggestionRef.current = autoSuggestion;
+  historyIndexRef.current = historyIndex;
+  commandHistoryRef.current = commandHistory;
+  isInputBlockedRef.current = isInputBlocked;
+
+  // Refs for callback props (stable refs avoid useCallback dep churn)
+  const playSoundRef = useRef(playSound);
+  const onShutdownRef = useRef(onShutdown);
+  const onBellRef = useRef(onBell);
+  const onSoundSetRef = useRef(onSoundSet);
+
+  playSoundRef.current = playSound;
+  onShutdownRef.current = onShutdown;
+  onBellRef.current = onBell;
+  onSoundSetRef.current = onSoundSet;
+
   // Derive suggestions with dynamic sound icon based on current state
   const displaySuggestions = useMemo(() => suggestions.map(s =>
     s.command === 'sound'
@@ -178,24 +218,24 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     ? 'Tap \u2261 to explore commands.'
     : "Type 'help' or press Tab to explore.";
 
-  const displayMotd = (): TerminalLine[] => {
-    const hint = isMobile
+  const displayMotd = useCallback((): TerminalLine[] => {
+    const hint = isMobileRef.current
       ? 'Tap <span style="color: var(--terminal-primary)">≡</span> to explore commands.'
       : 'Type <span style="color: var(--terminal-primary)">\'help\'</span> or press <span style="color: var(--terminal-primary)">Tab</span> to explore.';
     return [
       { content: sanitizeHtml(`<span style="color: var(--terminal-gray)">${hint}</span>`), type: 'output' as const, isHtml: true },
     ];
-  };
+  }, []);
 
-  const cancelMotdAnimation = () => {
+  const cancelMotdAnimation = useCallback(() => {
     if (!motdAnimatingRef.current) return;
     motdAnimatingRef.current = false;
     if (motdDelayRef.current) { clearTimeout(motdDelayRef.current); motdDelayRef.current = null; }
     if (motdIntervalRef.current) { clearInterval(motdIntervalRef.current); motdIntervalRef.current = null; }
     setTerminalOutput(displayMotd());
-  };
+  }, [displayMotd]);
 
-  const displayHelp = () => {
+  const displayHelp = useCallback(() => {
     return [
       { content: `${promptPrefix}help`, type: 'input' as const, timestamp: getCurrentTime() },
       { content: 'Available commands:', type: 'output' as const },
@@ -210,9 +250,9 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       { content: '  • Tab for autocomplete', type: 'output' as const },
       { content: '  • Ctrl+L to clear', type: 'output' as const },
     ];
-  };
+  }, []);
 
-  const updateAutoSuggestion = (input: string) => {
+  const updateAutoSuggestion = useCallback((input: string) => {
     if (!input) {
       setAutoSuggestion(null);
       return;
@@ -244,10 +284,10 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       .find(cmd => cmd.toLowerCase().startsWith(lower));
 
     setAutoSuggestion(matchingCommand || null);
-  };
+  }, []);
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (isInputBlocked) return;
+  const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    if (isInputBlockedRef.current) return;
     cancelMotdAnimation();
     if (pendingExecuteRef.current) {
       clearTimeout(pendingExecuteRef.current);
@@ -255,21 +295,21 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     }
     const value = e.target.value;
     setInputCommand(value);
-    playSound?.('keypress');
+    playSoundRef.current?.('keypress');
     updateAutoSuggestion(value);
     setShowSuggestions(false);
     setSuggestionMode('commands');
-  };
+  }, [cancelMotdAnimation, updateAutoSuggestion]);
 
-  const handleCommand = (cmd: string) => {
-    if (isInputBlocked) return;
+  const handleCommand = useCallback((cmd: string) => {
+    if (isInputBlockedRef.current) return;
     cancelMotdAnimation();
     const trimmedCmd = cmd.trim().toLowerCase();
 
     if (trimmedCmd === '') return;
 
     if (trimmedCmd === 'help') {
-      setTerminalOutput(prev => [...prev, ...displayHelp()]);
+      setTerminalOutput(prev => appendOutput(prev, ...displayHelp()));
       setCommandHistory(prev => [...prev, trimmedCmd].slice(-MAX_HISTORY));
       setHistoryIndex(-1);
       setInputCommand('');
@@ -285,15 +325,14 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     }
 
     if (trimmedCmd === 'exit') {
-      setTerminalOutput(prev => [
-        ...prev,
+      setTerminalOutput(prev => appendOutput(prev,
         { content: `${promptPrefix}${trimmedCmd}`, type: 'input', timestamp: getCurrentTime() },
-      ]);
+      ));
       setInputCommand('');
       setAutoSuggestion(null);
       setShowRain(false);
       setRainVisible(false);
-      onShutdown?.();
+      onShutdownRef.current?.();
       return;
     }
 
@@ -310,8 +349,8 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       spinnerId: currentSpinnerId,
     };
 
-    setTerminalOutput(prev => [...prev, inputLine, spinnerLine]);
-    playSound?.('execute');
+    setTerminalOutput(prev => appendOutput(prev, inputLine, spinnerLine));
+    playSoundRef.current?.('execute');
     setCommandHistory(prev => [...prev, trimmedCmd].slice(-MAX_HISTORY));
     setHistoryIndex(-1);
     setInputCommand('');
@@ -320,13 +359,14 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     const startTime = performance.now();
 
     // After delay, replace this specific spinner with real output
+    // IMPORTANT: All state reads inside this closure use refs to avoid stale closures
     const timeoutId = setTimeout(() => {
       spinnerTimeouts.current.delete(timeoutId);
       let outputLines: TerminalLine[];
 
       if (trimmedCmd in RESPONSIVE_COMMANDS) {
         const variant = RESPONSIVE_COMMANDS[trimmedCmd];
-        const key = isMobile ? variant.mobile : variant.desktop;
+        const key = isMobileRef.current ? variant.mobile : variant.desktop;
         outputLines = commands[key].map(line => ({
           content: line,
           type: 'output' as const,
@@ -345,7 +385,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         const arg = trimmedCmd.replace('theme', '').trim();
         if (!arg) {
           outputLines = [
-            { content: `Current theme: ${theme}`, type: 'output' },
+            { content: `Current theme: ${themeRef.current}`, type: 'output' },
             { content: `Available: ${VALID_THEMES.join(', ')}`, type: 'output' },
             { content: `Usage: theme <name>`, type: 'output' },
           ];
@@ -354,7 +394,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
           const eggKey = `dkoder-${arg}-seen`;
           const isFirstTime = eggMessage && !localStorage.getItem(eggKey);
           setTheme(arg as ThemeName);
-          playSound?.('themeSwitch');
+          playSoundRef.current?.('themeSwitch');
           if (isFirstTime) {
             localStorage.setItem(eggKey, '1');
             outputLines = [
@@ -374,16 +414,16 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         const arg = trimmedCmd.replace('sound', '').trim();
         if (!arg) {
           outputLines = [
-            { content: `Sound: ${soundEnabled ? 'on' : 'off'}`, type: 'output' },
+            { content: `Sound: ${soundEnabledRef.current ? 'on' : 'off'}`, type: 'output' },
             { content: `Usage: sound <on|off>`, type: 'output' },
           ];
         } else if (arg === 'on') {
-          onSoundSet?.(true);
+          onSoundSetRef.current?.(true);
           outputLines = [
             { content: 'Sound enabled.', type: 'output' },
           ];
         } else if (arg === 'off') {
-          onSoundSet?.(false);
+          onSoundSetRef.current?.(false);
           outputLines = [
             { content: 'Sound disabled.', type: 'output' },
           ];
@@ -400,8 +440,8 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
           isHtml: output.isHtml,
         }));
       } else {
-        onBell?.();
-        playSound?.('error');
+        onBellRef.current?.();
+        playSoundRef.current?.('error');
         outputLines = [{ content: `Command not found: ${cmd}`, type: 'error' as const }];
       }
 
@@ -429,15 +469,15 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         // Instant reveal (single-line outputs, reduced motion)
         setTerminalOutput(prev => {
           const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
-          if (spinnerIndex === -1) return [...prev, ...newLines];
-          return [...prev.slice(0, spinnerIndex), ...newLines, ...prev.slice(spinnerIndex + 1)];
+          if (spinnerIndex === -1) return appendOutput(prev, ...newLines);
+          return [...prev.slice(0, spinnerIndex), ...newLines, ...prev.slice(spinnerIndex + 1)].slice(-MAX_OUTPUT);
         });
       }
     }, 600);
     spinnerTimeouts.current.add(timeoutId);
-  };
+  }, [cancelMotdAnimation, displayMotd, displayHelp, setTheme, reducedMotion]);
 
-  const executeWithPreview = (command: string) => {
+  const executeWithPreview = useCallback((command: string) => {
     setShowSuggestions(false);
     setSelectedSuggestionIndex(0);
     setInputCommand(command);
@@ -451,15 +491,15 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       pendingExecuteRef.current = null;
       handleCommand(command);
     }, 300);
-  };
+  }, [handleCommand]);
 
-  const backToCommands = () => {
+  const backToCommands = useCallback(() => {
     setSuggestionMode('commands');
     setSelectedSuggestionIndex(suggestions.findIndex(s => s.command === 'theme'));
-  };
+  }, []);
 
-  const selectSuggestion = (index: number) => {
-    if (suggestionMode === 'commands') {
+  const selectSuggestion = useCallback((index: number) => {
+    if (suggestionModeRef.current === 'commands') {
       const selectedCommand = suggestions[index].command;
       if (selectedCommand === 'theme') {
         setSuggestionMode('themes');
@@ -467,7 +507,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         return;
       }
       if (selectedCommand === 'sound') {
-        executeWithPreview(soundEnabled ? 'sound off' : 'sound on');
+        executeWithPreview(soundEnabledRef.current ? 'sound off' : 'sound on');
         return;
       }
       executeWithPreview(selectedCommand);
@@ -477,22 +517,22 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       setSelectedSuggestionIndex(0);
       executeWithPreview(`theme ${selectedTheme}`);
     }
-  };
+  }, [executeWithPreview]);
 
-  const completeAutoSuggestion = () => {
-    if (autoSuggestion) {
-      setInputCommand(autoSuggestion);
+  const completeAutoSuggestion = useCallback(() => {
+    if (autoSuggestionRef.current) {
+      setInputCommand(autoSuggestionRef.current);
       setAutoSuggestion(null);
       inputRef.current?.focus();
     }
-  };
+  }, []);
 
   // Extracted action handlers for both keyboard and mobile button use
-  const actionTab = () => {
+  const actionTab = useCallback(() => {
     cancelMotdAnimation();
-    if (showSuggestions) {
-      selectSuggestion(selectedSuggestionIndex);
-    } else if (autoSuggestion) {
+    if (showSuggestionsRef.current) {
+      selectSuggestion(selectedSuggestionIndexRef.current);
+    } else if (autoSuggestionRef.current) {
       completeAutoSuggestion();
     } else {
       setSuggestionMode('commands');
@@ -501,47 +541,45 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       suppressHoverRef.current = true;
       setTimeout(() => { suppressHoverRef.current = false; }, 100);
     }
-  };
+  }, [cancelMotdAnimation, selectSuggestion, completeAutoSuggestion]);
 
-  const actionUp = () => {
-    if (showSuggestions) {
-      const len = suggestionMode === 'themes' ? VALID_THEMES.length : suggestions.length;
-      setSelectedSuggestionIndex((prev) =>
-        prev > 0 ? prev - 1 : len - 1
-      );
-    } else if (commandHistory.length > 0) {
-      const newIndex = historyIndex + 1 >= commandHistory.length ? 0 : historyIndex + 1;
+  const actionUp = useCallback(() => {
+    if (showSuggestionsRef.current) {
+      const len = suggestionModeRef.current === 'themes' ? VALID_THEMES.length : suggestions.length;
+      setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : len - 1);
+    } else if (commandHistoryRef.current.length > 0) {
+      const history = commandHistoryRef.current;
+      const newIndex = historyIndexRef.current + 1 >= history.length ? 0 : historyIndexRef.current + 1;
       setHistoryIndex(newIndex);
-      setInputCommand(commandHistory[commandHistory.length - 1 - newIndex]);
+      setInputCommand(history[history.length - 1 - newIndex]);
       setAutoSuggestion(null);
     }
-  };
+  }, []);
 
-  const actionDown = () => {
-    if (showSuggestions) {
-      const len = suggestionMode === 'themes' ? VALID_THEMES.length : suggestions.length;
-      setSelectedSuggestionIndex((prev) =>
-        prev < len - 1 ? prev + 1 : 0
-      );
-    } else if (commandHistory.length > 0) {
-      const newIndex = historyIndex <= 0 ? commandHistory.length - 1 : historyIndex - 1;
+  const actionDown = useCallback(() => {
+    if (showSuggestionsRef.current) {
+      const len = suggestionModeRef.current === 'themes' ? VALID_THEMES.length : suggestions.length;
+      setSelectedSuggestionIndex(prev => prev < len - 1 ? prev + 1 : 0);
+    } else if (commandHistoryRef.current.length > 0) {
+      const history = commandHistoryRef.current;
+      const newIndex = historyIndexRef.current <= 0 ? history.length - 1 : historyIndexRef.current - 1;
       setHistoryIndex(newIndex);
-      setInputCommand(commandHistory[commandHistory.length - 1 - newIndex]);
+      setInputCommand(history[history.length - 1 - newIndex]);
       setAutoSuggestion(null);
     }
-  };
+  }, []);
 
-  const actionEnter = () => {
-    if (showSuggestions) {
-      selectSuggestion(selectedSuggestionIndex);
+  const actionEnter = useCallback(() => {
+    if (showSuggestionsRef.current) {
+      selectSuggestion(selectedSuggestionIndexRef.current);
     } else {
-      handleCommand(inputCommand);
+      handleCommand(inputCommandRef.current);
     }
-  };
+  }, [selectSuggestion, handleCommand]);
 
   useImperativeHandle(ref, () => ({
     handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => {
-      if (isInputBlocked) return;
+      if (isInputBlockedRef.current) return;
       switch (action) {
         case 'tab': actionTab(); break;
         case 'up': actionUp(); break;
@@ -550,10 +588,10 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       }
       inputRef.current?.focus();
     },
-  }));
+  }), [actionTab, actionUp, actionDown, actionEnter]);
 
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (isInputBlocked) { e.preventDefault(); return; }
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (isInputBlockedRef.current) { e.preventDefault(); return; }
     switch (e.key) {
       case 'Tab':
         e.preventDefault();
@@ -571,15 +609,15 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         actionEnter();
         return;
       case 'ArrowRight':
-        if (autoSuggestion) {
+        if (autoSuggestionRef.current) {
           e.preventDefault();
           completeAutoSuggestion();
         }
         return;
       case 'Escape':
-        if (showSuggestions && suggestionMode === 'themes') {
+        if (showSuggestionsRef.current && suggestionModeRef.current === 'themes') {
           backToCommands();
-        } else if (showSuggestions) {
+        } else if (showSuggestionsRef.current) {
           setShowSuggestions(false);
           setSelectedSuggestionIndex(0);
         } else {
@@ -593,7 +631,11 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       e.preventDefault();
       handleCommand('clear');
     }
-  };
+  }, [actionTab, actionUp, actionDown, actionEnter, completeAutoSuggestion, backToCommands, handleCommand]);
+
+  const handleSuggestionMouseEnter = useCallback((i: number) => {
+    if (!suppressHoverRef.current) setSelectedSuggestionIndex(i);
+  }, []);
 
   useEffect(() => {
     setTerminalOutput([{ content: '', type: 'output' }]);
@@ -760,7 +802,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
             suggestions={displaySuggestions}
             selectedIndex={selectedSuggestionIndex}
             onSelect={selectSuggestion}
-            onMouseEnter={(i) => { if (!suppressHoverRef.current) setSelectedSuggestionIndex(i); }}
+            onMouseEnter={handleSuggestionMouseEnter}
             mode={suggestionMode}
             themes={VALID_THEMES}
             currentTheme={theme}
