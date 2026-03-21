@@ -1,4 +1,4 @@
-import { Ref } from 'react';
+import { Ref, memo } from 'react';
 import { ChevronLeft, Palette } from 'lucide-react';
 import { CommandSuggestion } from './types';
 import { ThemeName } from '../../ThemeContext';
@@ -15,7 +15,7 @@ interface SuggestionsProps {
   ref?: Ref<HTMLDivElement>;
 }
 
-const Suggestions = ({ suggestions, selectedIndex, onSelect, onMouseEnter, mode, themes, currentTheme, onBack, ref }: SuggestionsProps) => {
+const Suggestions = memo(({ suggestions, selectedIndex, onSelect, onMouseEnter, mode, themes, currentTheme, onBack, ref }: SuggestionsProps) => {
     return (
       <div
         ref={ref}
@@ -70,6 +70,8 @@ const Suggestions = ({ suggestions, selectedIndex, onSelect, onMouseEnter, mode,
             ))}
       </div>
     );
-};
+});
+
+Suggestions.displayName = 'Suggestions';
 
 export default Suggestions;
