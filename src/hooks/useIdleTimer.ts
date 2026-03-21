@@ -27,7 +27,7 @@ const useIdleTimer = ({ containerRef, paused = false }: UseIdleTimerOptions): bo
     }
 
     const events = ['keydown', 'click', 'touchstart', 'mousemove'] as const;
-    events.forEach(evt => el.addEventListener(evt, resetTimer));
+    events.forEach(evt => el.addEventListener(evt, resetTimer, { passive: true }));
 
     // Start initial timer
     resetTimer();
