@@ -161,4 +161,12 @@ describe('Terminal', () => {
     // Mobile skills uses short label "Core Tech:" — verify mobile variant rendered
     expect(screen.getByText(/Core Tech:/)).toBeInTheDocument();
   });
+
+  it('renders hex background with theme-colored pattern', () => {
+    renderWithProviders(<Terminal {...defaultProps} />);
+    const bg = document.querySelector('.hex-bg') as HTMLElement;
+    expect(bg).toBeInTheDocument();
+    // Default theme is 'green' — radial gradient uses green RGB
+    expect(bg!.style.backgroundImage).toContain('0, 255, 65');
+  });
 });
