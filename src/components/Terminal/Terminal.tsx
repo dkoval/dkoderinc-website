@@ -111,9 +111,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const [revealingLines, setRevealingLines] = useState<TerminalLine[] | null>(null);
-  const [revealedCount, setRevealedCount] = useState(0);
   const revealRafRef = useRef<number>(0);
-  const revealLastTimeRef = useRef<number>(0);
   const revealStartIndexRef = useRef<number>(0);
   const isInputBlocked = revealingLines !== null;
 
@@ -464,7 +462,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
           return withoutSpinner;
         });
         setRevealingLines(newLines);
-        setRevealedCount(0);
       } else {
         // Instant reveal (single-line outputs, reduced motion)
         setTerminalOutput(prev => {
@@ -734,32 +731,38 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     };
   }, []);
 
-  // Progressive reveal animation
+  // Progressive reveal animation — batched RAF loop using absolute elapsed time.
+  // At 60fps (~16ms/frame), each tick advances floor(16/10) = 1 line.
+  // At 30fps (~33ms/frame), each tick advances 3 lines — organic batching.
   useEffect(() => {
     if (!revealingLines || revealingLines.length === 0) return;
 
-    if (revealedCount >= revealingLines.length) {
-      setRevealingLines(null);
-      return;
-    }
-
-    revealLastTimeRef.current = 0;
+    let flushedIndex = 0;
+    let startTime = 0;
+    const lines = revealingLines; // Capture for closure safety
 
     const step = (timestamp: number) => {
-      if (!revealLastTimeRef.current) revealLastTimeRef.current = timestamp;
-      if (timestamp - revealLastTimeRef.current >= 10) {
-        revealLastTimeRef.current = timestamp;
-        setRevealedCount(prev => prev + 1);
-        setTerminalOutput(prev => [...prev, revealingLines[revealedCount]]);
-        return; // State change will re-trigger this effect for the next line
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const targetIndex = Math.min(Math.floor(elapsed / 10), lines.length);
+
+      if (targetIndex > flushedIndex) {
+        const batch = lines.slice(flushedIndex, targetIndex);
+        flushedIndex = targetIndex;
+        setTerminalOutput(prev => appendOutput(prev, ...batch));
       }
-      // Keep polling until 10ms elapses
+
+      if (flushedIndex >= lines.length) {
+        setRevealingLines(null);
+        return;
+      }
+
       revealRafRef.current = requestAnimationFrame(step);
     };
 
     revealRafRef.current = requestAnimationFrame(step);
     return () => cancelAnimationFrame(revealRafRef.current);
-  }, [revealingLines, revealedCount]);
+  }, [revealingLines]);
 
   // Notify parent of reveal state changes
   useEffect(() => {
