@@ -4,8 +4,8 @@ import { suggestions, commands } from './commands';
 import { Volume2, VolumeX } from 'lucide-react';
 import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
-import AutoSuggestion from './AutoSuggestion';
 import TerminalOutput from './TerminalOutput';
+import TerminalInput from './TerminalInput';
 import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
 import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
 import useIsMobile from '../../hooks/useIsMobile';
@@ -745,38 +745,15 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         />
       </div>
       <div className="relative z-[1]">
-        <div className={`flex items-center space-x-2 w-full p-2 ${isInputBlocked ? 'input-blocked' : ''}`} style={{ border: '1px solid var(--terminal-border)' }}>
-          <span className="font-mono text-sm shrink-0 select-none">
-            <span style={{ color: 'var(--terminal-primary-dim)' }}>~ </span>
-            <span style={{ color: 'var(--terminal-primary)' }}>$ </span>
-          </span>
-          <div className="relative flex-1">
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputCommand}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10 caret-transparent"
-              style={{ color: 'var(--terminal-primary)' }}
-              inputMode={isMobile ? "none" : undefined}
-              autoCapitalize="none"
-              spellCheck={false}
-              autoComplete="off"
-            />
-            <AutoSuggestion
-              inputCommand={inputCommand}
-              suggestion={autoSuggestion}
-            />
-            <span
-              className="terminal-cursor font-mono text-sm pointer-events-none absolute top-0 left-0 z-0"
-              style={{ color: 'var(--terminal-primary)', paddingLeft: `${inputCommand.length}ch` }}
-              aria-hidden="true"
-            >
-              ▌
-            </span>
-          </div>
-        </div>
+        <TerminalInput
+          inputCommand={inputCommand}
+          autoSuggestion={autoSuggestion}
+          isInputBlocked={isInputBlocked}
+          isMobile={isMobile}
+          onInputChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          inputRef={inputRef}
+        />
         {showSuggestions && (
           <Suggestions
             ref={suggestionsRef}
