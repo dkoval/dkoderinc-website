@@ -5,6 +5,7 @@ import { Volume2, VolumeX } from 'lucide-react';
 import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
 import AutoSuggestion from './AutoSuggestion';
+import TerminalOutput from './TerminalOutput';
 import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
 import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
 import useIsMobile from '../../hooks/useIsMobile';
@@ -56,6 +57,9 @@ function buildHexPatternUri(color: string, opacity: number): string {
 const THEME_HEX_URIS: Record<ThemeName, string> = Object.fromEntries(
   Object.entries(THEME_HEX_COLORS).map(([t, c]) => [t, buildHexPatternUri(c, 0.3)])
 ) as Record<ThemeName, string>;
+
+const sanitizeHtml = (content: string): string =>
+  DOMPurify.sanitize(content, PURIFY_CONFIG);
 
 const RESPONSIVE_COMMANDS: Record<string, { mobile: string; desktop: string }> = {
   whoami: { mobile: 'whoami', desktop: 'whoamiDesktop' },
@@ -179,7 +183,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       ? 'Tap <span style="color: var(--terminal-primary)">≡</span> to explore commands.'
       : 'Type <span style="color: var(--terminal-primary)">\'help\'</span> or press <span style="color: var(--terminal-primary)">Tab</span> to explore.';
     return [
-      { content: `<span style="color: var(--terminal-gray)">${hint}</span>`, type: 'output' as const, isHtml: true },
+      { content: sanitizeHtml(`<span style="color: var(--terminal-gray)">${hint}</span>`), type: 'output' as const, isHtml: true },
     ];
   };
 
@@ -195,10 +199,10 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     return [
       { content: `${promptPrefix}help`, type: 'input' as const, timestamp: getCurrentTime() },
       { content: 'Available commands:', type: 'output' as const },
-      ...suggestions.map((_, i) => ({
+      ...suggestions.map((s, i) => ({
         content: '',
         type: 'output' as const,
-        helpEntry: { commandIndex: i },
+        helpEntry: { commandIndex: i, command: s.command, description: s.description, icon: s.icon },
       })),
       { content: '', type: 'output' as const },
       { content: 'Tips:', type: 'output' as const },
@@ -391,7 +395,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       } else if (trimmedCmd in commands) {
         const output = commands[trimmedCmd as keyof typeof commands];
         outputLines = output.map(line => ({
-          content: line,
+          content: output.isHtml ? sanitizeHtml(line) : line,
           type: 'output' as const,
           isHtml: output.isHtml,
         }));
@@ -730,70 +734,15 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
             onFadeOutComplete={handleRainFadeOutComplete}
           />
         )}
-        <div
-          ref={terminalRef}
-          className="h-full overflow-y-auto overflow-x-hidden text-sm terminal-scroll relative z-[1]"
-          style={{
-            opacity: rainVisible ? 0 : 1,
-            transition: 'opacity 400ms ease-in-out',
-          }}
-        >
-        {terminalOutput.map((line, index) => (
-          <div key={index} className={`group flex items-start hover:bg-white/5 px-2 py-0.5 -mx-2 rounded ${
-            isInputBlocked && index >= revealStartIndexRef.current ? 'line-reveal' : ''
-          }`}>
-            <p
-              className="font-mono flex-1 break-words"
-              style={
-                line.type === 'input' ? { color: 'var(--terminal-primary)' } :
-                line.type === 'error' ? { color: 'var(--terminal-error)' } :
-                { color: 'var(--terminal-output)' }
-              }
-            >
-              {line.type === 'timing' ? (
-                <span className="block text-right" style={{ color: 'var(--terminal-gray)', fontSize: '0.75rem' }}>
-                  {line.content}
-                </span>
-              ) : line.type === 'spinner' ? (
-                <span className="inline-flex items-center gap-2">
-                  <span className="ai-spinner" />
-                  <span style={{ color: 'var(--terminal-gray)' }}>{line.content}</span>
-                </span>
-              ) : line.helpEntry ? (
-                <span className="inline-flex items-center gap-3">
-                  {displaySuggestions[line.helpEntry.commandIndex].icon}
-                  <span style={{ color: 'var(--terminal-primary)' }}>{displaySuggestions[line.helpEntry.commandIndex].command}</span>
-                  <span style={{ color: 'var(--terminal-primary-dark)' }}>-</span>
-                  <span style={{ color: 'var(--terminal-gray)' }}>{displaySuggestions[line.helpEntry.commandIndex].description}</span>
-                </span>
-              ) : line.isHtml ? (
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(line.content, PURIFY_CONFIG),
-                  }}
-                />
-              ) : (
-                <span style={{ whiteSpace: 'pre-wrap' }}>{line.content}</span>
-              )}
-            </p>
-            <span className="text-xs mr-2 opacity-0 group-hover:opacity-100 select-none" style={{ color: 'var(--terminal-primary-dark)' }}>
-              {line.timestamp}
-            </span>
-          </div>
-        ))}
-        <div ref={sentinelRef} className="h-px" />
-        <div
-          className="scroll-indicator font-mono"
-          style={{
-            color: 'var(--terminal-primary-dim)',
-            opacity: showScrollIndicator ? 0.6 : 0,
-            fontSize: '0.75rem',
-            padding: '2px 0',
-          }}
-        >
-          ▼ more
-        </div>
-        </div>
+        <TerminalOutput
+          terminalOutput={terminalOutput}
+          isInputBlocked={isInputBlocked}
+          revealStartIndex={revealStartIndexRef.current}
+          showScrollIndicator={showScrollIndicator}
+          rainVisible={rainVisible}
+          scrollRef={terminalRef}
+          sentinelRef={sentinelRef}
+        />
       </div>
       <div className="relative z-[1]">
         <div className={`flex items-center space-x-2 w-full p-2 ${isInputBlocked ? 'input-blocked' : ''}`} style={{ border: '1px solid var(--terminal-border)' }}>

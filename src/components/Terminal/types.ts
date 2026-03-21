@@ -5,7 +5,12 @@ export interface TerminalLine {
   type: 'input' | 'output' | 'error' | 'spinner' | 'timing';
   isHtml?: boolean;
   timestamp?: string;
-  helpEntry?: { commandIndex: number };
+  helpEntry?: {
+    commandIndex: number;
+    command: string;
+    description: string;
+    icon: ReactNode;
+  };
   spinnerId?: number;
 }
 
