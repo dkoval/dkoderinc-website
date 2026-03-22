@@ -43,6 +43,7 @@ const TerminalInput = memo(({
           style={{ color: 'var(--terminal-primary)' }}
           inputMode={isMobile ? "search" : undefined}
           aria-expanded={showSuggestions}
+          aria-controls={showSuggestions ? "terminal-suggestions" : undefined}
           onClick={onInputClick}
           onFocus={onFocus}
           autoCapitalize="none"

@@ -867,8 +867,8 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
           showSuggestions={showSuggestions}
           onInputChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          onInputClick={handleInputClick}
-          onFocus={handleInputFocus}
+          onInputClick={isMobile ? handleInputClick : undefined}
+          onFocus={isMobile ? handleInputFocus : undefined}
           inputRef={inputRef}
         />
         {showSuggestions && (
