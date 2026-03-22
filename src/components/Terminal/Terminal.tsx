@@ -90,7 +90,7 @@ const RESPONSIVE_COMMANDS: Record<string, { mobile: string; desktop: string }> =
 };
 
 export type TerminalHandle = {
-  handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => void;
+  handleMobileAction: (action: 'up' | 'down') => void;
 };
 
 type TerminalProps = {
@@ -594,17 +594,15 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   }, [selectSuggestion, handleCommand]);
 
   useImperativeHandle(ref, () => ({
-    handleMobileAction: (action: 'tab' | 'up' | 'down' | 'enter') => {
+    handleMobileAction: (action: 'up' | 'down') => {
       if (isInputBlockedRef.current) return;
       switch (action) {
-        case 'tab': actionTab(); break;
         case 'up': actionUp(); break;
         case 'down': actionDown(); break;
-        case 'enter': actionEnter(); break;
       }
       inputRef.current?.focus();
     },
-  }), [actionTab, actionUp, actionDown, actionEnter]);
+  }), [actionUp, actionDown]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (isInputBlockedRef.current) { e.preventDefault(); return; }
