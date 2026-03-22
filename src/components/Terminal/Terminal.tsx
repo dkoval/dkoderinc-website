@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useImperativeHandle, useMemo, useCallback, ChangeEvent, KeyboardEvent, Ref } from 'react';
-import DOMPurify from 'dompurify';
+import type DOMPurifyType from 'dompurify';
 import { suggestions, commands } from './commands';
 import { Volume2, VolumeX } from 'lucide-react';
 import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
 import TerminalOutput from './TerminalOutput';
 import TerminalInput from './TerminalInput';
-import { PAGE_LOAD_TIME, formatUptime } from '../../constants';
+import { PAGE_LOAD_TIME, formatUptime, hexToRgba } from '../../constants';
 import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
 import useIsMobile from '../../hooks/useIsMobile';
 import { SoundType } from '../../hooks/useSoundEngine';
@@ -31,12 +31,13 @@ const THEME_HEX_COLORS: Record<ThemeName, string> = {
   'one-dark-pro': '#61AFEF',
 };
 
-function hexToRgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+type RainColors = { primary: string; primaryDim: string; bg: string };
+const THEME_RAIN_COLORS: Record<ThemeName, RainColors> = {
+  green: { primary: '#00FF41', primaryDim: '#00CC33', bg: '#0D0208' },
+  amber: { primary: '#FFB000', primaryDim: '#CC8C00', bg: '#0A0600' },
+  'tokyo-night': { primary: '#7AA2F7', primaryDim: '#565F89', bg: '#1A1B26' },
+  'one-dark-pro': { primary: '#61AFEF', primaryDim: '#5C6370', bg: '#282C34' },
+};
 
 const HEX_RADIUS = 5;
 const HEX_TILE_W = Math.sqrt(3) * HEX_RADIUS;
@@ -62,8 +63,19 @@ const THEME_HEX_URIS: Record<ThemeName, string> = Object.fromEntries(
   Object.entries(THEME_HEX_COLORS).map(([t, c]) => [t, buildHexPatternUri(c, 0.3)])
 ) as Record<ThemeName, string>;
 
-const sanitizeHtml = (content: string): string =>
-  DOMPurify.sanitize(content, PURIFY_CONFIG);
+let purifyInstance: typeof DOMPurifyType | null = null;
+
+const sanitizeHtml = async (content: string): Promise<string> => {
+  if (!purifyInstance) {
+    try {
+      const mod = await import('dompurify');
+      purifyInstance = mod.default;
+    } catch {
+      return content.replace(/<[^>]*>/g, '');
+    }
+  }
+  return purifyInstance.sanitize(content, PURIFY_CONFIG);
+};
 
 const getCurrentTime = () =>
   new Date().toLocaleTimeString('en-US', {
@@ -177,8 +189,10 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     };
   }, [theme]);
 
-  // Matrix rain idle effect
-  const reducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Read once — this preference almost never changes mid-session
+  const [reducedMotion] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
   const sectionRef = useRef<HTMLDivElement>(null);
   const isIdle = useIdleTimer({
     containerRef: sectionRef,
@@ -214,7 +228,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       ? 'Tap <span style="color: var(--terminal-primary)">≡</span> to explore commands.'
       : 'Type <span style="color: var(--terminal-primary)">\'help\'</span> or press <span style="color: var(--terminal-primary)">Tab</span> to explore.';
     return [
-      { content: sanitizeHtml(`<span style="color: var(--terminal-gray)">${hint}</span>`), type: 'output' as const, isHtml: true },
+      { content: `<span style="color: var(--terminal-gray)">${hint}</span>`, type: 'output' as const, isHtml: true },
     ];
   }, []);
 
@@ -350,6 +364,33 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
     const timeoutId = setTimeout(() => {
       spinnerTimeouts.current.delete(timeoutId);
+
+      const renderOutput = (lines: TerminalLine[], start: number, command: string, spinnerId: number) => {
+        const elapsed = ((performance.now() - start) / 1000).toFixed(1);
+        const showTiming = !command.startsWith('theme');
+        const timingLine: TerminalLine = { content: `took ${elapsed}s`, type: 'timing' };
+        const newLines = showTiming ? [...lines, timingLine] : lines;
+
+        const shouldAnimate = !reducedMotion && newLines.length > 1;
+
+        if (shouldAnimate) {
+          setTerminalOutput(prev => {
+            const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === spinnerId);
+            if (spinnerIndex === -1) return prev;
+            const withoutSpinner = [...prev.slice(0, spinnerIndex), ...prev.slice(spinnerIndex + 1)];
+            revealStartIndexRef.current = withoutSpinner.length;
+            return withoutSpinner;
+          });
+          setRevealingLines(newLines);
+        } else {
+          setTerminalOutput(prev => {
+            const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === spinnerId);
+            if (spinnerIndex === -1) return appendOutput(prev, ...newLines);
+            return [...prev.slice(0, spinnerIndex), ...newLines, ...prev.slice(spinnerIndex + 1)].slice(-MAX_OUTPUT);
+          });
+        }
+      };
+
       let outputLines: TerminalLine[];
 
       if (trimmedCmd in RESPONSIVE_COMMANDS) {
@@ -422,10 +463,26 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         }
       } else if (trimmedCmd in commands) {
         const output = commands[trimmedCmd as keyof typeof commands];
+        if (output.isHtml) {
+          Promise.all(output.map(line => sanitizeHtml(line))).then(sanitized => {
+            const htmlLines: TerminalLine[] = sanitized.map(content => ({
+              content,
+              type: 'output' as const,
+              isHtml: true,
+            }));
+            renderOutput(htmlLines, startTime, trimmedCmd, currentSpinnerId);
+          }).catch(() => {
+            const fallback: TerminalLine[] = output.map(line => ({
+              content: line.replace(/<[^>]*>/g, ''),
+              type: 'output' as const,
+            }));
+            renderOutput(fallback, startTime, trimmedCmd, currentSpinnerId);
+          });
+          return;
+        }
         outputLines = output.map(line => ({
-          content: output.isHtml ? sanitizeHtml(line) : line,
+          content: line,
           type: 'output' as const,
-          isHtml: output.isHtml,
         }));
       } else {
         onBellRef.current?.();
@@ -433,29 +490,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         outputLines = [{ content: `Command not found: ${cmd}`, type: 'error' as const }];
       }
 
-      const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
-      const showTiming = !trimmedCmd.startsWith('theme');
-      const timingLine: TerminalLine = { content: `took ${elapsed}s`, type: 'timing' };
-      const newLines = showTiming ? [...outputLines, timingLine] : outputLines;
-
-      const shouldAnimate = !reducedMotion && newLines.length > 1;
-
-      if (shouldAnimate) {
-        setTerminalOutput(prev => {
-          const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
-          if (spinnerIndex === -1) return prev;
-          const withoutSpinner = [...prev.slice(0, spinnerIndex), ...prev.slice(spinnerIndex + 1)];
-          revealStartIndexRef.current = withoutSpinner.length;
-          return withoutSpinner;
-        });
-        setRevealingLines(newLines);
-      } else {
-        setTerminalOutput(prev => {
-          const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
-          if (spinnerIndex === -1) return appendOutput(prev, ...newLines);
-          return [...prev.slice(0, spinnerIndex), ...newLines, ...prev.slice(spinnerIndex + 1)].slice(-MAX_OUTPUT);
-        });
-      }
+      renderOutput(outputLines, startTime, trimmedCmd, currentSpinnerId);
     }, 600);
     spinnerTimeouts.current.add(timeoutId);
   }, [cancelMotdAnimation, displayMotd, displayHelp, setTheme, reducedMotion]);
@@ -640,7 +675,11 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   // MOTD typing animation — triggered when boot splash completes
@@ -758,6 +797,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         {showRain && (
           <MatrixRain
             visible={rainVisible}
+            colors={THEME_RAIN_COLORS[theme]}
             onFadeOutComplete={handleRainFadeOutComplete}
           />
         )}

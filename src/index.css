@@ -100,6 +100,7 @@ body::after {
   src: url('/fonts/MonaspaceNeon-Regular.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -107,6 +108,7 @@ body::after {
   src: url('/fonts/MonaspaceArgon-Regular.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 body {

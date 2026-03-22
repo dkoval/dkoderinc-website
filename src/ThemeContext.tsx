@@ -56,6 +56,11 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      const bg = getComputedStyle(document.documentElement).getPropertyValue('--terminal-bg').trim();
+      meta.setAttribute('content', bg);
+    }
   }, [theme]);
 
   const value = useMemo(

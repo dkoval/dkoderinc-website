@@ -30,8 +30,11 @@ const Sidebar = () => {
         {/* Headshot */}
         <div className="relative overflow-hidden rounded" style={{ aspectRatio: '1/1' }}>
           <img
-            src="images/headshot.webp"
+            src="images/headshot-560.webp"
             alt="Dmytro Koval"
+            width={560}
+            height={560}
+            loading="lazy"
             className="w-full h-full object-cover"
             style={{ filter: headshotFilter }}
           />
@@ -70,8 +73,11 @@ const Sidebar = () => {
       {/* Mobile top bar */}
       <div className="flex md:hidden items-center gap-3 p-3 border-b" style={{ borderColor: 'var(--terminal-border)' }}>
         <img
-          src="images/headshot.webp"
+          src="images/headshot-80.webp"
           alt="Dmytro Koval"
+          width={80}
+          height={80}
+          loading="lazy"
           className="w-10 h-10 rounded-full object-cover"
           style={{ filter: headshotFilter }}
         />

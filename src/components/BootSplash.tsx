@@ -16,6 +16,11 @@ const BootSplash = ({ onComplete }: Props) => {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setVisibleLines(LINES.length);
+      onComplete();
+      return;
+    }
     const timers: ReturnType<typeof setTimeout>[] = [];
     LINES.forEach((_, i) => {
       timers.push(setTimeout(() => setVisibleLines(i + 1), i * 350));

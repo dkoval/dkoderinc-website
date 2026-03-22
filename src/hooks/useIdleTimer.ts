@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 const IDLE_TIMEOUT = 30_000; // 30 seconds
+const MOUSEMOVE_THROTTLE = 200; // ms
 
 type UseIdleTimerOptions = {
   /** Element to watch for activity. If null, idle detection is disabled. */
@@ -12,6 +13,7 @@ type UseIdleTimerOptions = {
 const useIdleTimer = ({ containerRef, paused = false }: UseIdleTimerOptions): boolean => {
   const [isIdle, setIsIdle] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastMoveRef = useRef(0);
 
   const resetTimer = useCallback(() => {
     setIsIdle(false);
@@ -26,14 +28,22 @@ const useIdleTimer = ({ containerRef, paused = false }: UseIdleTimerOptions): bo
       return;
     }
 
-    const events = ['keydown', 'click', 'touchstart', 'mousemove'] as const;
-    events.forEach(evt => el.addEventListener(evt, resetTimer, { passive: true }));
+    const handleActivity = (e: Event) => {
+      if (e.type === 'mousemove') {
+        const now = Date.now();
+        if (now - lastMoveRef.current < MOUSEMOVE_THROTTLE) return;
+        lastMoveRef.current = now;
+      }
+      resetTimer();
+    };
 
-    // Start initial timer
+    const events = ['keydown', 'click', 'touchstart', 'mousemove'] as const;
+    events.forEach(evt => el.addEventListener(evt, handleActivity, { passive: true }));
+
     resetTimer();
 
     return () => {
-      events.forEach(evt => el.removeEventListener(evt, resetTimer));
+      events.forEach(evt => el.removeEventListener(evt, handleActivity));
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [containerRef, paused, resetTimer]);
