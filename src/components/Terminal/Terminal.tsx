@@ -234,12 +234,12 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   // Plain-text MOTD hints (used by typing animation; HTML version derived below)
   const motdPlainText = isMobile
-    ? 'Tap \u2261 to explore commands.'
+    ? "Type 'help' or tap the prompt to explore."
     : "Type 'help' or press Tab to explore.";
 
   const displayMotd = useCallback((): TerminalLine[] => {
     const hint = isMobileRef.current
-      ? 'Tap <span style="color: var(--terminal-primary)">≡</span> to explore commands.'
+      ? 'Type <span style="color: var(--terminal-primary)">\'help\'</span> or <span style="color: var(--terminal-primary)">tap the prompt</span> to explore.'
       : 'Type <span style="color: var(--terminal-primary)">\'help\'</span> or press <span style="color: var(--terminal-primary)">Tab</span> to explore.';
     return [
       { content: `<span style="color: var(--terminal-gray)">${hint}</span>`, type: 'output' as const, isHtml: true },

@@ -1,4 +1,4 @@
-import { screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { screen, fireEvent, act } from '@testing-library/react';
 import Terminal, { appendOutput, MAX_OUTPUT } from '../Terminal';
 import { TerminalLine } from '../types';
 import { renderWithProviders, mockMatchMedia } from '../../../test/helpers';
