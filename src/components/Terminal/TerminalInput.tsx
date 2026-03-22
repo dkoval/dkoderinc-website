@@ -6,8 +6,11 @@ interface TerminalInputProps {
   autoSuggestion: string | null;
   isInputBlocked: boolean;
   isMobile: boolean;
+  showSuggestions: boolean;
   onInputChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onKeyDown: (e: KeyboardEvent) => void;
+  onInputClick?: () => void;
+  onFocus?: () => void;
   inputRef: Ref<HTMLInputElement>;
 }
 
@@ -16,8 +19,11 @@ const TerminalInput = memo(({
   autoSuggestion,
   isInputBlocked,
   isMobile,
+  showSuggestions,
   onInputChange,
   onKeyDown,
+  onInputClick,
+  onFocus,
   inputRef,
 }: TerminalInputProps) => {
   return (
@@ -35,7 +41,10 @@ const TerminalInput = memo(({
           onKeyDown={onKeyDown}
           className="bg-transparent font-mono text-sm w-full focus:outline-none relative z-10 caret-transparent"
           style={{ color: 'var(--terminal-primary)' }}
-          inputMode={isMobile ? "none" : undefined}
+          inputMode={isMobile ? "search" : undefined}
+          aria-expanded={showSuggestions}
+          onClick={onInputClick}
+          onFocus={onFocus}
           autoCapitalize="none"
           spellCheck={false}
           autoComplete="off"

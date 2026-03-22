@@ -816,6 +816,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
           autoSuggestion={autoSuggestion}
           isInputBlocked={isInputBlocked}
           isMobile={isMobile}
+          showSuggestions={showSuggestions}
           onInputChange={handleInputChange}
           onKeyDown={handleKeyDown}
           inputRef={inputRef}
