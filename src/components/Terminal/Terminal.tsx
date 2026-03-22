@@ -11,7 +11,7 @@ import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
 import useIsMobile from '../../hooks/useIsMobile';
 import { SoundType } from '../../hooks/useSoundEngine';
 import useIdleTimer from '../../hooks/useIdleTimer';
-import MatrixRain from './MatrixRain';
+import MatrixRain, { RainColors } from './MatrixRain';
 
 const MAX_HISTORY = 50;
 export const MAX_OUTPUT = 500;
@@ -31,7 +31,6 @@ const THEME_HEX_COLORS: Record<ThemeName, string> = {
   'one-dark-pro': '#61AFEF',
 };
 
-type RainColors = { primary: string; primaryDim: string; bg: string };
 const THEME_RAIN_COLORS: Record<ThemeName, RainColors> = {
   green: { primary: '#00FF41', primaryDim: '#00CC33', bg: '#0D0208' },
   amber: { primary: '#FFB000', primaryDim: '#CC8C00', bg: '#0A0600' },

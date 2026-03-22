@@ -32,7 +32,7 @@ const randomChar = (): string => {
   return CHAR_POOL[RANDOM_POOL[poolIndex++]];
 };
 
-type RainColors = { primary: string; primaryDim: string; bg: string };
+export type RainColors = { primary: string; primaryDim: string; bg: string };
 
 const initColumns = (width: number): Column[] => {
   const count = Math.floor(width / FONT_SIZE);
