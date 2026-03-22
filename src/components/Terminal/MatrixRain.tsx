@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { hexToRgba } from '../../constants';
 
 // Half-width katakana (U+FF66–FF9D) + code symbols
 const KATAKANA = Array.from({ length: 56 }, (_, i) => String.fromCharCode(0xFF66 + i));
@@ -15,23 +16,23 @@ type Column = {
   delay: number; // frames to wait before starting
 };
 
-const randomChar = () => CHAR_POOL[Math.floor(Math.random() * CHAR_POOL.length)];
+const POOL_SIZE = 1024;
+const RANDOM_POOL = new Uint16Array(POOL_SIZE);
+let poolIndex = POOL_SIZE; // Force initial fill
 
-const hexToRgba = (hex: string, alpha: number): string => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+const fillPool = () => {
+  for (let i = 0; i < POOL_SIZE; i++) {
+    RANDOM_POOL[i] = Math.floor(Math.random() * CHAR_POOL.length);
+  }
+  poolIndex = 0;
 };
 
-const getColors = () => {
-  const style = getComputedStyle(document.documentElement);
-  return {
-    primary: style.getPropertyValue('--terminal-primary').trim(),
-    primaryDim: style.getPropertyValue('--terminal-primary-dim').trim(),
-    bg: style.getPropertyValue('--terminal-bg').trim(),
-  };
+const randomChar = (): string => {
+  if (poolIndex >= POOL_SIZE) fillPool();
+  return CHAR_POOL[RANDOM_POOL[poolIndex++]];
 };
+
+export type RainColors = { primary: string; primaryDim: string; bg: string };
 
 const initColumns = (width: number): Column[] => {
   const count = Math.floor(width / FONT_SIZE);
@@ -43,16 +44,20 @@ const initColumns = (width: number): Column[] => {
 };
 
 type MatrixRainProps = {
-  /** Controls CSS opacity transition for fade in/out */
   visible: boolean;
-  /** Called when the fade-out transition ends (so parent can unmount) */
+  colors: RainColors;
   onFadeOutComplete: () => void;
 };
 
-const MatrixRain = ({ visible, onFadeOutComplete }: MatrixRainProps) => {
+const RESIZE_DEBOUNCE = 150;
+
+const MatrixRain = ({ visible, colors: colorsProp, onFadeOutComplete }: MatrixRainProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const columnsRef = useRef<Column[]>([]);
   const rafRef = useRef<number>(0);
+  const cssDimsRef = useRef({ width: 0, height: 0 });
+  const colorsRef = useRef(colorsProp);
+  colorsRef.current = colorsProp;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -61,38 +66,51 @@ const MatrixRain = ({ visible, onFadeOutComplete }: MatrixRainProps) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const resizeObserver = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      canvas.width = width;
-      canvas.height = height;
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    let firstResize = true;
+
+    const applySize = (width: number, height: number) => {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cssDimsRef.current = { width, height };
       columnsRef.current = initColumns(width);
       ctx.font = FONT;
+    };
+
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      if (width === 0 || height === 0) return;
+      if (firstResize) {
+        firstResize = false;
+        applySize(width, height);
+        return;
+      }
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => applySize(width, height), RESIZE_DEBOUNCE);
     });
     resizeObserver.observe(canvas.parentElement!);
 
-    // Clear canvas fully on mount
-    ctx.fillStyle = getColors().bg;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.font = FONT;
-
-    let colors = getColors();
+    let colors = colorsRef.current;
     let fadeColor = hexToRgba(colors.bg, FADE_ALPHA);
     let frameCount = 0;
 
     const draw = () => {
-      // Re-read colors every 60 frames (~1s) to pick up theme changes
       if (frameCount++ % 60 === 0) {
-        colors = getColors();
-        fadeColor = hexToRgba(colors.bg, FADE_ALPHA);
+        const latest = colorsRef.current;
+        if (latest !== colors) {
+          colors = latest;
+          fadeColor = hexToRgba(colors.bg, FADE_ALPHA);
+        }
       }
 
-      const { width, height } = canvas;
+      const { width, height } = cssDimsRef.current;
       if (width === 0 || height === 0) {
         rafRef.current = requestAnimationFrame(draw);
         return;
       }
 
-      // Fade trail: draw semi-transparent bg over previous frame
       ctx.fillStyle = fadeColor;
       ctx.fillRect(0, 0, width, height);
 
@@ -108,11 +126,9 @@ const MatrixRain = ({ visible, onFadeOutComplete }: MatrixRainProps) => {
         const x = i * FONT_SIZE;
         const yPx = col.y * FONT_SIZE;
 
-        // Lead character: bright primary color
         ctx.fillStyle = colors.primary;
         ctx.fillText(randomChar(), x, yPx);
 
-        // Trail character (one step behind): dimmer
         if (yPx - FONT_SIZE > 0) {
           ctx.fillStyle = colors.primaryDim;
           ctx.fillText(randomChar(), x, yPx - FONT_SIZE);
@@ -120,7 +136,6 @@ const MatrixRain = ({ visible, onFadeOutComplete }: MatrixRainProps) => {
 
         col.y += col.speed;
 
-        // Reset column when it passes the bottom
         if (yPx > height) {
           col.y = 0;
           col.speed = 0.3 + Math.random() * 0.7;
@@ -136,6 +151,7 @@ const MatrixRain = ({ visible, onFadeOutComplete }: MatrixRainProps) => {
     return () => {
       cancelAnimationFrame(rafRef.current);
       resizeObserver.disconnect();
+      if (resizeTimer) clearTimeout(resizeTimer);
     };
   }, []);
 
@@ -153,6 +169,7 @@ const MatrixRain = ({ visible, onFadeOutComplete }: MatrixRainProps) => {
       style={{
         opacity: visible ? 1 : 0,
         transition: 'opacity 400ms ease-in-out',
+        willChange: 'opacity',
         zIndex: 10,
       }}
     />

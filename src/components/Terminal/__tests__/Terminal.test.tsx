@@ -74,10 +74,11 @@ describe('Terminal', () => {
     expect(playSound).toHaveBeenCalledWith('error');
   });
 
-  it('renders contact output as HTML with links', () => {
+  it('renders contact output as HTML with links', async () => {
     renderWithProviders(<Terminal {...defaultProps} />);
     submitCommand('contact');
-    act(() => { vi.advanceTimersByTime(600); });
+    // DOMPurify is lazy-loaded — advanceTimersByTimeAsync flushes microtasks
+    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
     const link = screen.getByText('github.com/dkoval');
     expect(link.closest('a')).toHaveAttribute('href', 'https://github.com/dkoval');
   });
