@@ -65,6 +65,14 @@ const THEME_HEX_URIS: Record<ThemeName, string> = Object.fromEntries(
 const sanitizeHtml = (content: string): string =>
   DOMPurify.sanitize(content, PURIFY_CONFIG);
 
+const getCurrentTime = () =>
+  new Date().toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+
 const RESPONSIVE_COMMANDS: Record<string, { mobile: string; desktop: string }> = {
   whoami: { mobile: 'whoami', desktop: 'whoamiDesktop' },
   skills: { mobile: 'skillsMobile', desktop: 'skills' },
@@ -115,7 +123,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   const revealStartIndexRef = useRef<number>(0);
   const isInputBlocked = revealingLines !== null;
 
-  // Latest-ref pattern: keep refs in sync so useCallback closures read current values
   const themeRef = useRef(theme);
   const soundEnabledRef = useRef(soundEnabled);
   const isMobileRef = useRef(isMobile);
@@ -140,7 +147,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   commandHistoryRef.current = commandHistory;
   isInputBlockedRef.current = isInputBlocked;
 
-  // Refs for callback props (stable refs avoid useCallback dep churn)
   const playSoundRef = useRef(playSound);
   const onShutdownRef = useRef(onShutdown);
   const onBellRef = useRef(onBell);
@@ -151,7 +157,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   onBellRef.current = onBell;
   onSoundSetRef.current = onSoundSet;
 
-  // Derive suggestions with dynamic sound icon based on current state
   const displaySuggestions = useMemo(() => suggestions.map(s =>
     s.command === 'sound'
       ? { ...s, icon: soundEnabled
@@ -173,9 +178,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   }, [theme]);
 
   // Matrix rain idle effect
-  const [reducedMotion] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
+  const reducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const sectionRef = useRef<HTMLDivElement>(null);
   const isIdle = useIdleTimer({
     containerRef: sectionRef,
@@ -184,7 +187,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   const [showRain, setShowRain] = useState(false);
   const [rainVisible, setRainVisible] = useState(false);
 
-  // When idle state changes, manage rain visibility
   useEffect(() => {
     let rafId: number;
     if (isIdle && !isMobile && !reducedMotion) {
@@ -200,15 +202,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   const handleRainFadeOutComplete = () => {
     setShowRain(false);
-  };
-
-  const getCurrentTime = () => {
-    return new Date().toLocaleTimeString('en-US', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
   };
 
   // Plain-text MOTD hints (used by typing animation; HTML version derived below)
@@ -237,10 +230,10 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     return [
       { content: `${promptPrefix}help`, type: 'input' as const, timestamp: getCurrentTime() },
       { content: 'Available commands:', type: 'output' as const },
-      ...suggestions.map((s, i) => ({
+      ...suggestions.map(s => ({
         content: '',
         type: 'output' as const,
-        helpEntry: { commandIndex: i, command: s.command, description: s.description, icon: s.icon },
+        helpEntry: { command: s.command, description: s.description, icon: s.icon },
       })),
       { content: '', type: 'output' as const },
       { content: 'Tips:', type: 'output' as const },
@@ -334,7 +327,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       return;
     }
 
-    // Add input line + spinner with unique ID
     const currentSpinnerId = ++spinnerIdRef.current;
     const inputLine: TerminalLine = {
       content: `${promptPrefix}${trimmedCmd}`,
@@ -356,8 +348,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
     const startTime = performance.now();
 
-    // After delay, replace this specific spinner with real output
-    // IMPORTANT: All state reads inside this closure use refs to avoid stale closures
     const timeoutId = setTimeout(() => {
       spinnerTimeouts.current.delete(timeoutId);
       let outputLines: TerminalLine[];
@@ -443,17 +433,14 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         outputLines = [{ content: `Command not found: ${cmd}`, type: 'error' as const }];
       }
 
-      // Append timing line (exclude theme commands — they have phosphor transition feedback)
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
       const showTiming = !trimmedCmd.startsWith('theme');
       const timingLine: TerminalLine = { content: `took ${elapsed}s`, type: 'timing' };
       const newLines = showTiming ? [...outputLines, timingLine] : outputLines;
 
-      // Progressive reveal for multi-line outputs
       const shouldAnimate = !reducedMotion && newLines.length > 1;
 
       if (shouldAnimate) {
-        // Remove spinner, then start reveal
         setTerminalOutput(prev => {
           const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
           if (spinnerIndex === -1) return prev;
@@ -463,7 +450,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         });
         setRevealingLines(newLines);
       } else {
-        // Instant reveal (single-line outputs, reduced motion)
         setTerminalOutput(prev => {
           const spinnerIndex = prev.findIndex(l => l.type === 'spinner' && l.spinnerId === currentSpinnerId);
           if (spinnerIndex === -1) return appendOutput(prev, ...newLines);
@@ -524,7 +510,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     }
   }, []);
 
-  // Extracted action handlers for both keyboard and mobile button use
   const actionTab = useCallback(() => {
     cancelMotdAnimation();
     if (showSuggestionsRef.current) {
@@ -731,9 +716,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     };
   }, []);
 
-  // Progressive reveal animation — batched RAF loop using absolute elapsed time.
-  // At 60fps (~16ms/frame), each tick advances floor(16/10) = 1 line.
-  // At 30fps (~33ms/frame), each tick advances 3 lines — organic batching.
+  // Batched reveal: 10ms/line target, naturally batches at low frame rates (30fps → 3 lines/frame)
   useEffect(() => {
     if (!revealingLines || revealingLines.length === 0) return;
 
@@ -764,7 +747,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     return () => cancelAnimationFrame(revealRafRef.current);
   }, [revealingLines]);
 
-  // Notify parent of reveal state changes
   useEffect(() => {
     onRevealStateChange?.(isInputBlocked);
   }, [revealingLines, onRevealStateChange]);

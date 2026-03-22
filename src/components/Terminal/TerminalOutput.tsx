@@ -62,7 +62,7 @@ const TerminalOutput = memo(({
                 dangerouslySetInnerHTML={{ __html: line.content }}
               />
             ) : (
-              <span style={{ whiteSpace: 'pre-wrap' }}>{line.content}</span>
+              <span style={{ whiteSpace: 'pre' }}>{line.content}</span>
             )}
           </p>
           <span className="text-xs mr-2 opacity-0 group-hover:opacity-100 select-none" style={{ color: 'var(--terminal-primary-dark)' }}>

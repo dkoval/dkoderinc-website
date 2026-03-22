@@ -6,7 +6,6 @@ export interface TerminalLine {
   isHtml?: boolean;
   timestamp?: string;
   helpEntry?: {
-    commandIndex: number;
     command: string;
     description: string;
     icon: ReactNode;
