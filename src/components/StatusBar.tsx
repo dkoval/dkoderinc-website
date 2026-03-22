@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
 import { useTheme } from '../ThemeContext';
 import useIsMobile from '../hooks/useIsMobile';
+import Clock from './Clock';
 
 type StatusBarProps = {
   onSoundToggle?: () => void;
@@ -10,19 +10,6 @@ type StatusBarProps = {
 const StatusBar = ({ onSoundToggle, soundEnabled = false }: StatusBarProps) => {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
-  const [clock, setClock] = useState(() => new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => setClock(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const timeStr = clock.toLocaleTimeString('en-US', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    ...(isMobile ? {} : { second: '2-digit' }),
-  });
 
   return (
     <div className="status-bar flex items-center justify-between px-3 py-1 font-mono shrink-0 select-none">
@@ -55,7 +42,7 @@ const StatusBar = ({ onSoundToggle, soundEnabled = false }: StatusBarProps) => {
           </>
         )}
         <span style={{ color: 'var(--terminal-border)' }}>│</span>
-        <span>{timeStr}</span>
+        <Clock />
       </div>
     </div>
   );

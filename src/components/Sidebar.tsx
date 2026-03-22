@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
-import { PAGE_LOAD_TIME, formatUptime } from '../constants';
 import { useTheme, ThemeName } from '../ThemeContext';
+import Uptime from './Uptime';
 
 const SOCIAL_LINKS = [
   { href: 'https://github.com/dkoval', Icon: Github, label: 'github.com' },
@@ -18,18 +17,8 @@ const HEADSHOT_FILTERS: Record<ThemeName, string> = {
 };
 
 const Sidebar = () => {
-  const [uptime, setUptime] = useState(0);
   const { theme } = useTheme();
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setUptime(Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   const headshotFilter = HEADSHOT_FILTERS[theme];
-
 
   return (
     <>
@@ -60,7 +49,7 @@ const Sidebar = () => {
           <p><span style={{ color: 'var(--terminal-gray)' }}>Exp:    </span><span style={{ color: 'var(--terminal-primary)' }}>15+ years</span></p>
           <p><span style={{ color: 'var(--terminal-gray)' }}>Stack:  </span><span style={{ color: 'var(--terminal-primary)' }}>Java, Kotlin</span></p>
           <p><span style={{ color: 'var(--terminal-gray)' }}>Status: </span><span style={{ color: 'var(--terminal-primary)' }}>available</span></p>
-          <p><span style={{ color: 'var(--terminal-gray)' }}>Uptime: </span><span style={{ color: 'var(--terminal-primary)' }}>{formatUptime(uptime)}</span></p>
+          <p><span style={{ color: 'var(--terminal-gray)' }}>Uptime: </span><Uptime /></p>
         </div>
         {/* Social links as known_hosts */}
         <div className="font-mono text-sm border rounded p-3" style={{ borderColor: 'var(--terminal-border)' }}>

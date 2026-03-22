@@ -1,5 +1,6 @@
 import { screen, fireEvent, act } from '@testing-library/react';
-import Terminal from '../Terminal';
+import Terminal, { appendOutput, MAX_OUTPUT } from '../Terminal';
+import { TerminalLine } from '../types';
 import { renderWithProviders, mockMatchMedia } from '../../../test/helpers';
 
 // Helper: set up matchMedia for Terminal tests
@@ -168,5 +169,30 @@ describe('Terminal', () => {
     expect(bg).toBeInTheDocument();
     // Default theme is 'green' — radial gradient uses green RGB
     expect(bg!.style.backgroundImage).toContain('0, 255, 65');
+  });
+});
+
+describe('appendOutput', () => {
+  const makeLine = (content: string): TerminalLine => ({
+    content,
+    type: 'output',
+  });
+
+  it('caps output at MAX_OUTPUT lines, preserving most recent', () => {
+    const existing = Array.from({ length: MAX_OUTPUT - 2 }, (_, i) => makeLine(`line-${i}`));
+    const newLines = [makeLine('new-1'), makeLine('new-2'), makeLine('new-3')];
+    const result = appendOutput(existing, ...newLines);
+    expect(result).toHaveLength(MAX_OUTPUT);
+    expect(result[result.length - 1].content).toBe('new-3');
+    expect(result[result.length - 2].content).toBe('new-2');
+    expect(result[result.length - 3].content).toBe('new-1');
+    // Oldest line dropped
+    expect(result[0].content).toBe('line-1');
+  });
+
+  it('does not cap when under limit', () => {
+    const existing = [makeLine('a'), makeLine('b')];
+    const result = appendOutput(existing, makeLine('c'));
+    expect(result).toHaveLength(3);
   });
 });

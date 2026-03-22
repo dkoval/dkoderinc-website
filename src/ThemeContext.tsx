@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo, ReactNode } from 'react';
 
 export type ThemeName = 'green' | 'amber' | 'tokyo-night' | 'one-dark-pro';
 
@@ -58,8 +58,13 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
+  const value = useMemo(
+    () => ({ theme, setTheme, transitioning }),
+    [theme, transitioning]
+  );
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, transitioning }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
