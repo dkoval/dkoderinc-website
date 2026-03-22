@@ -77,8 +77,10 @@ describe('Terminal', () => {
   it('renders contact output as HTML with links', async () => {
     renderWithProviders(<Terminal {...defaultProps} />);
     submitCommand('contact');
-    // DOMPurify is lazy-loaded — advanceTimersByTimeAsync flushes microtasks
+    // DOMPurify is lazy-loaded — two flushes needed: first fires the 600ms timeout,
+    // second resolves the dynamic import() promise after suggestion state transitions
     await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
     const link = screen.getByText('github.com/dkoval');
     expect(link.closest('a')).toHaveAttribute('href', 'https://github.com/dkoval');
   });
@@ -170,6 +172,52 @@ describe('Terminal', () => {
     expect(bg).toBeInTheDocument();
     // Default theme is 'green' — radial gradient uses green RGB
     expect(bg!.style.backgroundImage).toContain('0, 255, 65');
+  });
+});
+
+describe('suggestion filtering (mobile)', () => {
+  beforeEach(() => {
+    setupTerminalMedia(true); // mobile mode
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('shows suggestions when input is focused and empty', async () => {
+    const { container } = renderWithProviders(<Terminal {...defaultProps} />);
+    const input = container.querySelector('input');
+    fireEvent.focus(input!);
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
+  it('filters suggestions by prefix as user types', async () => {
+    const { container } = renderWithProviders(<Terminal {...defaultProps} />);
+    const input = container.querySelector('input');
+    fireEvent.focus(input!);
+    fireEvent.change(input!, { target: { value: 'sk' } });
+    const options = screen.getAllByRole('option');
+    expect(options).toHaveLength(1);
+    expect(options[0]).toHaveAttribute('aria-label', 'Run skills');
+  });
+
+  it('re-opens full list when input is backspaced to empty', async () => {
+    const { container } = renderWithProviders(<Terminal {...defaultProps} />);
+    const input = container.querySelector('input');
+    fireEvent.focus(input!);
+    fireEvent.change(input!, { target: { value: 's' } });
+    fireEvent.change(input!, { target: { value: '' } });
+    const options = screen.getAllByRole('option');
+    expect(options.length).toBeGreaterThan(1);
+  });
+
+  it('hides suggestions when no commands match', async () => {
+    const { container } = renderWithProviders(<Terminal {...defaultProps} />);
+    const input = container.querySelector('input');
+    fireEvent.focus(input!);
+    fireEvent.change(input!, { target: { value: 'xyz' } });
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 });
 
