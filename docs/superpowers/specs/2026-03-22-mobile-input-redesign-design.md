@@ -76,6 +76,7 @@ The dropdown appears as a floating list above the input line — not a full-scre
 - Execute a command
 - Tap outside the dropdown (on terminal output)
 - No matching commands for current input
+- Backspacing to empty re-opens the full command list (treated as a "show" trigger, not a "hide")
 
 **Filtering:**
 
