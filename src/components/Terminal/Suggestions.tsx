@@ -12,19 +12,41 @@ interface SuggestionsProps {
   themes?: ThemeName[];
   currentTheme?: ThemeName;
   onBack?: () => void;
+  filterText?: string;
   ref?: Ref<HTMLDivElement>;
 }
 
-const Suggestions = memo(({ suggestions, selectedIndex, onSelect, onMouseEnter, mode, themes, currentTheme, onBack, ref }: SuggestionsProps) => {
+const highlightMatch = (command: string, filter: string) => {
+  if (!filter) return <span>{command}</span>;
+  const matchEnd = filter.length;
+  return (
+    <>
+      <span data-highlight="match" style={{ color: 'var(--terminal-primary)', fontWeight: 'bold' }}>
+        {command.slice(0, matchEnd)}
+      </span>
+      <span style={{ color: 'var(--terminal-gray)' }}>
+        {command.slice(matchEnd)}
+      </span>
+    </>
+  );
+};
+
+const Suggestions = memo(({ suggestions, selectedIndex, onSelect, onMouseEnter, mode, themes, currentTheme, onBack, filterText, ref }: SuggestionsProps) => {
     return (
       <div
         ref={ref}
-        className="absolute bottom-full mb-2 w-full shadow-lg overflow-hidden"
-        style={{ background: 'var(--terminal-bg)', border: '1px solid var(--terminal-border)' }}
+        id="terminal-suggestions"
+        role="listbox"
+        className="absolute bottom-full left-0 right-0 mb-1 z-20 overflow-y-auto rounded border"
+        style={{
+          maxHeight: 'min(50vh, 200px)',
+          background: 'var(--terminal-bg)',
+          borderColor: 'color-mix(in srgb, var(--terminal-primary) 30%, transparent)',
+        }}
       >
         {mode === 'themes' && (
           <button
-            className="w-full px-4 py-2 flex items-center space-x-2 text-left text-sm border-b min-h-[44px] md:min-h-0"
+            className="w-full px-4 py-2 flex items-center space-x-2 text-left text-sm border-b min-h-[44px]"
             style={{ color: 'var(--terminal-gray)', borderColor: 'var(--terminal-border)' }}
             onClick={onBack}
           >
@@ -36,7 +58,10 @@ const Suggestions = memo(({ suggestions, selectedIndex, onSelect, onMouseEnter, 
           ? suggestions.map((suggestion, index) => (
               <button
                 key={suggestion.command}
-                className="w-full px-4 py-2 flex items-center space-x-3 text-left text-sm transition-colors min-h-[44px] md:min-h-0"
+                role="option"
+                aria-label={`Run ${suggestion.command}`}
+                aria-selected={index === selectedIndex}
+                className="w-full px-4 py-2 flex items-center space-x-3 text-left text-sm transition-colors min-h-[44px]"
                 style={{
                   background: index === selectedIndex ? 'var(--terminal-surface)' : 'transparent',
                   borderLeft: index === selectedIndex ? '2px solid var(--terminal-primary)' : '2px solid transparent',
@@ -45,7 +70,7 @@ const Suggestions = memo(({ suggestions, selectedIndex, onSelect, onMouseEnter, 
                 onMouseEnter={() => onMouseEnter(index)}
               >
                 {suggestion.icon}
-                <span className="font-mono" style={{ color: 'var(--terminal-primary)' }}>{suggestion.command}</span>
+                <span className="font-mono">{highlightMatch(suggestion.command, filterText ?? '')}</span>
                 <span style={{ color: 'var(--terminal-primary-dark)' }}>-</span>
                 <span style={{ color: 'var(--terminal-gray)' }}>{suggestion.description}</span>
               </button>
@@ -53,7 +78,10 @@ const Suggestions = memo(({ suggestions, selectedIndex, onSelect, onMouseEnter, 
           : themes?.map((t, index) => (
               <button
                 key={t}
-                className="w-full px-4 py-2 flex items-center space-x-3 text-left text-sm transition-colors min-h-[44px] md:min-h-0"
+                role="option"
+                aria-label={`Run ${t}`}
+                aria-selected={index === selectedIndex}
+                className="w-full px-4 py-2 flex items-center space-x-3 text-left text-sm transition-colors min-h-[44px]"
                 style={{
                   background: index === selectedIndex ? 'var(--terminal-surface)' : 'transparent',
                   borderLeft: index === selectedIndex ? '2px solid var(--terminal-primary)' : '2px solid transparent',
