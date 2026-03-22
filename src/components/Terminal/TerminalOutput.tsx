@@ -22,6 +22,8 @@ const TerminalOutput = memo(({
 }: TerminalOutputProps) => {
   return (
     <div
+      role="log"
+      aria-live="polite"
       ref={scrollRef}
       className="h-full overflow-y-auto overflow-x-hidden text-sm terminal-scroll relative z-[1]"
       style={{

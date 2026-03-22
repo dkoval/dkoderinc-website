@@ -1,4 +1,4 @@
-import { screen, fireEvent, act } from '@testing-library/react';
+import { screen, fireEvent, act, waitFor } from '@testing-library/react';
 import Terminal, { appendOutput, MAX_OUTPUT } from '../Terminal';
 import { TerminalLine } from '../types';
 import { renderWithProviders, mockMatchMedia } from '../../../test/helpers';
@@ -45,6 +45,12 @@ describe('Terminal', () => {
     expect(screen.getAllByText((_, el) =>
       el?.tagName === 'SPAN' && /Type.*'help'.*Tab.*explore/.test(el.textContent ?? '')
     ).length).toBeGreaterThan(0);
+  });
+
+  it('shows updated mobile MOTD', () => {
+    setupTerminalMedia(true); // mobile
+    const { container } = renderWithProviders(<Terminal {...defaultProps} />);
+    expect(container.textContent).toContain("Type 'help' or tap the prompt to explore.");
   });
 
   it('renders known command output after spinner delay', () => {
@@ -243,5 +249,13 @@ describe('appendOutput', () => {
     const existing = [makeLine('a'), makeLine('b')];
     const result = appendOutput(existing, makeLine('c'));
     expect(result).toHaveLength(3);
+  });
+
+  it('terminal output container has role="log" and aria-live="polite"', () => {
+    setupTerminalMedia(false);
+    const { container } = renderWithProviders(<Terminal {...defaultProps} />);
+    const log = container.querySelector('[role="log"]');
+    expect(log).toBeInTheDocument();
+    expect(log).toHaveAttribute('aria-live', 'polite');
   });
 });
