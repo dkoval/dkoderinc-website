@@ -338,7 +338,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   }, [cancelMotdAnimation, updateAutoSuggestion]);
 
   const handleInputFocus = useCallback(() => {
-    if (inputCommandRef.current.trim() === '') {
+    if (inputCommandRef.current.trim() === '' && !showSuggestionsRef.current) {
       setShowSuggestions(true);
       setSuggestionMode('commands');
       setSelectedSuggestionIndex(0);
@@ -616,7 +616,9 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       const history = commandHistoryRef.current;
       const newIndex = historyIndexRef.current + 1 >= history.length ? 0 : historyIndexRef.current + 1;
       setHistoryIndex(newIndex);
-      setInputCommand(history[history.length - 1 - newIndex]);
+      const cmd = history[history.length - 1 - newIndex];
+      inputCommandRef.current = cmd;
+      setInputCommand(cmd);
       setAutoSuggestion(null);
     }
   }, []);
@@ -629,7 +631,9 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       const history = commandHistoryRef.current;
       const newIndex = historyIndexRef.current <= 0 ? history.length - 1 : historyIndexRef.current - 1;
       setHistoryIndex(newIndex);
-      setInputCommand(history[history.length - 1 - newIndex]);
+      const cmd = history[history.length - 1 - newIndex];
+      inputCommandRef.current = cmd;
+      setInputCommand(cmd);
       setAutoSuggestion(null);
     }
   }, []);
