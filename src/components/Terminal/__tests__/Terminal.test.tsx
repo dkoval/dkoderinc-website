@@ -19,7 +19,6 @@ const defaultProps = {
   playSound: vi.fn(),
   soundEnabled: false,
   onSoundSet: vi.fn(),
-  onRevealStateChange: vi.fn(),
   bootComplete: true,
 };
 

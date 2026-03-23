@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useImperativeHandle, useMemo, useCallback, ChangeEvent, KeyboardEvent, Ref } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, ChangeEvent, KeyboardEvent } from 'react';
 import type DOMPurifyType from 'dompurify';
 import { suggestions } from './commands';
 import { Volume2, VolumeX } from 'lucide-react';
@@ -73,22 +73,16 @@ const sanitizeHtml = async (content: string): Promise<string> => {
   return purifyInstance.sanitize(content, PURIFY_CONFIG);
 };
 
-export type TerminalHandle = {
-  handleMobileAction: (action: 'up' | 'down') => void;
-};
-
 type TerminalProps = {
   onShutdown?: () => void;
   onBell?: () => void;
   playSound?: (sound: SoundType) => void;
   soundEnabled?: boolean;
   onSoundSet?: (enabled: boolean) => void;
-  onRevealStateChange?: (isRevealing: boolean) => void;
   bootComplete?: boolean;
-  ref?: Ref<TerminalHandle>;
 };
 
-const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onRevealStateChange, bootComplete, ref }: TerminalProps) => {
+const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, bootComplete }: TerminalProps) => {
   const isMobile = useIsMobile();
   const promptPrefix = '~ $ ';
   const { theme, setTheme } = useTheme();
@@ -555,17 +549,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     }
   }, [selectSuggestion, handleCommand]);
 
-  useImperativeHandle(ref, () => ({
-    handleMobileAction: (action: 'up' | 'down') => {
-      if (isInputBlockedRef.current) return;
-      switch (action) {
-        case 'up': actionUp(); break;
-        case 'down': actionDown(); break;
-      }
-      inputRef.current?.focus();
-    },
-  }), [actionUp, actionDown]);
-
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (isInputBlockedRef.current) { e.preventDefault(); return; }
     switch (e.key) {
@@ -624,8 +607,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       if (
         suggestionsRef.current &&
         !suggestionsRef.current.contains(target) &&
-        !inputRef.current?.contains(target) &&
-        !target.closest('[data-mobile-action]')
+        !inputRef.current?.contains(target)
       ) {
         setShowSuggestions(false);
         setSuggestionMode('commands');
@@ -744,10 +726,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     revealRafRef.current = requestAnimationFrame(step);
     return () => cancelAnimationFrame(revealRafRef.current);
   }, [revealingLines]);
-
-  useEffect(() => {
-    onRevealStateChange?.(isInputBlocked);
-  }, [revealingLines, onRevealStateChange]);
 
   return (
     <section ref={sectionRef} className="w-full flex flex-col flex-1 overflow-hidden p-4 terminal-glow crt-breathe" style={{ background: 'var(--terminal-bg)' }}>
