@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef, useImperativeHandle, useMemo, useCallback, ChangeEvent, KeyboardEvent, Ref } from 'react';
 import type DOMPurifyType from 'dompurify';
-import { suggestions, commands } from './commands';
+import { suggestions } from './commands';
 import { Volume2, VolumeX } from 'lucide-react';
 import { TerminalLine } from './types';
 import Suggestions from './Suggestions';
 import TerminalOutput from './TerminalOutput';
 import TerminalInput from './TerminalInput';
-import { PAGE_LOAD_TIME, formatUptime, hexToRgba } from '../../constants';
+import { hexToRgba, getCurrentTime } from '../../constants';
 import { useTheme, ThemeName, VALID_THEMES } from '../../ThemeContext';
+import { resolveCommand } from './commandResolver';
 import useIsMobile from '../../hooks/useIsMobile';
 import { SoundType } from '../../hooks/useSoundEngine';
 import useIdleTimer from '../../hooks/useIdleTimer';
@@ -19,10 +20,6 @@ export const MAX_OUTPUT = 500;
 export const appendOutput = (prev: TerminalLine[], ...lines: TerminalLine[]): TerminalLine[] =>
   [...prev, ...lines].slice(-MAX_OUTPUT);
 const PURIFY_CONFIG = { ADD_ATTR: ['target', 'style'], ADD_TAGS: ['svg', 'path', 'rect', 'circle', 'polyline'] };
-const THEME_EASTER_EGGS: Partial<Record<ThemeName, string>> = {
-  'tokyo-night': 'Welcome to Neo-Tokyo. The night shift begins.',
-  'one-dark-pro': 'Dark mode activated. Your eyes will thank you.',
-};
 
 const THEME_HEX_COLORS: Record<ThemeName, string> = {
   green: '#00FF41',
@@ -74,19 +71,6 @@ const sanitizeHtml = async (content: string): Promise<string> => {
     }
   }
   return purifyInstance.sanitize(content, PURIFY_CONFIG);
-};
-
-const getCurrentTime = () =>
-  new Date().toLocaleTimeString('en-US', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-
-const RESPONSIVE_COMMANDS: Record<string, { mobile: string; desktop: string }> = {
-  whoami: { mobile: 'whoami', desktop: 'whoamiDesktop' },
-  skills: { mobile: 'skillsMobile', desktop: 'skills' },
 };
 
 export type TerminalHandle = {
@@ -423,106 +407,45 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         }
       };
 
-      let outputLines: TerminalLine[];
+      const result = resolveCommand(trimmedCmd, {
+        isMobile: isMobileRef.current,
+        theme: themeRef.current,
+        soundEnabled: !!soundEnabledRef.current,
+      });
 
-      if (trimmedCmd in RESPONSIVE_COMMANDS) {
-        const variant = RESPONSIVE_COMMANDS[trimmedCmd];
-        const key = isMobileRef.current ? variant.mobile : variant.desktop;
-        outputLines = commands[key].map(line => ({
-          content: line,
-          type: 'output' as const,
-        }));
-      } else if (trimmedCmd === 'uptime') {
-        const seconds = Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000);
-        const timeStr = getCurrentTime();
-        const base = (Date.now() % 100) / 100;
-        const load1 = (0.3 + base * 0.4).toFixed(2);
-        const load5 = (0.2 + base * 0.25).toFixed(2);
-        const load15 = (0.05 + base * 0.15).toFixed(2);
-        outputLines = [
-          { content: ` ${timeStr} up ${formatUptime(seconds)},  1 user,  load average: ${load1}, ${load5}, ${load15}`, type: 'output' },
-        ];
-      } else if (trimmedCmd === 'theme' || trimmedCmd.startsWith('theme ')) {
-        const arg = trimmedCmd.replace('theme', '').trim();
-        if (!arg) {
-          outputLines = [
-            { content: `Current theme: ${themeRef.current}`, type: 'output' },
-            { content: `Available: ${VALID_THEMES.join(', ')}`, type: 'output' },
-            { content: `Usage: theme <name>`, type: 'output' },
-          ];
-        } else if (VALID_THEMES.includes(arg as ThemeName)) {
-          const eggMessage = THEME_EASTER_EGGS[arg as ThemeName];
-          const eggKey = `dkoder-${arg}-seen`;
-          const isFirstTime = eggMessage && !localStorage.getItem(eggKey);
-          setTheme(arg as ThemeName);
-          playSoundRef.current?.('themeSwitch');
-          if (isFirstTime) {
-            localStorage.setItem(eggKey, '1');
-            outputLines = [
-              { content: eggMessage, type: 'output' },
-            ];
-          } else {
-            outputLines = [
-              { content: `Theme switched to ${arg}.`, type: 'output' },
-            ];
-          }
-        } else {
-          outputLines = [
-            { content: `Unknown theme: ${arg}. Available: ${VALID_THEMES.join(', ')}`, type: 'error' },
-          ];
+      result.effects?.forEach(effect => {
+        switch (effect.type) {
+          case 'setTheme':
+            setTheme(effect.theme);
+            playSoundRef.current?.('themeSwitch');
+            break;
+          case 'setSoundEnabled':
+            onSoundSetRef.current?.(effect.enabled);
+            break;
+          case 'bell':
+            onBellRef.current?.();
+            playSoundRef.current?.('error');
+            break;
         }
-      } else if (trimmedCmd === 'sound' || trimmedCmd.startsWith('sound ')) {
-        const arg = trimmedCmd.replace('sound', '').trim();
-        if (!arg) {
-          outputLines = [
-            { content: `Sound: ${soundEnabledRef.current ? 'on' : 'off'}`, type: 'output' },
-            { content: `Usage: sound <on|off>`, type: 'output' },
-          ];
-        } else if (arg === 'on') {
-          onSoundSetRef.current?.(true);
-          outputLines = [
-            { content: 'Sound enabled.', type: 'output' },
-          ];
-        } else if (arg === 'off') {
-          onSoundSetRef.current?.(false);
-          outputLines = [
-            { content: 'Sound disabled.', type: 'output' },
-          ];
-        } else {
-          outputLines = [
-            { content: `Unknown option: ${arg}. Usage: sound <on|off>`, type: 'error' },
-          ];
-        }
-      } else if (trimmedCmd in commands) {
-        const output = commands[trimmedCmd as keyof typeof commands];
-        if (output.isHtml) {
-          Promise.all(output.map(line => sanitizeHtml(line))).then(sanitized => {
-            const htmlLines: TerminalLine[] = sanitized.map(content => ({
-              content,
-              type: 'output' as const,
-              isHtml: true,
-            }));
-            renderOutput(htmlLines, startTime, trimmedCmd, currentSpinnerId);
-          }).catch(() => {
-            const fallback: TerminalLine[] = output.map(line => ({
-              content: line.replace(/<[^>]*>/g, ''),
-              type: 'output' as const,
-            }));
-            renderOutput(fallback, startTime, trimmedCmd, currentSpinnerId);
-          });
-          return;
-        }
-        outputLines = output.map(line => ({
-          content: line,
-          type: 'output' as const,
-        }));
-      } else {
-        onBellRef.current?.();
-        playSoundRef.current?.('error');
-        outputLines = [{ content: `Command not found: ${cmd}`, type: 'error' as const }];
+      });
+
+      // HTML commands need async sanitization
+      if (result.isHtml) {
+        Promise.all(result.lines.map(l => sanitizeHtml(l.content))).then(sanitized => {
+          renderOutput(
+            sanitized.map(content => ({ content, type: 'output' as const, isHtml: true })),
+            startTime, trimmedCmd, currentSpinnerId,
+          );
+        }).catch(() => {
+          renderOutput(
+            result.lines.map(l => ({ ...l, content: l.content.replace(/<[^>]*>/g, '') })),
+            startTime, trimmedCmd, currentSpinnerId,
+          );
+        });
+        return;
       }
 
-      renderOutput(outputLines, startTime, trimmedCmd, currentSpinnerId);
+      renderOutput(result.lines, startTime, trimmedCmd, currentSpinnerId);
     }, 600);
     spinnerTimeouts.current.add(timeoutId);
   }, [cancelMotdAnimation, displayMotd, displayHelp, setTheme, reducedMotion]);
