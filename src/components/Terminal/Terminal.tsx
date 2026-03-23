@@ -144,7 +144,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   const soundEnabledRef = useRef(soundEnabled);
   const isMobileRef = useRef(isMobile);
   const inputCommandRef = useRef(inputCommand);
-  const showSuggestionsRef = useRef(showSuggestions);
   const selectedSuggestionIndexRef = useRef(selectedSuggestionIndex);
   const suggestionModeRef = useRef(suggestionMode);
   const autoSuggestionRef = useRef(autoSuggestion);
@@ -156,7 +155,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   soundEnabledRef.current = soundEnabled;
   isMobileRef.current = isMobile;
   inputCommandRef.current = inputCommand;
-  showSuggestionsRef.current = showSuggestions;
   selectedSuggestionIndexRef.current = selectedSuggestionIndex;
   suggestionModeRef.current = suggestionMode;
   autoSuggestionRef.current = autoSuggestion;
@@ -194,6 +192,10 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   const filteredSuggestionsRef = useRef(filteredSuggestions);
   filteredSuggestionsRef.current = filteredSuggestions;
+
+  const suggestionsVisible = showSuggestions && filteredSuggestions.length > 0;
+  const suggestionsVisibleRef = useRef(suggestionsVisible);
+  suggestionsVisibleRef.current = suggestionsVisible;
 
   const hexBgStyle = useMemo(() => {
     const mask = 'radial-gradient(ellipse at 50% 45%, black 15%, transparent 65%)';
@@ -321,26 +323,14 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     updateAutoSuggestion(value);
 
     if (isMobileRef.current) {
-      const trimmed = value.trim().toLowerCase();
-      if (trimmed === '') {
-        setShowSuggestions(true);
-        setSuggestionMode('commands');
-        setSelectedSuggestionIndex(0);
-      } else {
-        const hasMatches = suggestions.some(s =>
-          s.command.toLowerCase().startsWith(trimmed)
-        );
-        setShowSuggestions(hasMatches);
-        if (hasMatches) {
-          setSuggestionMode('commands');
-          setSelectedSuggestionIndex(0);
-        }
-      }
+      setShowSuggestions(true);
+      setSuggestionMode('commands');
+      setSelectedSuggestionIndex(0);
     }
   }, [cancelMotdAnimation, updateAutoSuggestion]);
 
   const handleInputActivate = useCallback(() => {
-    if (inputCommandRef.current.trim() === '' && !showSuggestionsRef.current) {
+    if (inputCommandRef.current.trim() === '' && !suggestionsVisibleRef.current) {
       setShowSuggestions(true);
       setSuggestionMode('commands');
       setSelectedSuggestionIndex(0);
@@ -589,7 +579,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   const actionTab = useCallback(() => {
     cancelMotdAnimation();
-    if (showSuggestionsRef.current) {
+    if (suggestionsVisibleRef.current) {
       selectSuggestion(selectedSuggestionIndexRef.current);
     } else if (autoSuggestionRef.current) {
       completeAutoSuggestion();
@@ -602,7 +592,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   }, [cancelMotdAnimation, selectSuggestion, completeAutoSuggestion]);
 
   const actionUp = useCallback(() => {
-    if (showSuggestionsRef.current) {
+    if (suggestionsVisibleRef.current) {
       suppressHoverBriefly();
       const len = suggestionModeRef.current === 'themes' ? VALID_THEMES.length : filteredSuggestionsRef.current.length;
       setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : len - 1);
@@ -618,7 +608,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   }, []);
 
   const actionDown = useCallback(() => {
-    if (showSuggestionsRef.current) {
+    if (suggestionsVisibleRef.current) {
       suppressHoverBriefly();
       const len = suggestionModeRef.current === 'themes' ? VALID_THEMES.length : filteredSuggestionsRef.current.length;
       setSelectedSuggestionIndex(prev => prev < len - 1 ? prev + 1 : 0);
@@ -634,7 +624,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   }, []);
 
   const actionEnter = useCallback(() => {
-    if (showSuggestionsRef.current && inputCommandRef.current.trim() === '') {
+    if (suggestionsVisibleRef.current && inputCommandRef.current.trim() === '') {
       selectSuggestion(selectedSuggestionIndexRef.current);
     } else {
       setShowSuggestions(false);
@@ -678,9 +668,9 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
         }
         return;
       case 'Escape':
-        if (showSuggestionsRef.current && suggestionModeRef.current === 'themes') {
+        if (suggestionsVisibleRef.current && suggestionModeRef.current === 'themes') {
           backToCommands();
-        } else if (showSuggestionsRef.current) {
+        } else if (suggestionsVisibleRef.current) {
           setShowSuggestions(false);
           setSelectedSuggestionIndex(0);
         } else {
@@ -863,14 +853,14 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
           autoSuggestion={autoSuggestion}
           isInputBlocked={isInputBlocked}
           isMobile={isMobile}
-          showSuggestions={showSuggestions}
+          showSuggestions={suggestionsVisible}
           onInputChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onInputClick={isMobile ? handleInputActivate : undefined}
           onFocus={isMobile ? handleInputActivate : undefined}
           inputRef={inputRef}
         />
-        {showSuggestions && (
+        {suggestionsVisible && (
           <Suggestions
             ref={suggestionsRef}
             suggestions={filteredSuggestions}
