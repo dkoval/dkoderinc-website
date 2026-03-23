@@ -189,9 +189,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   const filteredSuggestionsRef = useRef(filteredSuggestions);
   filteredSuggestionsRef.current = filteredSuggestions;
 
-  const filteredLengthRef = useRef(filteredSuggestions.length);
-  filteredLengthRef.current = filteredSuggestions.length;
-
   const hexBgStyle = useMemo(() => {
     const mask = 'radial-gradient(ellipse at 50% 45%, black 15%, transparent 65%)';
     return {
@@ -337,15 +334,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     }
   }, [cancelMotdAnimation, updateAutoSuggestion]);
 
-  const handleInputFocus = useCallback(() => {
-    if (inputCommandRef.current.trim() === '' && !showSuggestionsRef.current) {
-      setShowSuggestions(true);
-      setSuggestionMode('commands');
-      setSelectedSuggestionIndex(0);
-    }
-  }, []);
-
-  const handleInputClick = useCallback(() => {
+  const handleInputActivate = useCallback(() => {
     if (inputCommandRef.current.trim() === '' && !showSuggestionsRef.current) {
       setShowSuggestions(true);
       setSuggestionMode('commands');
@@ -610,7 +599,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   const actionUp = useCallback(() => {
     if (showSuggestionsRef.current) {
-      const len = suggestionModeRef.current === 'themes' ? VALID_THEMES.length : filteredLengthRef.current;
+      const len = suggestionModeRef.current === 'themes' ? VALID_THEMES.length : filteredSuggestionsRef.current.length;
       setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : len - 1);
     } else if (commandHistoryRef.current.length > 0) {
       const history = commandHistoryRef.current;
@@ -625,7 +614,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   const actionDown = useCallback(() => {
     if (showSuggestionsRef.current) {
-      const len = suggestionModeRef.current === 'themes' ? VALID_THEMES.length : filteredLengthRef.current;
+      const len = suggestionModeRef.current === 'themes' ? VALID_THEMES.length : filteredSuggestionsRef.current.length;
       setSelectedSuggestionIndex(prev => prev < len - 1 ? prev + 1 : 0);
     } else if (commandHistoryRef.current.length > 0) {
       const history = commandHistoryRef.current;
@@ -871,8 +860,8 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
           showSuggestions={showSuggestions}
           onInputChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          onInputClick={isMobile ? handleInputClick : undefined}
-          onFocus={isMobile ? handleInputFocus : undefined}
+          onInputClick={isMobile ? handleInputActivate : undefined}
+          onFocus={isMobile ? handleInputActivate : undefined}
           inputRef={inputRef}
         />
         {showSuggestions && (

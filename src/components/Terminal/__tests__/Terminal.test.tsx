@@ -83,8 +83,7 @@ describe('Terminal', () => {
   it('renders contact output as HTML with links', async () => {
     renderWithProviders(<Terminal {...defaultProps} />);
     submitCommand('contact');
-    // DOMPurify is lazy-loaded — two flushes needed: first fires the 600ms timeout,
-    // second resolves the dynamic import() promise after suggestion state transitions
+    // DOMPurify is lazy-loaded — two flushes needed: timeout then dynamic import()
     await act(async () => { await vi.advanceTimersByTimeAsync(600); });
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
     const link = screen.getByText('github.com/dkoval');
