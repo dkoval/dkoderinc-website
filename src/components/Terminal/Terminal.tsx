@@ -120,6 +120,12 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
   const terminalRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const suppressHoverRef = useRef(false);
+  const suppressHoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suppressHoverBriefly = () => {
+    suppressHoverRef.current = true;
+    if (suppressHoverTimerRef.current) clearTimeout(suppressHoverTimerRef.current);
+    suppressHoverTimerRef.current = setTimeout(() => { suppressHoverRef.current = false; }, 100);
+  };
   const spinnerTimeouts = useRef(new Set<ReturnType<typeof setTimeout>>());
   const spinnerIdRef = useRef(0);
   const motdDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -591,15 +597,13 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       setSuggestionMode('commands');
       setShowSuggestions(true);
       setSelectedSuggestionIndex(0);
-      suppressHoverRef.current = true;
-      setTimeout(() => { suppressHoverRef.current = false; }, 100);
+      suppressHoverBriefly();
     }
   }, [cancelMotdAnimation, selectSuggestion, completeAutoSuggestion]);
 
   const actionUp = useCallback(() => {
     if (showSuggestionsRef.current) {
-      suppressHoverRef.current = true;
-      setTimeout(() => { suppressHoverRef.current = false; }, 100);
+      suppressHoverBriefly();
       const len = suggestionModeRef.current === 'themes' ? VALID_THEMES.length : filteredSuggestionsRef.current.length;
       setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : len - 1);
     } else if (commandHistoryRef.current.length > 0) {
@@ -615,8 +619,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
 
   const actionDown = useCallback(() => {
     if (showSuggestionsRef.current) {
-      suppressHoverRef.current = true;
-      setTimeout(() => { suppressHoverRef.current = false; }, 100);
+      suppressHoverBriefly();
       const len = suggestionModeRef.current === 'themes' ? VALID_THEMES.length : filteredSuggestionsRef.current.length;
       setSelectedSuggestionIndex(prev => prev < len - 1 ? prev + 1 : 0);
     } else if (commandHistoryRef.current.length > 0) {
