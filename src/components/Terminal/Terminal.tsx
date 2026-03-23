@@ -314,22 +314,22 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     playSoundRef.current?.('keypress');
     updateAutoSuggestion(value);
 
-    // Show/hide suggestions based on input
-    const trimmed = value.trim().toLowerCase();
-    if (trimmed === '') {
-      // Backspaced to empty — re-open full list
-      setShowSuggestions(true);
-      setSuggestionMode('commands');
-      setSelectedSuggestionIndex(0);
-    } else {
-      // Check if any commands match
-      const hasMatches = suggestions.some(s =>
-        s.command.toLowerCase().startsWith(trimmed)
-      );
-      setShowSuggestions(hasMatches);
-      if (hasMatches) {
+    // Show/hide mobile suggestion dropdown based on input
+    if (isMobileRef.current) {
+      const trimmed = value.trim().toLowerCase();
+      if (trimmed === '') {
+        setShowSuggestions(true);
         setSuggestionMode('commands');
         setSelectedSuggestionIndex(0);
+      } else {
+        const hasMatches = suggestions.some(s =>
+          s.command.toLowerCase().startsWith(trimmed)
+        );
+        setShowSuggestions(hasMatches);
+        if (hasMatches) {
+          setSuggestionMode('commands');
+          setSelectedSuggestionIndex(0);
+        }
       }
     }
   }, [cancelMotdAnimation, updateAutoSuggestion]);
@@ -588,7 +588,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       selectSuggestion(selectedSuggestionIndexRef.current);
     } else if (autoSuggestionRef.current) {
       completeAutoSuggestion();
-    } else {
+    } else if (isMobileRef.current) {
       setSuggestionMode('commands');
       setShowSuggestions(true);
       setSelectedSuggestionIndex(0);
