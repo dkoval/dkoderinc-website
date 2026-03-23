@@ -587,7 +587,7 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
       selectSuggestion(selectedSuggestionIndexRef.current);
     } else if (autoSuggestionRef.current) {
       completeAutoSuggestion();
-    } else if (isMobileRef.current) {
+    } else {
       setSuggestionMode('commands');
       setShowSuggestions(true);
       setSelectedSuggestionIndex(0);
