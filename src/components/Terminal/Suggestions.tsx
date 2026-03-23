@@ -17,7 +17,7 @@ interface SuggestionsProps {
 }
 
 const highlightMatch = (command: string, filter: string) => {
-  if (!filter) return <span>{command}</span>;
+  if (!filter) return <span style={{ color: 'var(--terminal-primary)' }}>{command}</span>;
   const matchEnd = filter.length;
   return (
     <>
@@ -37,7 +37,7 @@ const Suggestions = memo(({ suggestions, selectedIndex, onSelect, onMouseEnter, 
         ref={ref}
         id="terminal-suggestions"
         role="listbox"
-        className="absolute bottom-full left-0 right-0 mb-1 z-20 overflow-y-auto rounded border"
+        className="absolute bottom-full left-0 right-0 mb-1 z-20 overflow-y-auto rounded border scrollbar-hide"
         style={{
           maxHeight: 'min(50vh, 200px)',
           background: 'var(--terminal-bg)',
@@ -70,9 +70,9 @@ const Suggestions = memo(({ suggestions, selectedIndex, onSelect, onMouseEnter, 
                 onMouseEnter={() => onMouseEnter(index)}
               >
                 {suggestion.icon}
-                <span className="font-mono">{highlightMatch(suggestion.command, filterText ?? '')}</span>
-                <span style={{ color: 'var(--terminal-primary-dark)' }}>-</span>
-                <span style={{ color: 'var(--terminal-gray)' }}>{suggestion.description}</span>
+                <span className="font-mono shrink-0">{highlightMatch(suggestion.command, filterText ?? '')}</span>
+                <span className="shrink-0" style={{ color: 'var(--terminal-primary-dark)' }}>-</span>
+                <span className="truncate" style={{ color: 'var(--terminal-gray)' }}>{suggestion.description}</span>
               </button>
             ))
           : themes?.map((t, index) => (
