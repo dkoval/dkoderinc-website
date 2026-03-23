@@ -151,6 +151,14 @@ body {
   background: var(--terminal-primary);
 }
 
+/* Hidden scrollbar (scroll still works) */
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* CRT shutdown animation - vertical collapse to horizontal line, then shrink to dot */
 @keyframes crt-collapse {
   0% {

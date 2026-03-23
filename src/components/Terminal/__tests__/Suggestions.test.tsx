@@ -14,8 +14,9 @@ const defaultProps = {
   onBack: vi.fn(),
 };
 
+
 describe('Suggestions', () => {
-  it('renders all 11 command suggestions in commands mode', () => {
+  it('renders all 10 command suggestions in commands mode', () => {
     render(<Suggestions {...defaultProps} />);
     for (const s of suggestions) {
       expect(screen.getByText(s.command)).toBeInTheDocument();
@@ -45,5 +46,29 @@ describe('Suggestions', () => {
     render(<Suggestions {...defaultProps} onSelect={onSelect} />);
     fireEvent.click(screen.getByText('whoami'));
     expect(onSelect).toHaveBeenCalledWith(0);
+  });
+
+  it('has role="listbox" on the container', () => {
+    render(<Suggestions {...defaultProps} />);
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
+  it('has role="option" on each suggestion item', () => {
+    render(<Suggestions {...defaultProps} />);
+    const options = screen.getAllByRole('option');
+    expect(options.length).toBe(defaultProps.suggestions.length);
+  });
+
+  it('sets aria-label="Run <command>" on each item', () => {
+    render(<Suggestions {...defaultProps} />);
+    const options = screen.getAllByRole('option');
+    expect(options[0]).toHaveAttribute('aria-label', `Run ${defaultProps.suggestions[0].command}`);
+  });
+
+  it('highlights matching prefix when filterText is provided', () => {
+    render(<Suggestions {...defaultProps} filterText="sk" />);
+    const option = screen.getByRole('option', { name: /Run skills/ });
+    const highlight = option.querySelector('[data-highlight="match"]');
+    expect(highlight).toHaveTextContent('sk');
   });
 });

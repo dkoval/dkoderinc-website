@@ -2,30 +2,10 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import BootSplash from './components/BootSplash';
 import Sidebar from './components/Sidebar';
 import TerminalWindow from './components/TerminalWindow';
-import Terminal, { TerminalHandle } from './components/Terminal';
+import Terminal from './components/Terminal';
 import { resetPageLoadTime } from './constants';
-import { List } from 'lucide-react';
 import { useTheme } from './ThemeContext';
 import useSoundEngine from './hooks/useSoundEngine';
-
-const MOBILE_BTN_STYLE = {
-  background: 'var(--terminal-surface)',
-  color: 'var(--terminal-primary)',
-  border: '1px solid var(--terminal-border)',
-} as const;
-
-const MOBILE_BTN_STYLE_EMPHASIZED = {
-  background: 'var(--terminal-primary)',
-  color: 'var(--terminal-bg)',
-  border: '1px solid var(--terminal-primary)',
-} as const;
-
-const mobileKeys = [
-  { label: 'Cmds', action: 'tab' as const, icon: true },
-  { label: '↑', action: 'up' as const },
-  { label: '↓', action: 'down' as const },
-  { label: '⏎ Enter', action: 'enter' as const, emphasized: true },
-];
 
 const SHUTDOWN_MESSAGES = [
   'Broadcast message from root@dkoderinc (pts/0):',
@@ -56,8 +36,6 @@ const App = () => {
     setShowBootSplash(false);
     sound.play('boot');
   }, [sound]);
-  const terminalRef = useRef<TerminalHandle>(null);
-
   const [bellFlash, setBellFlash] = useState(false);
   const bellTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
@@ -73,8 +51,6 @@ const App = () => {
   useEffect(() => {
     return () => { if (bellTimerRef.current) clearTimeout(bellTimerRef.current); };
   }, []);
-
-  const [isRevealing, setIsRevealing] = useState(false);
 
   const [shutdownPhase, setShutdownPhase] = useState<ShutdownPhase>(null);
   const [shutdownLines, setShutdownLines] = useState(0);
@@ -254,38 +230,15 @@ const App = () => {
             <TerminalWindow bellFlash={bellFlash} onSoundToggle={sound.toggle} soundEnabled={sound.enabled}>
               <Terminal
                 key={sessionKey}
-                ref={terminalRef}
                 onShutdown={handleShutdown}
                 onBell={handleBell}
                 playSound={sound.play}
                 soundEnabled={sound.enabled}
                 onSoundSet={sound.setEnabled}
-                onRevealStateChange={setIsRevealing}
                 bootComplete={!showBootSplash}
               />
             </TerminalWindow>
           </main>
-        </div>
-        {/* Mobile virtual keyboard shortcuts */}
-        <div
-          className="flex md:hidden shrink-0 gap-2 p-2 border-t"
-          style={{ borderColor: 'var(--terminal-border)' }}
-        >
-          {mobileKeys.map(({ label, action, icon, emphasized }) => (
-            <button
-              key={label}
-              className={`flex-1 py-2 font-mono text-sm rounded inline-flex items-center justify-center gap-1 ${isRevealing ? 'opacity-50 pointer-events-none' : ''}`}
-              style={emphasized ? MOBILE_BTN_STYLE_EMPHASIZED : MOBILE_BTN_STYLE}
-              data-mobile-action={action}
-              onClick={() => {
-                navigator.vibrate?.(10);
-                terminalRef.current?.handleMobileAction(action);
-              }}
-            >
-              {icon && <List className="w-3.5 h-3.5" />}
-              {label}
-            </button>
-          ))}
         </div>
         {/* Copyright */}
         <div
