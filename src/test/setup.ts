@@ -77,12 +77,6 @@ window.requestAnimationFrame = (cb: FrameRequestCallback) =>
   setTimeout(() => cb(performance.now()), 0) as unknown as number;
 window.cancelAnimationFrame = (id: number) => clearTimeout(id);
 
-// navigator.vibrate mock
-Object.defineProperty(navigator, 'vibrate', {
-  writable: true,
-  value: vi.fn(),
-});
-
 // Default matchMedia predicate (all queries return false = mobile, no reduced motion)
 const defaultMatchMedia = (query: string) => ({
   matches: false,
