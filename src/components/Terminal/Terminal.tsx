@@ -314,7 +314,6 @@ const Terminal = ({ onShutdown, onBell, playSound, soundEnabled, onSoundSet, onR
     playSoundRef.current?.('keypress');
     updateAutoSuggestion(value);
 
-    // Show/hide mobile suggestion dropdown based on input
     if (isMobileRef.current) {
       const trimmed = value.trim().toLowerCase();
       if (trimmed === '') {
