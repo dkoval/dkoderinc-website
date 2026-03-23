@@ -46,8 +46,8 @@ describe('commands registry', () => {
 });
 
 describe('suggestions', () => {
-  it('has exactly 11 entries', () => {
-    expect(suggestions).toHaveLength(11);
+  it('has exactly 10 entries', () => {
+    expect(suggestions).toHaveLength(10);
   });
 
   it('each entry has command, description, and icon', () => {
@@ -60,7 +60,7 @@ describe('suggestions', () => {
 
   const expectedCommands = [
     'whoami', 'man dmytro', 'skills', 'history', 'contact',
-    'uptime', 'theme', 'sound', 'help', 'clear', 'exit',
+    'theme', 'sound', 'help', 'clear', 'exit',
   ];
 
   it('contains all expected commands', () => {

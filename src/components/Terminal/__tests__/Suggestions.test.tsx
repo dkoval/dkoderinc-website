@@ -16,7 +16,7 @@ const defaultProps = {
 
 
 describe('Suggestions', () => {
-  it('renders all 11 command suggestions in commands mode', () => {
+  it('renders all 10 command suggestions in commands mode', () => {
     render(<Suggestions {...defaultProps} />);
     for (const s of suggestions) {
       expect(screen.getByText(s.command)).toBeInTheDocument();

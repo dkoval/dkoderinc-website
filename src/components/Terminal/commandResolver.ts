@@ -1,6 +1,5 @@
 import { commands } from './commands';
 import { TerminalLine } from './types';
-import { PAGE_LOAD_TIME, formatUptime, getCurrentTime } from '../../constants';
 import { ThemeName, VALID_THEMES } from '../../ThemeContext';
 
 const RESPONSIVE_COMMANDS: Record<string, { mobile: string; desktop: string }> = {
@@ -36,18 +35,6 @@ export function resolveCommand(cmd: string, ctx: CommandContext): CommandResult 
     const key = ctx.isMobile ? variant.mobile : variant.desktop;
     return {
       lines: commands[key].map(line => ({ content: line, type: 'output' as const })),
-    };
-  }
-
-  if (cmd === 'uptime') {
-    const seconds = Math.floor((Date.now() - PAGE_LOAD_TIME) / 1000);
-    const timeStr = getCurrentTime();
-    const base = (Date.now() % 100) / 100;
-    const load1 = (0.3 + base * 0.4).toFixed(2);
-    const load5 = (0.2 + base * 0.25).toFixed(2);
-    const load15 = (0.05 + base * 0.15).toFixed(2);
-    return {
-      lines: [{ content: ` ${timeStr} up ${formatUptime(seconds)},  1 user,  load average: ${load1}, ${load5}, ${load15}`, type: 'output' }],
     };
   }
 
