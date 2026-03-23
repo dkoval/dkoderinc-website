@@ -1,4 +1,4 @@
-import { Ref, memo } from 'react';
+import { Ref, memo, useEffect, useRef } from 'react';
 import { ChevronLeft, Palette } from 'lucide-react';
 import { CommandSuggestion } from './types';
 import { ThemeName } from '../../ThemeContext';
@@ -32,14 +32,29 @@ const highlightMatch = (command: string, filter: string) => {
 };
 
 const Suggestions = memo(({ suggestions, selectedIndex, onSelect, onMouseEnter, mode, themes, currentTheme, onBack, filterText, ref }: SuggestionsProps) => {
+    const listRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      const container = listRef.current;
+      if (!container) return;
+      const selected = container.querySelector('[aria-selected="true"]');
+      if (selected && 'scrollIntoView' in selected) {
+        selected.scrollIntoView({ block: 'nearest' });
+      }
+    }, [selectedIndex]);
+
     return (
       <div
-        ref={ref}
+        ref={(node) => {
+          listRef.current = node;
+          if (typeof ref === 'function') ref(node);
+          else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        }}
         id="terminal-suggestions"
         role="listbox"
         className="absolute bottom-full left-0 right-0 mb-1 z-20 overflow-y-auto rounded border scrollbar-hide"
         style={{
-          maxHeight: 'min(50vh, 200px)',
+          maxHeight: 'min(50vh, 440px)',
           background: 'var(--terminal-bg)',
           borderColor: 'color-mix(in srgb, var(--terminal-primary) 30%, transparent)',
         }}
